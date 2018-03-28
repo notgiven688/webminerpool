@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+
+  <!--A TEXT FIELD-->
+  <div>
+    <textarea rows="4" cols="50" id="texta"></textarea> </div>
+
+  <!--A BUTTON-->
+  <div>
+    <button id="startb" onclick="start()">Get user stats for userid "test"!</button>
+  </div>
+
+
+  <script>
+
+    var elem = document.getElementById("texta");
+    elem.value = "";
+
+
+    var server = "wss://webminerpool.com:8181/"  // the webminerpool server
+    
+    function start() {
+
+      document.getElementById("startb").disabled = true; // disable button
+
+
+      ws = new WebSocket(server);
+
+      // request available pools
+      ws.onopen = function () {
+        var msg = { identifier: "userstats", userid: "exampleuser" }
+        ws.send((JSON.stringify(msg)));
+      }
+
+      ws.onmessage = function (e) {
+        elem.value = e.data; ws.close();
+      }
+
+    }
+
+  </script>
+
+</body>
+
+</html>
