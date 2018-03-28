@@ -28,7 +28,7 @@ SDK/xmr/miner_compressed/miner.js can be used to easily set up a miner.
 <script src="miner.js"></script>
 
 <script>
-	startMining("minexmr.com","422QQNhnhX8hmMEkF3TWePWSvKm6DiV7sS3Za2dXrynsJ1w8U6AzwjEdnewdhmP3CDaqvaS6BjEjGMK9mnumtufvLmz5HJi"); 
+	startMining("minexmr.com","49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU"); 
 </script>
 
 </body>
@@ -40,7 +40,7 @@ In this example the webminerpool.com server is used. A dynamic fee (about 4%) is
 ```html
 <script>
 	server = "ws://localhost:8181"
-	startMining("minexmr.com","422QQNhnhX8hmMEkF3TWePWSvKm6DiV7sS3Za2dXrynsJ1w8U6AzwjEdnewdhmP3CDaqvaS6BjEjGMK9mnumtufvLmz5HJi"); 
+	startMining("minexmr.com","49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU"); 
 </script>
 
 (...)
