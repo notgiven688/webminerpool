@@ -1,0 +1,23 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server.csproj", "{DC564972-9DEF-4897-A8F5-C4C21CEBDE2F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+		Release_XMR|Any CPU = Release_XMR|Any CPU
+		Release_AEON|Any CPU = Release_AEON|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DC564972-9DEF-4897-A8F5-C4C21CEBDE2F}.Debug|x86.ActiveCfg = Debug|x86
+		{DC564972-9DEF-4897-A8F5-C4C21CEBDE2F}.Debug|x86.Build.0 = Debug|x86
+		{DC564972-9DEF-4897-A8F5-C4C21CEBDE2F}.Release_AEON|Any CPU.ActiveCfg = Release_AEON|Any CPU
+		{DC564972-9DEF-4897-A8F5-C4C21CEBDE2F}.Release_AEON|Any CPU.Build.0 = Release_AEON|Any CPU
+		{DC564972-9DEF-4897-A8F5-C4C21CEBDE2F}.Release_XMR|Any CPU.ActiveCfg = Release_XMR|Any CPU
+		{DC564972-9DEF-4897-A8F5-C4C21CEBDE2F}.Release_XMR|Any CPU.Build.0 = Release_XMR|Any CPU
+		{DC564972-9DEF-4897-A8F5-C4C21CEBDE2F}.Release|x86.ActiveCfg = Release|x86
+		{DC564972-9DEF-4897-A8F5-C4C21CEBDE2F}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+EndGlobal
