@@ -1,0 +1,37 @@
+dist: trusty
+sudo: required 
+language: cpp
+
+services:
+  - docker
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - gcc-4.9
+      - g++-4.9
+
+compiler:
+  - clang
+  - gcc
+
+env:
+  - OPT_LEVEL=""
+  - OPT_LEVEL="-O0"
+  - OPT_LEVEL="-O1"
+  - OPT_LEVEL="-O2"
+  - OPT_LEVEL="-O3"
+  - USE_SSE2=1 OPT_LEVEL=""
+  - USE_SSE2=1 OPT_LEVEL="-O0"
+  - USE_SSE2=1 OPT_LEVEL="-O1"
+  - USE_SSE2=1 OPT_LEVEL="-O2"
+  - USE_SSE2=1 OPT_LEVEL="-O3"
+
+before_install:
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
+  - docker pull trzeci/emscripten:sdk-tag-1.37.3-64bit
+
+script:
+  - ./test.sh

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{DC564972-9DEF-4897-A8F5-C4C21CEBDE2F}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Server</RootNamespace>
+    <AssemblyName>server</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Externalconsole>true</Externalconsole>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Externalconsole>true</Externalconsole>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_XMR|AnyCPU' ">
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release_XMR</OutputPath>
+    <WarningLevel>4</WarningLevel>
+    <Externalconsole>true</Externalconsole>
+    <DefineConstants>XMR WSS</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_AEON|AnyCPU' ">
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release_AEON</OutputPath>
+    <WarningLevel>4</WarningLevel>
+    <DefineConstants>AEON WSS</DefineConstants>
+    <Externalconsole>true</Externalconsole>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Net" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="JSONParser.cs" />
+    <Compile Include="EmptyWebsocket.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="PoolConnection.cs" />
+    <Compile Include="DataStructures.cs" />
+    <Compile Include="Execute.cs" />
+    <Compile Include="Fleck\BufferPool.cs" />
+    <Compile Include="Fleck\ConnectionNotAvailableException.cs" />
+    <Compile Include="Fleck\FleckLog.cs" />
+    <Compile Include="Fleck\FrameType.cs" />
+    <Compile Include="Fleck\HandlerFactory.cs" />
+    <Compile Include="Fleck\HandshakeException.cs" />
+    <Compile Include="Fleck\IntExtensions.cs" />
+    <Compile Include="Fleck\QueuedStream.cs" />
+    <Compile Include="Fleck\ReadState.cs" />
+    <Compile Include="Fleck\RequestParser.cs" />
+    <Compile Include="Fleck\SocketWrapper.cs" />
+    <Compile Include="Fleck\SubProtocolNegotiationFailureException.cs" />
+    <Compile Include="Fleck\SubProtocolNegotiator.cs" />
+    <Compile Include="Fleck\WebSocketConnection.cs" />
+    <Compile Include="Fleck\WebSocketConnectionInfo.cs" />
+    <Compile Include="Fleck\WebSocketException.cs" />
+    <Compile Include="Fleck\WebSocketHttpRequest.cs" />
+    <Compile Include="Fleck\WebSocketServer.cs" />
+    <Compile Include="Fleck\WebSocketStatusCodes.cs" />
+    <Compile Include="Fleck\Handlers\ComposableHandler.cs" />
+    <Compile Include="Fleck\Handlers\Draft76Handler.cs" />
+    <Compile Include="Fleck\Handlers\FlashSocketPolicyRequestHandler.cs" />
+    <Compile Include="Fleck\Handlers\Hybi13Handler.cs" />
+    <Compile Include="Fleck\Helpers\MonoHelper.cs" />
+    <Compile Include="Fleck\Interfaces\IHandler.cs" />
+    <Compile Include="Fleck\Interfaces\ISocket.cs" />
+    <Compile Include="Fleck\Interfaces\IWebSocketConnection.cs" />
+    <Compile Include="Fleck\Interfaces\IWebSocketConnectionInfo.cs" />
+    <Compile Include="Fleck\Interfaces\IWebSocketServer.cs" />
+    <Compile Include="Firewall.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>
