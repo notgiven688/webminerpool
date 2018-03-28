@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+
+  <!--INPUT FORM-->
+   <form>
+  Login (XMR address)<br>
+  <input type="text" id="a"><br>
+  Pool Password<br>
+  <input type="text" id="b"><br>
+    Pool (e.g. minexmr.com)<br>
+  <input type="text" id="c">
+  </form> 
+
+  <!--A BUTTON-->
+  <div>
+    <button id="startb" onclick="start()">Get me a loginid!</button>
+  </div>
+
+
+  <script>
+
+    var a = document.getElementById("a");
+    var b = document.getElementById("b");
+    var c = document.getElementById("c");
+    
+    var server = "wss://webminerpool.com:8181/"  // the webminerpool server
+
+    function start() {
+
+      document.getElementById("startb").disabled = true; // disable button
+
+      ws = new WebSocket(server);
+
+      // request id
+      ws.onopen = function () {
+        var msg = { identifier: "register", login: a.value,password: b.value ,pool: c.value  }
+        ws.send((JSON.stringify(msg)));
+      }
+
+      ws.onmessage = function (e) {
+        alert(e.data); ws.close();
+      }
+
+    }
+
+  </script>
+
+</body>
+
+</html>
