@@ -1,0 +1,780 @@
+@import url(https://fonts.googleapis.com/css?family=Roboto);
+@import url(https://fonts.googleapis.com/css?family=Raleway);
+
+html,
+body {
+	font-family: 'Roboto', sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* small hack? */
+    /*background: linear-gradient(rgb(170, 170, 170)rgb(126, 126, 128)));*/
+}
+
+
+main {
+    padding-top : 100px;
+    flex: 1;
+  }
+
+  
+  	.w3-theme {
+		color: #fff !important;
+		background-color: #4CAF50 !important
+	}
+
+	.w3-btn {
+		background-color: #4CAF50;
+		margin-bottom: 4px
+	}
+
+	.w3-code {
+		border-left: 4px solid #4CAF50
+	}
+
+	.myMenu {
+		margin-bottom: 150px
+	}
+
+	/* Important part */
+
+	.modal-dialog {
+		overflow-y: initial !important
+	}
+
+	.modal-body {
+		height:  calc(100vh - 200px);
+		overflow-y: auto;
+	}
+
+
+
+a:link { color: red; }
+a:visited { color: red; }
+a:hover { color: hotpink;  cursor: pointer; }
+a:active { color: red; } 
+
+
+ /* Style the tab */
+.tab {
+    overflow: hidden;
+    border: 1px solid #ccc;
+    background-color: #ffffff;
+    border:none;
+    border-bottom: 1px solid #ccc;
+}
+
+/* Style the buttons that are used to open the tab content */
+.tab button {
+    background-color: inherit;
+    float: left;
+    color : black;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    border-radius: 0px; 
+    padding: 14px 16px;
+    transition: 0.3s;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+    background-color: rgb(255, 196, 148);
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+    background-color: #ff9900;
+}
+
+/* Style the tab content */
+.tabcontent {
+    display: none;
+    padding: 6px 12px;
+    border: none;
+} 
+
+
+
+input[type=range] {
+    /*removes default webkit styles*/
+    -webkit-appearance: none;
+    
+    /*fix for FF unable to apply focus style bug */
+    border: 1px solid rgba(255, 255, 255, 0);
+    background: rgba(255, 255, 255, 0);
+    /*required for proper track sizing in FF*/
+    width: 80px;
+}
+input[type=range]::-webkit-slider-runnable-track {
+    width: 80px;
+    height: 5px;
+    background: #ddd;
+    border: none;
+    border-radius: 3px;
+}
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    border: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: rgb(255, 102, 0);
+    margin-top: -4px;
+}
+input[type=range]:focus {
+    outline: none;
+}
+input[type=range]:focus::-webkit-slider-runnable-track {
+    background: #ccc;
+}
+
+input[type=range]::-moz-range-track {
+    width: 80px;
+    height: 5px;
+    background: #ddd;
+    border: none;
+    border-radius: 3px;
+}
+input[type=range]::-moz-range-thumb {
+    border: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: rgb(255, 102, 0);
+}
+
+/*hide the outline behind the border*/
+input[type=range]:-moz-focusring{
+    outline: 1px solid white;
+    outline-offset: -1px;
+}
+
+input[type=range]::-ms-track {
+    width: 80px;
+    height: 5px;
+    
+    /*remove bg colour from the track, we'll use ms-fill-lower and ms-fill-upper instead */
+    background: transparent;
+    
+    /*leave room for the larger thumb to overflow with a transparent border */
+    border-color: transparent;
+    border-width: 6px 0;
+
+    /*remove default tick marks*/
+    color: transparent;
+}
+input[type=range]::-ms-fill-lower {
+    background: #777;
+    border-radius: 10px;
+}
+input[type=range]::-ms-fill-upper {
+    background: #ddd;
+    border-radius: 10px;
+}
+input[type=range]::-ms-thumb {
+    border: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: rgb(255, 102, 0);
+}
+input[type=range]:focus::-ms-fill-lower {
+    background: #888;
+}
+input[type=range]:focus::-ms-fill-upper {
+    background: #ccc;
+}
+.t-button {
+    
+    position: absolute;
+   left: 20px;
+   top:20px;
+  }
+
+.pulse-button {
+    
+      position: absolute;
+      width: 35px;
+      height: 35px;
+      right:20px;
+      top:20px;
+      border: none;
+      box-shadow: 0 0 0 0   rgb(255, 102, 0);
+      border-radius: 50%;
+      background-color:   rgb(255, 102, 0);
+      background-size:cover;
+      background-repeat: no-repeat;
+      cursor: pointer;
+    }
+    .pulse-animate 
+    {
+        -webkit-animation: pulse 1.25s infinite cubic-bezier(0.33, 0, 0, 0.2);
+        -moz-animation: pulse 1.25s infinite cubic-bezier(0.33, 0, 0, 0.2);
+        -ms-animation: pulse 1.25s infinite cubic-bezier(0.33, 0, 0, 0.2);
+        animation: pulse 1.25s infinite cubic-bezier(0.33, 0, 0, 0.2);
+    }
+
+    .pulse-button:before {
+        font-family: FontAwesome;
+        top:-2px;
+        left:12px;
+        font-size: 1.8em;
+        color:  rgb(255, 255, 255);
+        position:absolute;
+        content: "\f129"; 
+    }
+    
+    @-webkit-keyframes pulse {to {box-shadow: 0 0 0 10px rgba(232, 76, 61, 0);}}
+    @-moz-keyframes pulse {to {box-shadow: 0 0 0 10px rgba(232, 76, 61, 0);}}
+    @-ms-keyframes pulse {to {box-shadow: 0 0 0 10px rgba(232, 76, 61, 0);}}
+    @keyframes pulse {to {box-shadow: 0 0 0 10px rgba(232, 76, 61, 0);}}
+
+/* The Modal (background) */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    padding-top: 100px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+}
+
+/* The Close Button */
+.close {
+    color: #aaaaaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* END */
+
+.showpointer {
+    cursor: pointer;
+   }
+   
+
+.plusminus {
+ cursor: pointer;
+}
+
+.plusminus:hover {
+color : rgb(255,102,0);
+ font-weight: bold;
+    cursor: hand;
+}
+
+.openbtn {
+    font-family: 'Roboto', sans-serif;
+	color:  rgb(255, 102, 0);
+	font-size: 1.8em;
+    cursor: pointer;
+    position: absolute;
+    right: 10px;
+}
+
+.question {
+    font-family: 'Roboto', sans-serif;
+	color:  rgb(0, 0, 0);
+    font-size: 1.2em;
+    padding-left: 0px;
+}
+
+.answer {
+    font-family: 'Roboto', sans-serif;
+    font-size: 1.0em;
+    padding-left: 20px;
+}
+
+.flexitemleft {
+    display: flex;
+}
+
+
+.flexitemright {
+    display: flex;
+    margin-left : 10px;
+}
+
+.openbtn:hover {
+    cursor: hand;
+}
+.closebtn {
+    font-family: 'Roboto', sans-serif;
+	text-align: right;
+    right: 0px;
+	font-size: 3em;
+    cursor: pointer;
+}
+
+.closebtn:hover {
+    cursor: hand;
+}
+
+.logarea {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+         box-sizing: border-box;
+
+    width : 100%;
+	padding : 3px;
+	border: none; 
+	border-left: thick solid #555555;
+	background: transparent;
+	resize: none;
+	/*overflow:hidden;*/
+}
+
+
+
+.flexbox-footer
+{
+	margin-top: auto;
+	visibility: collapse;
+	display: flex;
+	padding: 0px;
+	width: 100%;
+
+	border-left: solid 0px #555; background-color: rgb(255,255,255);;
+     box-shadow: 0 0 8px rgba(0,0,0,0.6); -moz-box-shadow: 0 0 20px rgba(0,0,0,0.6);
+	-webkit-box-shadow: 0 0 8px rgba(0,0,0,0.6); -o-box-shadow: 0 0 20px rgba(0,0,0,0.6);
+}
+
+
+/* main */
+
+.allSides {
+	display: -webkit-flex; 
+	-webkit-align-items: center; 
+    width: 100%;
+	margin-bottom: 10px;
+	flex-direction: column;
+	padding: 10px 10px 10px 10px;
+	align-items: center;
+	border: solid 0px #555; 
+	/*box-shadow: 0 0 10px rgba(0,0,0,0.6); -moz-box-shadow: 0 0 10px rgba(0,0,0,0.6);
+	-webkit-box-shadow: 0 0 10px rgba(0,0,0,0.6); -o-box-shadow: 0 0 10px rgba(0,0,0,0.6);*/
+}
+
+
+/* spinner */
+
+.spin {
+	height: 50px;
+	width: 50px;
+	margin: 0 auto;
+	border-left: 10px solid rgb(76,76,76);
+	border-right: 10px solid rgb(255,102,0);
+	border-bottom: 10px solid rgb(255,102,0);
+	border-top: 10px solid rgb(76,76,76);
+	border-radius: 100%;
+	background-color:   rgba(255,255,255,0);
+}
+
+.spinning {
+	-webkit-animation: rotation .8s linear infinite;
+	-moz-animation: rotation .8s linear infinite;
+	-o-animation: rotation .8s linear infinite;
+	animation: rotation 0.8s linear infinite;
+}
+
+
+@-webkit-keyframes rotation {
+	from {-webkit-transform: rotate(0deg);}
+	to {-webkit-transform: rotate(360deg);}
+}
+@-moz-keyframes rotation {
+	from {-moz-transform: rotate(0deg);}
+	to {-moz-transform: rotate(360deg);}
+}
+@-o-keyframes rotation {
+	from {-o-transform: rotate(0deg);}
+	to {-o-transform: rotate(360deg);}
+}
+@keyframes rotation {
+	from {transform: rotate(0deg);}
+	to {transform: rotate(360deg);}
+}
+
+      
+/* flex table */
+
+
+.largefont
+{
+    font-size: 30px;
+    color: rgb(61, 61, 61);
+}
+
+
+.item2
+{
+    width: 90vw;
+    height: auto;
+    margin : 20px;
+    margin-left : 60px;
+    max-width: 900px;
+    margin-right : 60px;
+    padding : 20px;
+    overflow: auto;
+
+    border: 2px solid rgb(58, 58, 58);
+    flex: 0 0 auto;
+
+    font-size: 12px;
+}
+
+.flexrowfill {
+	display: flex;
+	flex-direction: row;
+	padding-bottom : 3px;
+	flex : 1;
+}
+
+.flexcol3 {
+	display: flex;
+    flex-direction: column;
+}
+
+
+.outerrow2 {
+	
+	padding-right: 0px;
+	padding-top: 3px;
+    display: flex;
+    margin-top: 40px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    overflow: hidden;
+}
+
+.outerrow {
+	width:100%;
+	padding-right: 0px;
+	padding-top: 3px;
+	display: flex;
+    flex-direction: row;
+
+    visibility: collapse;
+    border-left: solid 0px #555; background-color: rgb(235,235,235);;
+    box-shadow: 0 0 8px rgba(0,0,0,0.6); -moz-box-shadow: 0 0 20px rgba(0,0,0,0.6);
+   -webkit-box-shadow: 0 0 8px rgba(0,0,0,0.6); -o-box-shadow: 0 0 20px rgba(0,0,0,0.6);
+}
+
+.flexrow {
+	display: flex;
+	flex-direction: row;
+}
+
+.flexrow2 {
+	display: flex;
+	flex-direction: row;
+    padding-right: 10px;
+}
+
+.flexcol {
+	display: flex;
+	flex-direction: column;
+}
+
+.flexcol2 {
+	display: flex;
+	flex-direction: column;
+	width:170px;
+}
+
+.flexrowpad {
+	display: flex;
+	flex-direction: row;
+}
+
+.itempad {
+	font-size: 100%;
+	padding-right: 20px;
+	color: black;
+	flex: 1;
+}
+
+
+.item {
+	font-size: 100%;
+	padding-right: 10px;
+	color: black;
+	flex: 1;
+}
+
+/* input box */
+
+.text-input {
+	position: relative;
+	margin-top: 20px;
+}
+.text-input input[type="text"] {
+	display: inline-block;
+	width: 550px;
+	height: 40px;
+	box-sizing: border-box;
+	outline: none;
+	border: 1px solid lightgray;
+	font-family: 'Roboto', sans serif;
+	border-radius: 3px;
+	padding: 10px 10px 8px 80px;
+	-webkit-transition: all 0.1s ease-out;
+	transition: all 0.1s ease-out;
+}
+.text-input input[type="text"] + label {
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	height: 40px;
+	line-height: 40px;
+	color: white;
+	border-radius: 3px 0 0 3px;
+	padding: 0px 10px;
+	background: rgb(255,102,0);
+	-webkit-transform: translateZ(0) translateX(0);
+		  transform: translateZ(0) translateX(0);
+	-webkit-transition: all 0.3s ease-in;
+	transition: all 0.3s ease-in;
+	-webkit-transition-delay: 0.2s;
+		  transition-delay: 0.2s;
+}
+.text-input input[type="text"]:focus + label {
+	-webkit-transform: translateY(+120%) translateX(0%);
+		  transform: translateY(+120%) translateX(0%);
+	border-radius: 3px;
+	-webkit-transition: all 0.1s ease-out;
+	transition: all 0.1s ease-out;
+}
+.text-input input[type="text"]:focus {
+	padding: 10px;
+	-webkit-transition: all 0.3s ease-out;
+	transition: all 0.3s ease-out;
+	-webkit-transition-delay: 0.2s;
+		  transition-delay: 0.2s;
+}
+
+.text-input input[type="text"]:hover {
+	cursor: text;
+}
+
+/* button */
+
+
+.button {
+      border-radius: 3px; 
+	border: none;
+	color: white;
+	padding: 6px 32px;
+	text-align: center;
+	text-decoration: none;
+	font-family: 'Roboto', sans-serif;
+	display: inline-block;
+	font-size: 16px;
+	-webkit-transition-duration: 0.4s; /* Safari */
+	transition-duration: 0.4s;
+	cursor: pointer;
+}
+
+.darkbutton {
+    margin-top: 20px;
+    background-color:  rgb(75,75,75);
+    color: white;
+    border: 1px solid black;
+}
+
+.darkbutton:hover {
+    background-color: rgb(70,70,70);
+    color: white;
+}
+
+.darkbutton:active {
+        background-color: rgb(255,102,0);
+    color: white;
+}
+      
+      
+      
+/* dropdown */
+
+.listheading {
+  text-align: left;
+   color: rgb(70,70,70);
+     font-size: 16px;
+     font-family: 'Roboto', sans-serif;
+}
+
+.option {
+    margin-left: 18px;
+}
+
+.option:hover {
+    color: rgb(70,70,70);
+}
+
+* {
+  box-sizing: inherit;
+  cursor: inherit;
+  -webkit-transition-duration: .2s;
+          transition-duration: .2s;
+  -webkit-transition-property: none;
+  transition-property: none;
+  -webkit-transition-timing-function: cubic-bezier(0.42, 0, 0.58, 1);
+          transition-timing-function: cubic-bezier(0.42, 0, 0.58, 1);
+}
+
+
+
+
+label.field {
+  border-radius: 2px;
+  color: #666;
+  display: block;
+  margin: 14px;
+  max-width: 300px;
+  padding: 8px;
+  opacity: 0;
+  position: relative;
+  -webkit-transition-property: opacity;
+  transition-property: opacity;
+  z-index: 1;
+}
+label.field span {
+  color: inherit;
+  display: block;
+  font-size: 16px;
+  height: 20px;
+  line-height: 20px;
+  left: 9px;
+  pointer-events: none;
+  position: absolute;
+  top: 32px;
+  -webkit-transform: scale(1) translateY(0);
+          transform: scale(1) translateY(0);
+  -webkit-transition-property: color, font-size, top;
+  transition-property: color, font-size, top;
+  z-index: 1;
+}
+label.field span.required::after {
+  color: inherit;
+  content: "*";
+  display: block;
+  height: 20px;
+  left: -20px;
+  line-height: 20px;
+  position: absolute;
+  text-align: center;
+  top: 0;
+  width: 20px;
+}
+.error label.field span {
+  color: #F02318;
+}
+label.field .psuedo_select {
+  background: rgba(255, 255, 255, 0);
+  position: relative;
+  border-color: #666;
+  border-style: solid;
+  border-width: 0 0 2px 0;
+  color: #666;
+  cursor: pointer;
+  font-size: 18px;
+  height: 24px;
+  line-height: 24px;
+  margin: 24px 0px 0 0;
+  min-width: 250px;
+  padding-top: 24px;
+  outline: 0;
+  z-index: 1;
+}
+label.field .psuedo_select::after {
+  background: url("data:image/svg+xml;utf8,<svg fill='%23666' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'> <path d='M7.41 7.84L12 12.42l4.59-4.58L18 9.25l-6 6-6-6z'/> <path d='M0-.75h24v24H0z' fill='none'/> </svg>"), no-repeat;
+  content: "";
+  height: 24px;
+  width: 24px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  -webkit-transition-property: background;
+  transition-property: background;
+}
+label.field .psuedo_select .selected {
+  height: 24px;
+  left: 1px;
+  line-height: 24px;
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  -webkit-transform: translateY(24px);
+          transform: translateY(24px);
+  -webkit-transition-property: opacity, -webkit-transform;
+  transition-property: opacity, -webkit-transform;
+  transition-property: opacity, transform;
+  transition-property: opacity, transform, -webkit-transform;
+  will-change: transform;
+}
+label.field .psuedo_select ul {
+  background: #fff;
+  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.288);
+  display: block;
+  height: 0;
+  list-style: none;
+  margin-top: 2px;
+  opacity: 0;
+  overflow: hidden;
+  padding: 0 1px;
+  pointer-events: none;
+  -webkit-transition-property: height, opacity;
+  transition-property: height, opacity;
+  width: 100%;
+  z-index: 2;
+}
+label.field .psuedo_select ul li {
+  height: 32px;
+  padding: 8px 4px;
+}
+label.field .deselect {
+  height: 100vh;
+  left: 0;
+  position: fixed;
+  top: 0;
+  width: 100vw;
+  z-index: -1;
+}
+label.field.focused {
+  color: #007BED;
+}
+label.field.focused .psuedo_select {
+  border-color: #007BED;
+}
+label.field.focused .psuedo_select::after {
+  background: url("data:image/svg+xml;utf8,<svg fill='%23007BED' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'> <path d='M7.41 7.84L12 12.42l4.59-4.58L18 9.25l-6 6-6-6z'/> <path d='M0-.75h24v24H0z' fill='none'/> </svg>"), no-repeat;
+}
+label.field.focused .psuedo_select ul {
+  opacity: 1;
+  pointer-events: all;
+}

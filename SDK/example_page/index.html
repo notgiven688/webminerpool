@@ -1,0 +1,386 @@
+<!--
+
+LICENSE FOR VISUAL ELEMENTS - CODEPEN
+
+Copyright (c) 2017 - Aditya Bhandari 
+Textbox /Text Input field Inspiration (Pure CSS) 
+https://codepen.io/takeradi/pen/mPyYeq
+
+Copyright (c) 2017 - Sam Murphey
+Material Design Select Dropdown 
+https://codepen.io/sammurphey/pen/BQvZbq
+
+
+Permission is hereby granted, free of charge, to any person 
+obtaining a copy of this software and associated documentation 
+files (the "Software"), to deal in the Software without restriction,
+ including without limitation the rights to use, copy, modify, 
+merge, publish, distribute, sublicense, and/or sell copies of 
+the Software, and to permit persons to whom the Software is 
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall 
+be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES 
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND 
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+DEALINGS IN THE SOFTWARE.
+
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=0.5">
+
+	<meta name="description" content="Monero mining in the browser.">
+	<meta name="keywords" content="Monero, Aeon, Browser, Mining, CoinHive, Alternative">
+	
+	<title>Mine Monero in your browser</title>
+	<link href="w3.css" rel="stylesheet">
+	<link href="style.css" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+
+
+
+	<!-- HEADER -->
+	<header>
+				<!-- empty -->	
+	</header>
+
+
+	<!-- MAIN -->
+	<main>
+
+		<div class="allSides">
+			<img src="miner.png" alt="minerpng">
+
+			<!-- MONERO ADDRESS -->
+			<div class="text-input" id="xmraddress">
+				<input type="text" id="moneroaddress" placeholder="Your Monero address goes here." name="xmrAddress"  autocomplete="username" ></input>
+				<label for="moneroaddress">
+					<i class="fa fa-paper-plane-o"></i>
+					XMR
+				</label>
+			</div>
+
+			<!-- SELECT POOL -->
+			<label id="poolselector" class="field" for="img_category" data-value="">
+				<span id="pooltext">
+					<i class="fa fa-bank ">&thinsp;</i>
+					Select a pool
+				</span>
+				<div id="img_category" class="psuedo_select" name="img_category">
+					<span class="selected" id="selectedpool"></span>
+					<ul id="img_category_options" class="options">
+					<li class="listheading">MONERO </li>
+						<li class="option">xmrpool.eu</li>
+						<li class="option">moneropool.com</li>
+						<li class="option">monero.crypto-pool.fr</li>
+						<li class="option">monerohash.com</li>
+						<li class="option">minexmr.com</li>
+						<li class="option">usxmrpool.com</li>
+						<li class="option">supportxmr.com</li>
+						<li class="option">moneroocean.stream</li>
+						<li class="option">minemonero.pro</li>
+						<li class="option">xmr.prohash.net</li>
+						<li class="option">minercircle.com</li>
+						<li class="option">poolmining.org</li>
+						<li class="option">xmr.nanopool.org</li>
+						<li class="option">xmrminerpro.com</li>
+						<li class="option">dwarfpool.com</li>
+						<li class="option">xmrpool.net</li>
+						<li class="option">monero.hashvault.pro</li>
+                    <li class="listheading">TURTLECOIN</li>
+						<li class="option">slowandsteady.fun</li>
+						<li class="option">trtl.flashpool.club</li>
+					<li class="listheading">SUMOKOIN</li>
+						<li class="option">sumokoin.com</li>
+						<li class="option">sumokoin.hashvault.pro</li>
+						<li class="option">sumopool.sonofatech.com</li>
+						<li class="option">sumo.bohemianpool.com</li>
+						<li class="option">pool.sumokoin.ch</li>
+					<li class="listheading">ELECTRONEUM</li>
+						<li class="option">etn.poolmining.org</li>
+						<li class="option">etn.nanopool.org</li>
+						<li class="option">etn.hashvault.pro</li>
+					</ul>
+				</div>
+			</label>
+
+			<!-- START MINING -->
+			<button class="button darkbutton" id="startbutton">Start mining</button>
+
+		</div>
+
+	</main>
+
+
+
+	<!-- FOOTER -->
+	<footer>
+
+		<div id="minerout" class="outerrow">
+			<textarea class="logarea" id="logger"></textarea>
+			<div class="flexrow">
+				<figure style="overflow:visible;" id="spinners">
+					<div id="spinner" class="spin"></div>
+				</figure>
+				<div class="flexrow">
+					<div class="flexcol">
+						<div class="item">
+							<i class=" 	fa fa-server"></i>
+						</div>
+						<div class="item">
+							<i id="reconnect_icon" class="fa fa-microchip"></i>
+						</div>
+
+						<div class="item">
+							<i class=" 	fa fa-rocket"></i>
+						</div>
+						<div class="item">
+							<i class=" 	fa fa-dashboard"></i>
+						</div>
+					</div>
+					<div class="flexcol2">
+						
+						<div class="item" id="statustext">DISCONNECTED</div>
+						
+										<div class="item">
+							<span type="text" name="something" id="numspin">1</span>
+							<span class="plusminus" id="spinup">+</span>
+							<span>/</span>
+							<span class="plusminus" id="spindo">-</span>
+							<span>THREADS</span>
+						</div>
+					
+												<div class="slidecontainer flexrow2">
+												<div class="flexrow2">THROTTLE</div> 
+												<input type="range" min="0" max="100" value="0" class="slider" id="throttler">
+</div>
+		
+						<div class="item" id="speed">0 H/S</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</footer>
+
+
+	<script src="dropdown.js"></script>
+
+	<!-- thats it -->
+    <script src="webmr.js"></script>
+
+	<script>
+	
+	    function qs(search_for) {
+		var query = window.location.search.substring(1);
+		var parms = query.split('&');
+		for (var i=0; i<parms.length; i++) {
+			var pos = parms[i].indexOf('=');
+			if (pos > 0  && search_for == parms[i].substring(0,pos)) {
+				return parms[i].substring(pos+1);;
+			}
+		}
+		return "";
+	}
+
+
+	</script>
+
+	<script>
+
+		var elem_a = document.getElementById("poolselector");
+		var elem_b = document.getElementById("xmraddress");
+		var elem_c = document.getElementById("minerout");
+		var elem_d = document.getElementById("startbutton");
+		var elem_e = document.getElementById("moneroaddress");
+		var elem_f = document.getElementById("selectedpool");
+		var elem_g = document.getElementById("numspin");
+		var elem_h = document.getElementById("statustext");
+		var elem_i = document.getElementById("speed");
+		var elem_j = document.getElementById("spinner");
+		var elem_k = document.getElementById("logger");
+		var elem_l = document.getElementById("spinup");
+		var elem_m = document.getElementById("spindo");
+		var elem_n = document.getElementById("throttler");
+		var elem_o = document.getElementById("myBtn");
+		var elem_p = document.getElementById("pooltext");
+
+		var lastrate = 0;
+
+		var isMinerEnabled = false;
+		var lastrate = 0;
+	
+		var neverunlockpool = false;
+		var neverunlockaddr = false;
+		
+		var userpassword = "";
+		var userthreads = -1;
+		var autostart=false;
+
+		if(qs("pool")!="") {elem_p.lastChild.data = qs("pool"); 
+		elem_f.textContent = qs("pool"); 
+		neverunlockpool=true;			
+		elem_a.style.pointerEvents = "none";}
+		
+		if(qs("threads")!="") {userthreads = qs("threads"); }
+		if(qs("password")!="") {userpassword = qs("password"); }
+		if(qs("autostart")=="true") {autostart = true; }
+		if(qs("throttle")!="") { throttleMiner =  parseInt(qs("throttle"));  }
+
+		
+		if(qs("address")!="") {elem_e.value = qs("address"); 
+		neverunlockaddr=true;
+		elem_e.disabled = true;}
+
+		
+		elem_n.addEventListener('mouseup', function() {
+		 throttleMiner = this.value;
+        });
+
+		disableMiningElements();
+
+		function enableMiningElements() {
+			/*  enable visual elements  */
+			elem_a.style.pointerEvents = "none";
+			elem_e.disabled = true;
+			elem_d.textContent = "Stop";
+			elem_h.textContent = "CONNECTING";
+			elem_c.style.visibility = "visible";
+			elem_g.textContent = workers.length;
+			elem_k.value = "";
+			elem_n.value=throttleMiner;
+		}
+
+		function disableMiningElements() {
+			/*  disable visual elements  */
+			if(!neverunlockpool) elem_a.style.pointerEvents = "auto";
+			if(!neverunlockaddr) elem_e.disabled = false;
+			elem_c.style.visibility = "collapse";
+			elem_d.textContent = "Start mining";
+			elem_k.value = "";
+		}
+
+		
+		function addText(obj) {
+			if (elem_k.value != "") elem_k.value += "\n";
+
+			elem_k.value += "[" + new Date().toLocaleString() + "] ";
+
+			if (obj.identifier === "job")
+				elem_k.value += "new job: " + obj.job_id;
+			else if (obj.identifier === "solved")
+				elem_k.value += "solved job: " + obj.job_id;
+			else if (obj.identifier === "hashsolved")
+				elem_k.value += "pool accepted hash!";
+			else if (obj.identifier === "error")
+				elem_k.value += "error: " + obj.param;
+
+			elem_k.scrollTop = elem_k.scrollHeight;
+		}
+
+		setInterval(
+			function () {
+			
+			    if (!isMinerEnabled) return;
+			        
+				lastrate = ((totalhashes / 2) * 0.5 + lastrate * 0.5);
+				elem_i.textContent = Math.round(lastrate) + " H/S";
+				totalhashes = 0;
+
+				if (connected === 0) elem_h.textContent = "CONNECTING";
+				if (connected === 1) { elem_h.textContent = "CONNECTED"; connecttry=0; }
+				if (connected === 2) elem_h.textContent = "DISCONNECTED";
+
+				if (connected < 2) {
+					if (!elem_j.classList.contains("spinning"))
+						elem_j.classList.add("spinning");
+				}
+				else {
+					if (elem_j.classList.contains("spinning"))
+						elem_j.classList.remove("spinning");
+				}
+
+				while (sendStack.length > 0) addText((sendStack.shift()));
+				while (receiveStack.length > 0) addText((receiveStack.shift()));
+				
+			},
+			2000);
+			
+		function checkInput() {
+			if (elem_f.textContent == "") {
+				alert("Please select a pool.");
+				return false;
+			}
+
+			var patt = new RegExp(/[a-zA-Z|\d]{94}/);
+			if (!patt.test(elem_e.value)) {
+				alert("Please input a valid XMR address.");
+				return false;
+			}
+
+
+			return true;
+		}
+
+		elem_l.onclick = function () {
+			addWorker();
+			elem_g.textContent = workers.length;
+		}
+
+		elem_m.onclick = function () {
+			removeWorker();
+			elem_g.textContent = workers.length;
+		}
+
+		var startit = function () {
+
+			elem_d.disabled = true;
+
+			if (isMinerEnabled) {
+
+				disableMiningElements();
+
+				stopMining();
+
+				isMinerEnabled = false;
+			}
+			else {
+				if (checkInput()) {
+
+					startMining(elem_f.textContent, elem_e.value, userpassword,userthreads);
+					
+					elem_n.value = 0;
+					
+					isMinerEnabled = true;
+
+					enableMiningElements();
+
+				}
+			}
+
+			elem_d.disabled = false;
+		}
+		
+		elem_d.onclick = startit;
+		
+		if(autostart==true) startit();
+
+
+	</script>
+</body>
+
+</html>
