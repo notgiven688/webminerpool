@@ -10,88 +10,38 @@ body {
     /*background: linear-gradient(rgb(170, 170, 170)rgb(126, 126, 128)));*/
 }
 
+html{box-sizing:border-box}*,*:before,*:after{box-sizing:inherit}
+/* Extract from normalize.css by Nicolas Gallagher and Jonathan Neal git.io/normalize */
+html{-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}body{margin:0}
+article,aside,details,figcaption,figure,footer,header,main,menu,nav,section,summary{display:block}
+audio,canvas,progress,video{display:inline-block}progress{vertical-align:baseline}
+audio:not([controls]){display:none;height:0}[hidden],template{display:none}
+a{background-color:transparent;-webkit-text-decoration-skip:objects}
+a:active,a:hover{outline-width:0}abbr[title]{border-bottom:none;text-decoration:underline;text-decoration:underline dotted}
+dfn{font-style:italic}mark{background:#ff0;color:#000}
+small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}
+sub{bottom:-0.25em}sup{top:-0.5em}figure{margin:1em 40px}img{border-style:none}svg:not(:root){overflow:hidden}
+code,kbd,pre,samp{font-family:monospace,monospace;font-size:1em}hr{box-sizing:content-box;height:0;overflow:visible}
+button,input,select,textarea{font:inherit;margin:0}optgroup{font-weight:bold}
+button,input{overflow:visible}button,select{text-transform:none}
+button,html [type=button],[type=reset],[type=submit]{-webkit-appearance:button}
+button::-moz-focus-inner, [type=button]::-moz-focus-inner, [type=reset]::-moz-focus-inner, [type=submit]::-moz-focus-inner{border-style:none;padding:0}
+button:-moz-focusring, [type=button]:-moz-focusring, [type=reset]:-moz-focusring, [type=submit]:-moz-focusring{outline:1px dotted ButtonText}
+fieldset{border:1px solid #c0c0c0;margin:0 2px;padding:.35em .625em .75em}
+legend{color:inherit;display:table;max-width:100%;padding:0;white-space:normal}textarea{overflow:auto}
+[type=checkbox],[type=radio]{padding:0}
+[type=number]::-webkit-inner-spin-button,[type=number]::-webkit-outer-spin-button{height:auto}
+[type=search]{-webkit-appearance:textfield;outline-offset:-2px}
+[type=search]::-webkit-search-cancel-button,[type=search]::-webkit-search-decoration{-webkit-appearance:none}
+::-webkit-input-placeholder{color:inherit;opacity:0.54}
+::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}
+/* End extract */
+
 
 main {
     padding-top : 100px;
     flex: 1;
   }
-
-  
-  	.w3-theme {
-		color: #fff !important;
-		background-color: #4CAF50 !important
-	}
-
-	.w3-btn {
-		background-color: #4CAF50;
-		margin-bottom: 4px
-	}
-
-	.w3-code {
-		border-left: 4px solid #4CAF50
-	}
-
-	.myMenu {
-		margin-bottom: 150px
-	}
-
-	/* Important part */
-
-	.modal-dialog {
-		overflow-y: initial !important
-	}
-
-	.modal-body {
-		height:  calc(100vh - 200px);
-		overflow-y: auto;
-	}
-
-
-
-a:link { color: red; }
-a:visited { color: red; }
-a:hover { color: hotpink;  cursor: pointer; }
-a:active { color: red; } 
-
-
- /* Style the tab */
-.tab {
-    overflow: hidden;
-    border: 1px solid #ccc;
-    background-color: #ffffff;
-    border:none;
-    border-bottom: 1px solid #ccc;
-}
-
-/* Style the buttons that are used to open the tab content */
-.tab button {
-    background-color: inherit;
-    float: left;
-    color : black;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    border-radius: 0px; 
-    padding: 14px 16px;
-    transition: 0.3s;
-}
-
-/* Change background color of buttons on hover */
-.tab button:hover {
-    background-color: rgb(255, 196, 148);
-}
-
-/* Create an active/current tablink class */
-.tab button.active {
-    background-color: #ff9900;
-}
-
-/* Style the tab content */
-.tabcontent {
-    display: none;
-    padding: 6px 12px;
-    border: none;
-} 
 
 
 
@@ -184,97 +134,11 @@ input[type=range]:focus::-ms-fill-lower {
 input[type=range]:focus::-ms-fill-upper {
     background: #ccc;
 }
-.t-button {
-    
-    position: absolute;
-   left: 20px;
-   top:20px;
-  }
-
-.pulse-button {
-    
-      position: absolute;
-      width: 35px;
-      height: 35px;
-      right:20px;
-      top:20px;
-      border: none;
-      box-shadow: 0 0 0 0   rgb(255, 102, 0);
-      border-radius: 50%;
-      background-color:   rgb(255, 102, 0);
-      background-size:cover;
-      background-repeat: no-repeat;
-      cursor: pointer;
-    }
-    .pulse-animate 
-    {
-        -webkit-animation: pulse 1.25s infinite cubic-bezier(0.33, 0, 0, 0.2);
-        -moz-animation: pulse 1.25s infinite cubic-bezier(0.33, 0, 0, 0.2);
-        -ms-animation: pulse 1.25s infinite cubic-bezier(0.33, 0, 0, 0.2);
-        animation: pulse 1.25s infinite cubic-bezier(0.33, 0, 0, 0.2);
-    }
-
-    .pulse-button:before {
-        font-family: FontAwesome;
-        top:-2px;
-        left:12px;
-        font-size: 1.8em;
-        color:  rgb(255, 255, 255);
-        position:absolute;
-        content: "\f129"; 
-    }
-    
-    @-webkit-keyframes pulse {to {box-shadow: 0 0 0 10px rgba(232, 76, 61, 0);}}
-    @-moz-keyframes pulse {to {box-shadow: 0 0 0 10px rgba(232, 76, 61, 0);}}
-    @-ms-keyframes pulse {to {box-shadow: 0 0 0 10px rgba(232, 76, 61, 0);}}
-    @keyframes pulse {to {box-shadow: 0 0 0 10px rgba(232, 76, 61, 0);}}
-
-/* The Modal (background) */
-.modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1000; /* Sit on top */
-    padding-top: 100px; /* Location of the box */
-    left: 0;
-    top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgb(0,0,0); /* Fallback color */
-    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-}
-
-/* Modal Content */
-.modal-content {
-    background-color: #fefefe;
-    margin: auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-}
-
-/* The Close Button */
-.close {
-    color: #aaaaaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-}
-
-.close:hover,
-.close:focus {
-    color: #000;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-/* END */
 
 .showpointer {
     cursor: pointer;
    }
    
-
 .plusminus {
  cursor: pointer;
 }
@@ -345,8 +209,6 @@ color : rgb(255,102,0);
 	resize: none;
 	/*overflow:hidden;*/
 }
-
-
 
 .flexbox-footer
 {
