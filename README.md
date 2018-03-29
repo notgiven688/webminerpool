@@ -115,6 +115,10 @@ The monero/aeon cryptonight hashing functions in C code. With simple Makefiles f
 
 Refactoring. Documentation.
 
+# Contact
+
+webminerpool@protonmail.com
+
 # Developer Donations
 If you find the content of this repository helpful consider a one time donation, the addresses are as follows:
 
