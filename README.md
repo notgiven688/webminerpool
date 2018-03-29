@@ -1,14 +1,20 @@
 
 # webminerpool 
 
-*Complete* sources for a monero (aeon) webminer.
+*Complete* sources for a monero (aeon) webminer. Try it here:
 
+#### [Monero example](https://rawgit.com/notgiven688/webminerpool/master/example/xmr/index.html)
+
+#### [Aeon example](https://rawgit.com/notgiven688/webminerpool/master/example/aeon/index.html)
+
+###
 _The server_ is written in **C#**, **optionally calling C**-routines to check hashes calculated by the clients. It acts as a proxy server for common pools.
 
 _The client_ runs in the browser using javascript and webassembly. 
 **websockets** are used for the connection between the client and the server, **webassembly** to perform hash calculations, **web workers** for threads.
 
 The code still needs some serious cleaning. The "keep it simple stupid" principle is used in  the project.
+
 
 # Overview
 
