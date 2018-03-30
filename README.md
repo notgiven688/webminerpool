@@ -111,7 +111,7 @@ should run the server.  Additional information will follow soon.
 
 The monero/aeon cryptonight hashing functions in C code. With simple Makefiles for use with gcc and emcc -- the emscripten webassembly compiler. libhash should be compiled so that the server can check hashes calculated by the user.
 
-# TODO
+# ToDo
 
 Refactoring. Documentation.
 
