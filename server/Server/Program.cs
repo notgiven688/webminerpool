@@ -532,9 +532,9 @@ namespace Server
                     {
                         string[] _data = line.Split(new string[] { SEP }, StringSplitOptions.None);
 
-                        string _id = _data[0];
+                        string _id = _data[1];
                         long _num = 0;
-                        long.TryParse(_data[1], out _num);
+                        long.TryParse(_data[0], out _num);
 
                         statistics.TryAdd(_id, _num);
                     }
@@ -1133,7 +1133,7 @@ namespace Server
 
                         foreach (var stat in statistics)
                         {
-                            sb.AppendLine(stat.Key + SEP + stat.Value.ToString());
+							sb.AppendLine(stat.Value.ToString() + SEP + stat.Key);
                         }
 
                         File.WriteAllText("statistics.dat", sb.ToString().TrimEnd('\r', '\n'));
