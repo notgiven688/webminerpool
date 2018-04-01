@@ -34,8 +34,6 @@
 
   #define VARIANT1_INIT() \
   const uint64_t tweak1_2 = variant > 0 ? *(const uint64_t*)(((const uint8_t*)input)+35) ^ ctx->state.hs.w[24] : 0
-      
-  // zeile hier drüber möglicherweise ein & vor das ctx
 
 void do_blake_hash(const void* input, size_t len, char* output) {
     blake(input, len, (unsigned char *)output);
@@ -414,9 +412,25 @@ void cryptonight_hash_ctx(void * output, const void * input, struct cryptonight_
 
     for (i = 0; likely(i < ITER / 4); ++i) {
       
-      
-      // ueberall, woe uint64 & ... steht, sollte prinzipiell auch uint32 möglich sein.
-      // auch aeon checken.
+        
+        /* the following german comment (it is rather a note) made it accidentally into this repository:
+        
+         "ueberall, woe uint64 & ... steht, sollte prinzipiell auch uint32 möglich sein.
+         auch aeon checken."
+         
+         Note: the first "woe" is actually a typo. It was meant to be just "wo". 
+         
+         The reason behind this comment is the somehow suspicious behavior of webassembly/emscripten
+         which generated different code for situations which are mathematically equivalent. Since we
+         are in a "performance-critical" part of the code I tested several of these theoretically equivalent
+         formulations. 
+         
+         The comment led to the following remarks on reddit:
+         
+            - "Leaked code! Someone at coinhive will be pissed :P"
+            -  If the code is of the same quality as your comment ... good (crypto)night.
+            -  Seriously, why would you mix Üs and UEs on the same line?          
+        */
       
         // Dependency chain: address -> read value ------+
         // written value <-+ hard function (AES or MUL) <+
