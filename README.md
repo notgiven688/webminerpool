@@ -13,9 +13,6 @@ _The server_ is written in **C#**, **optionally calling C**-routines to check ha
 _The client_ runs in the browser using javascript and webassembly. 
 **websockets** are used for the connection between the client and the server, **webassembly** to perform hash calculations, **web workers** for threads.
 
-The code still needs some serious cleaning. The "keep it simple stupid" principle is used in  the project.
-
-
 # Overview
 
 ### SDK
