@@ -117,7 +117,7 @@ namespace Fleck
         {
             var ipLocal = new IPEndPoint(_locationIP, Port);
             ListenerSocket.Bind(ipLocal);
-            ListenerSocket.Listen(1000); // changed from 100 by tl
+            ListenerSocket.Listen(1000); // changed from 100 by wmp
             Port = ((IPEndPoint)ListenerSocket.LocalEndPoint).Port;
             FleckLog.Info(string.Format("Server started at {0} (actual port {1})", Location, Port));
             if (_scheme == "wss")
@@ -131,7 +131,7 @@ namespace Fleck
                 if (EnabledSslProtocols == SslProtocols.None)
                 {
 					EnabledSslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
-                    //EnabledSslProtocols = SslProtocols.Tls; // changed by tl
+                    //EnabledSslProtocols = SslProtocols.Tls; // changed by wmp
                     FleckLog.Debug("Using default TLS 1.0 security protocol.");
                 }
             }
@@ -169,7 +169,7 @@ namespace Fleck
         {
             if (clientSocket == null) return; // socket closed
 
-			// experimental removed by tl
+			// experimental removed by wmp
             //FleckLog.Debug(String.Format("Client connected from {0}:{1}", clientSocket.RemoteIpAddress, clientSocket.RemotePort.ToString()));
 			//Console.WriteLine(String.Format("Client connected from {0}:{1}", clientSocket.RemoteIpAddress, clientSocket.RemotePort.ToString()));
 
@@ -226,7 +226,7 @@ namespace Fleck
 						,e =>
 						{
 							FleckLog.Warn("Failed to Authenticate " + rep, e);
-							// here we could add connection.Close() ! TL
+							// here we could add connection.Close() ! wmp
 							Server.Firewall.Update(rep, Server.Firewall.UpdateEntry.AuthFailure);
 							connection.Close();
 						});
