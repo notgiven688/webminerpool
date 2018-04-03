@@ -253,7 +253,7 @@ namespace Server {
 
         private static bool CheckHash (string blob, string nonce, string target, string result, bool fullcheck) {
 
-            // first check if result meets target */
+            // first check if result meets target
             string ourtarget = result.Substring (56, 8);
 
             if (HexToUInt32 (ourtarget) >= HexToUInt32 (target))
@@ -262,7 +262,7 @@ namespace Server {
 #if (!NOHASHCHECK)
 
             if (fullcheck) {
-                // recalculate the hash */
+                // recalculate the hash
 
                 string parta = blob.Substring (0, 78);
                 string partb = blob.Substring (86, blob.Length - 86);

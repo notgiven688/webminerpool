@@ -89,7 +89,7 @@ namespace Fleck
                 _stream = new NetworkStream(_socket);
 
 
-			socket.SetKeepAlive(60000,10000); // fix TL
+			socket.SetKeepAlive(60000,10000); // fix wmp
         }
 
 		private void CloseSomething(SslStream sslstream, QueuedStream qs, Exception ex)
