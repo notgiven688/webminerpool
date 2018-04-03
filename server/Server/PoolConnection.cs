@@ -287,7 +287,7 @@ namespace Server {
 				connection.TcpClient.Client.Close ();
 				connection.ReceiveBuffer = null;
 
-				try { PoolConnection dummy; Connections.TryRemove (connection.Credentials, out dummy); } catch { }
+				Connections.TryRemove(connection.Credentials);
 
 				Console.WriteLine ("{0}: closed a pool connection.", client.WebSocket.ConnectionInfo.Id);
 
@@ -314,7 +314,7 @@ namespace Server {
 
 			try { connection.TcpClient.Close (); } catch { }
 			try { connection.TcpClient.Client.Close (); } catch { }
-			try { connection.ReceiveBuffer = null; } catch { }
+			connection.ReceiveBuffer = null;
 
 			connection.LastInteraction = DateTime.Now;
 
