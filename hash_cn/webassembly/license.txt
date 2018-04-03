@@ -1,4 +1,4 @@
-code is based on
+code is based on / largely copied from
 
 https://github.com/noahdesu/xmonarch 
 

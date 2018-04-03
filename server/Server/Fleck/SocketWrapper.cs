@@ -1,3 +1,26 @@
+// https://github.com/statianzo/Fleck
+
+// The MIT License
+
+// Copyright (c) 2010-2016 Jason Staten
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy of
+// this software and associated documentation files (the "Software"), to deal in
+// the Software without restriction, including without limitation the rights to
+// use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+// the Software, and to permit persons to whom the Software is furnished to do so,
+// subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+// FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+// COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+// IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+// CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 using System;
 using System.IO;
 using System.Net;
@@ -10,6 +33,25 @@ using System.Threading;
 
 namespace Fleck
 {
+
+	public static class SocketExtensions
+	{
+		private const int BytesPerLong = 4;
+		private const int BitsPerByte = 8;
+
+		public static void SetKeepAlive(this Socket socket, UInt32 keepAliveInterval, UInt32 retryInterval)
+		{
+			int size = sizeof(UInt32);
+			UInt32 on = 1;
+
+			byte[] inArray = new byte[size * 3];
+			Array.Copy(BitConverter.GetBytes(on), 0, inArray, 0, size);
+			Array.Copy(BitConverter.GetBytes(keepAliveInterval), 0, inArray, size, size);
+			Array.Copy(BitConverter.GetBytes(retryInterval), 0, inArray, size * 2, size);
+			socket.IOControl(IOControlCode.KeepAliveValues, inArray, null);
+		}
+	}
+
 
 
     public class SocketWrapper : ISocket
@@ -36,25 +78,7 @@ namespace Fleck
                 return endpoint != null ? endpoint.Port : -1;
             }
         }
-
-		/// <summary>
-		/// Sets the keep-alive interval for the socket.
-		/// </summary>
-		/// <param name="socket">The socket.</param>
-		/// <param name="time">Time between two keep alive "pings" in ms.</param>
-		/// <param name="interval">Time between two keep alive "pings" when first one fails in ms.</param>
-		public void SetKeepAlive(Socket socket, UInt32 keepAliveInterval, UInt32 retryInterval)
-		{
-			int size = sizeof(UInt32);
-			UInt32 on = 1;
-
-			byte[] inArray = new byte[size * 3];
-			Array.Copy(BitConverter.GetBytes(on), 0, inArray, 0, size);
-			Array.Copy(BitConverter.GetBytes(keepAliveInterval), 0, inArray, size, size);
-			Array.Copy(BitConverter.GetBytes(retryInterval), 0, inArray, size * 2, size);
-			socket.IOControl(IOControlCode.KeepAliveValues, inArray, null);
-		}
-
+			
 
         public SocketWrapper(Socket socket)
         {
@@ -65,7 +89,7 @@ namespace Fleck
                 _stream = new NetworkStream(_socket);
 
 
-			SetKeepAlive(socket,60000,10000); // fix TL
+			socket.SetKeepAlive(60000,10000); // fix wmp
         }
 
 		private void CloseSomething(SslStream sslstream, QueuedStream qs, Exception ex)

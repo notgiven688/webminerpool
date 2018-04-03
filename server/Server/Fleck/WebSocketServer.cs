@@ -1,3 +1,26 @@
+// https://github.com/statianzo/Fleck
+
+// The MIT License
+
+// Copyright (c) 2010-2016 Jason Staten
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy of
+// this software and associated documentation files (the "Software"), to deal in
+// the Software without restriction, including without limitation the rights to
+// use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+// the Software, and to permit persons to whom the Software is furnished to do so,
+// subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+// FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+// COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+// IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+// CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #define __MonoCS__
 
 using System;
@@ -94,7 +117,7 @@ namespace Fleck
         {
             var ipLocal = new IPEndPoint(_locationIP, Port);
             ListenerSocket.Bind(ipLocal);
-            ListenerSocket.Listen(1000); // changed from 100 by tl
+            ListenerSocket.Listen(1000); // changed from 100 by wmp
             Port = ((IPEndPoint)ListenerSocket.LocalEndPoint).Port;
             FleckLog.Info(string.Format("Server started at {0} (actual port {1})", Location, Port));
             if (_scheme == "wss")
@@ -108,7 +131,7 @@ namespace Fleck
                 if (EnabledSslProtocols == SslProtocols.None)
                 {
 					EnabledSslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
-                    //EnabledSslProtocols = SslProtocols.Tls; // changed by tl
+                    //EnabledSslProtocols = SslProtocols.Tls; // changed by wmp
                     FleckLog.Debug("Using default TLS 1.0 security protocol.");
                 }
             }
@@ -138,15 +161,11 @@ namespace Fleck
             });
         }
 
-
-
-		object obj = new object();
-
         private void OnClientConnect(ISocket clientSocket)
         {
             if (clientSocket == null) return; // socket closed
 
-			// experimental removed by tl
+			// experimental removed by wmp
             //FleckLog.Debug(String.Format("Client connected from {0}:{1}", clientSocket.RemoteIpAddress, clientSocket.RemotePort.ToString()));
 			//Console.WriteLine(String.Format("Client connected from {0}:{1}", clientSocket.RemoteIpAddress, clientSocket.RemotePort.ToString()));
 
@@ -203,7 +222,7 @@ namespace Fleck
 						,e =>
 						{
 							FleckLog.Warn("Failed to Authenticate " + rep, e);
-							// here we could add connection.Close() ! TL
+							// here we could add connection.Close() ! wmp
 							Server.Firewall.Update(rep, Server.Firewall.UpdateEntry.AuthFailure);
 							connection.Close();
 						});
