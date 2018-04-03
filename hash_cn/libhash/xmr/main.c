@@ -1,13 +1,10 @@
 #include <stdio.h>
 #include <time.h>
 #include "slow-hash.h"
-
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
-
 #include <stdint.h>
-
 
 char output[200];
 
@@ -22,7 +19,6 @@ char* tohex(unsigned char * in, size_t len)
   
   return &output[0];
 }
-
 
 char* hash_cn(char* hex)
 {
@@ -40,13 +36,11 @@ char* hash_cn(char* hex)
    
     cn_slow_hash(&val,len,&hash);
 
+
     return tohex(hash,32);
 }
 
-
-
-
 int main (void)
 {
-  return 0;
+    return 0;
 }

@@ -1,31 +1,30 @@
-﻿namespace System.Net.Sockets
-{
-    public static class SocketExtensions
-	{
-		private const int BytesPerLong = 4;
-		private const int BitsPerByte = 8;
+﻿// The MIT License (MIT)
 
-		public static void SetKeepAlive(this Socket socket, UInt32 keepAliveInterval, UInt32 retryInterval)
-		{
-			int size = sizeof(UInt32);
-			UInt32 on = 1;
+// Copyright (c) 2018 - the webminerpool developer
 
-			byte[] inArray = new byte[size * 3];
-			Array.Copy(BitConverter.GetBytes(on), 0, inArray, 0, size);
-			Array.Copy(BitConverter.GetBytes(keepAliveInterval), 0, inArray, size, size);
-			Array.Copy(BitConverter.GetBytes(retryInterval), 0, inArray, size * 2, size);
-			socket.IOControl(IOControlCode.KeepAliveValues, inArray, null);
-		}
-	}
-		
-	public static class ObjectExtensionClass
-	{
-		public static string GetString(this object input)
-		{
+// Permission is hereby granted, free of charge, to any person obtaining a copy of
+// this software and associated documentation files (the "Software"), to deal in
+// the Software without restriction, including without limitation the rights to
+// use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+// the Software, and to permit persons to whom the Software is furnished to do so,
+// subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+// FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+// COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+// IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+// CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+namespace System.Net.Sockets {
+
+	public static class ObjectExtensionClass {
+		public static string GetString (this object input) {
 			return input == null ? string.Empty : input.ToString ();
 		}
 	}
 
 }
-
-

@@ -1,13 +1,31 @@
+// The MIT License (MIT)
+
+// Copyright (c) 2018 - the webminerpool developer
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy of
+// this software and associated documentation files (the "Software"), to deal in
+// the Software without restriction, including without limitation the rights to
+// use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+// the Software, and to permit persons to whom the Software is furnished to do so,
+// subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+// FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+// COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+// IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+// CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 using System;
 using System.Collections.Generic;
 using Fleck;
 
+namespace Server {
 
-namespace Server
-{
-
-    public class EmptyConnectionInfo : IWebSocketConnectionInfo
-	{
+	public class EmptyConnectionInfo : IWebSocketConnectionInfo {
 		#region IWebSocketConnectionInfo implementation
 		public string SubProtocol {
 			get {
@@ -62,32 +80,26 @@ namespace Server
 		#endregion
 	}
 
-	public class EmptyWebsocket : IWebSocketConnection
-	{
+	public class EmptyWebsocket : IWebSocketConnection {
 		private static EmptyConnectionInfo eci =
-			new EmptyConnectionInfo();
+			new EmptyConnectionInfo ();
 
 		#region IWebSocketConnection implementation
-		public System.Threading.Tasks.Task Send (string message)
-		{
+		public System.Threading.Tasks.Task Send (string message) {
 			//throw new NotImplementedException ();
 			return null;
 		}
-		public System.Threading.Tasks.Task Send (byte[] message)
-		{
+		public System.Threading.Tasks.Task Send (byte[] message) {
 			throw new NotImplementedException ();
 		}
-		public System.Threading.Tasks.Task SendPing (byte[] message)
-		{
+		public System.Threading.Tasks.Task SendPing (byte[] message) {
 			throw new NotImplementedException ();
 		}
-		public System.Threading.Tasks.Task SendPong (byte[] message)
-		{
+		public System.Threading.Tasks.Task SendPong (byte[] message) {
 			throw new NotImplementedException ();
 		}
-		public void Close ()
-		{
-			
+		public void Close () {
+
 		}
 		public Action OnOpen {
 			get {
@@ -157,6 +169,5 @@ namespace Server
 		}
 		#endregion
 	}
-
 
 }
