@@ -161,10 +161,6 @@ namespace Fleck
             });
         }
 
-
-
-		object obj = new object();
-
         private void OnClientConnect(ISocket clientSocket)
         {
             if (clientSocket == null) return; // socket closed
