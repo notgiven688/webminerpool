@@ -405,26 +405,6 @@ void cryptonight_hash_ctx(void *output, const void *input, struct cryptonight_ct
 
     for (i = 0; likely(i < ITER / 4); ++i)
     {
-
-        /* the following german comment (it is rather a note) made it accidentally into this repository:
-        
-         "ueberall, woe uint64 & ... steht, sollte prinzipiell auch uint32 möglich sein.
-         auch aeon checken."
-         
-         Note: the first "woe" is actually a typo. It was meant to be just "wo". 
-         
-         The reason behind this comment is the somehow suspicious behavior of webassembly/emscripten
-         which generated different code for situations which are mathematically equivalent. Since we
-         are in a "performance-critical" part of the code I tested several of these theoretically equivalent
-         formulations. 
-         
-         The comment led to the following remarks on reddit:
-         
-            -  Leaked code! Someone at coinhive will be pissed :P
-            -  If the code is of the same quality as your comment ... good (crypto)night.
-            -  Seriously, why would you mix Üs and UEs on the same line?          
-        */
-
         // Dependency chain: address -> read value ------+
         // written value <-+ hard function (AES or MUL) <+
         // next address  <-+

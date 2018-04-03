@@ -29,7 +29,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Security.Cryptography.X509Certificates
+using System.Security.Cryptography.X509Certificates;
 
 using Fleck;
 using TinyJson;
@@ -796,6 +796,8 @@ namespace Server {
                                 if (!string.IsNullOrEmpty (ipadr)) Firewall.Update (ipadr, Firewall.UpdateEntry.WrongHash);
                                 RemoveClient (client.WebSocket.ConnectionInfo.Id);
                             } else {
+
+                                if(performFullCheck)
                                 Console.WriteLine ("{0}: got hash-checked", client.WebSocket.ConnectionInfo.Id.ToString ());
 
                                 if (!string.IsNullOrEmpty (ipadr)) Firewall.Update (ipadr, Firewall.UpdateEntry.SolvedJob);
@@ -953,7 +955,7 @@ namespace Server {
                     }
 
                 } catch(Exception ex) {
-                    Console.WriteLine ("Error saving statistics.dat {0}", ex);
+                    Console.WriteLine ("Error saving statistics.dat: {0}", ex);
                 }
 
                 try {
@@ -972,7 +974,7 @@ namespace Server {
                         Console.WriteLine ("done.");
                     }
                 }  catch(Exception ex) {
-                    Console.WriteLine ("Error saving logins.dat {0}", ex);
+                    Console.WriteLine ("Error saving logins.dat: {0}", ex);
                 }
 
                 try {

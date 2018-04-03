@@ -127,33 +127,21 @@ namespace Fleck
     public void StartReceiving()
     {
 
+	  List<byte> data = new List<byte>(ReadSize);
+	  buffer = new byte[ReadSize];
+
+	  Task.Run(async delegate
+	  {
+	    await Task.Delay(TimeSpan.FromSeconds(20));
 
 
-			List<byte> data = new List<byte>(ReadSize);
-			buffer = new byte[ReadSize];
-			//buffer = BufferPool.RequestBuffer();
+		if (!_closed && !_opened) {
+			Console.WriteLine("Closing/Disposing WebSocketConnection. Not able to perform handshake within 20s.");
+			CloseSocket ();
+		}
 
-
-			var t = Task.Run(async delegate
-				{
-					await Task.Delay(TimeSpan.FromSeconds(20));
-
-
-					if (!_closed && !_opened) {
-						Console.WriteLine("Closing/Disposing WebSocketConnection. Not able to perform handshake within 20s.");
-						CloseSocket ();
-					}
-				}); 
-
-
-		/*	new Task(() => 
-				{ 
-					System.Threading.Thread.Sleep (10000);
-
-					if (!opened)
-						CloseSocket ();
-				}
-			).Start();*/
+	  }); 
+					
 
       Read(data, buffer);
     }

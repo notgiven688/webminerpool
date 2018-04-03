@@ -246,7 +246,7 @@ namespace Server {
 
 					networkStream.BeginRead (mypc.ReceiveBuffer, 0, mypc.ReceiveBuffer.Length, new AsyncCallback (ReceiveCallback), mypc);
 
-					/* keep things stupid and simple */
+					// keep things stupid and simple 
 
 					string msg0 = "{\"method\":\"login\",\"params\":{\"login\":\"";
 					string msg1 = "\",\"pass\":\"";
