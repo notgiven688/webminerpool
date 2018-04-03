@@ -10,6 +10,8 @@ using TinyJson;
 
 using JsonData = System.Collections.Generic.Dictionary<string, object>;
 
+using Fleck;
+
 namespace Server
 {
 
@@ -70,8 +72,8 @@ namespace Server
 		private static DisconnectedDelegate Disconnect;
 
 
-		public static ConcurrentDictionary<string,PoolConnection> Connections 
-		= new ConcurrentDictionary<string,PoolConnection> ();
+		public static CcDictionary<string,PoolConnection> Connections 
+		= new CcDictionary<string,PoolConnection> ();
 
 
 		private static bool VerifyJob(JsonData data)
@@ -351,7 +353,7 @@ namespace Server
 
 			connection.TcpClient = new TcpClient ();
 
-			connection.TcpClient.Client.SetKeepAlive (60000, 1000);
+			Fleck.SocketExtensions.SetKeepAlive(connection.TcpClient.Client,60000, 1000);	
 			connection.TcpClient.Client.ReceiveBufferSize = 4096*2;
 
 			try{ connection.TcpClient.BeginConnect (connection.Url, connection.Port, new AsyncCallback (ConnectCallback), connection); }
@@ -377,7 +379,7 @@ namespace Server
 
 				mypc.TcpClient = new TcpClient ();
 
-				mypc.TcpClient.Client.SetKeepAlive (60000, 1000);
+				Fleck.SocketExtensions.SetKeepAlive(mypc.TcpClient.Client,60000, 1000);	
 				mypc.TcpClient.Client.ReceiveBufferSize = 4096*2;
 
 				mypc.Login = login;
