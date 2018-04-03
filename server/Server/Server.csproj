@@ -54,11 +54,9 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="JSONParser.cs" />
-    <Compile Include="EmptyWebsocket.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="PoolConnection.cs" />
     <Compile Include="DataStructures.cs" />
-    <Compile Include="Execute.cs" />
     <Compile Include="Fleck\BufferPool.cs" />
     <Compile Include="Fleck\ConnectionNotAvailableException.cs" />
     <Compile Include="Fleck\FleckLog.cs" />
@@ -89,6 +87,8 @@
     <Compile Include="Fleck\Interfaces\IWebSocketConnectionInfo.cs" />
     <Compile Include="Fleck\Interfaces\IWebSocketServer.cs" />
     <Compile Include="Firewall.cs" />
+    <Compile Include="Helper.cs" />
+    <Compile Include="EmptyWebsocket.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
