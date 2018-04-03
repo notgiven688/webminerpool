@@ -88,7 +88,11 @@ namespace Server {
 
         public const string SEP = "<-|->";
 
-        private const int JobCacheSize = (int) 40e3;
+        public const string RegexIsHex = "^[a-fA-F0-9]+$";
+
+        public const string RegexIsXMR = "[a-zA-Z|\\d]{95}";
+
+        public const int JobCacheSize = (int) 40e3;
 
 #if (AEON)
         private const string MyXMRAddress = "WmtUFkPrboCKzL5iZhia4iNHKw9UmUXzGgbm5Uo3HPYwWcsY1JTyJ2n335gYiejNysLEs1G2JZxEm3uXUX93ArrV1yrXDyfPH";
@@ -111,33 +115,28 @@ namespace Server {
 
         private static Dictionary<string, PoolInfo> PoolPool = new Dictionary<string, PoolInfo> ();
 
-        private const int SaveStatisticsEveryXHeartbeat = 40; /*  save statistics */
-        private const int GraceConnectionTime = 10; /* time to connect to a pool in seconds */
-        private const int HeartbeatRate = 10; /* server logic every x seconds*/
-        private const int TimeOwnJobsAreOld = 600; /* after that job-age we do not forward our jobs */
-        private const int PoolTimeout = 60 * 12; /* in seconds, pool is not sending new jobs */
-        private const int SpeedAverageOverXHeartbeats = 10; /* stupid pool is not sending new jobs */
-        private const int MaxHashChecksPerHeartbeat = 20; /* try not to kill ourselfs  */
-        private const int ForceGCEveryXHeartbeat = 40; /* so we can keep an eye on the memory */
+        private const int GraceConnectionTime = 10;                 // time to connect to a pool in seconds 
+        private const int HeartbeatRate = 10;                       // server logic every x seconds
+        private const int TimeOwnJobsAreOld = 600;                  // after that job-age we do not forward our jobs 
+        private const int PoolTimeout = 60 * 12;                    // in seconds, pool is not sending new jobs 
+        private const int SpeedAverageOverXHeartbeats = 10;         // stupid pool is not sending new jobs 
+        private const int MaxHashChecksPerHeartbeat = 20;           // try not to kill ourselfs  
+        private const int ForceGCEveryXHeartbeat = 40;              // so we can keep an eye on the memory 
+        private const int SaveStatisticsEveryXHeartbeat = 40;       // save statistics 
 
         private static int Hearbeats = 0;
         private static int HashesCheckedThisHeartbeat = 0;
 
-        public static long ExceptionCounter = 0;
 
-        public const string RegexIsHex = "^[a-fA-F0-9]+$";
-
-        public const string RegexIsXMR = "[a-zA-Z|\\d]{95}";
         private static string jsonPools = "";
-
         private static long totalHashes = 0;
         private static long totalOwnHashes = 0;
+        private static long exceptionCounter = 0;
 
         private static bool saveLoginIdsNextHeartbeat = false;
 
         private static CcDictionary<Guid, Client> clients = new CcDictionary<Guid, Client> ();
         private static CcDictionary<string, JobInfo> jobInfos = new CcDictionary<string, JobInfo> ();
-
         private static CcDictionary<string, long> statistics = new CcDictionary<string, long> ();
         private static CcDictionary<string, Credentials> loginids = new CcDictionary<string, Credentials> ();
         private static CcDictionary<string, int> credentialSpamProtector = new CcDictionary<string, int> ();
@@ -197,6 +196,9 @@ namespace Server {
             PoolPool.Add ("osiamining.com", new PoolInfo ("osiamining.com", 4545, ""));
             PoolPool.Add ("killallasics", new PoolInfo ("killallasics.moneroworld.com", 3333));
 
+            // Due to POW changes the following
+            // pools mights not work anymore with the current hashfunction.
+
             // TURTLE
             PoolPool.Add ("slowandsteady.fun", new PoolInfo ("slowandsteady.fun", 3333));
             PoolPool.Add ("trtl.flashpool.club", new PoolInfo ("trtl.flashpool.club", 3333));
@@ -236,7 +238,7 @@ namespace Server {
         }
 
         private static bool CheckHashTarget (string target, string result) {
-            /* first check if result meets target */
+            // first check if result meets target 
             string ourtarget = result.Substring (56, 8);
 
             if (HexToUInt32 (ourtarget) >= HexToUInt32 (target))
@@ -245,11 +247,13 @@ namespace Server {
                 return true;
         }
 
+#if (!NOHASHCHECK)
         private static object hashLocker = new object ();
+#endif
 
         private static bool CheckHash (string blob, string nonce, string target, string result, bool fullcheck) {
 
-            /* first check if result meets target */
+            // first check if result meets target */
             string ourtarget = result.Substring (56, 8);
 
             if (HexToUInt32 (ourtarget) >= HexToUInt32 (target))
@@ -258,7 +262,7 @@ namespace Server {
 #if (!NOHASHCHECK)
 
             if (fullcheck) {
-                /* recalculate the hash */
+                // recalculate the hash */
 
                 string parta = blob.Substring (0, 78);
                 string partb = blob.Substring (86, blob.Length - 86);
@@ -464,7 +468,9 @@ namespace Server {
         }
 
         public static void Main (string[] args) {
-            PoolConnectionFactory.RegisterCallbacks (PoolReceiveCallback, PoolErrorCallback, PoolDisconnectCallback);
+
+            PoolConnectionFactory.RegisterCallbacks (PoolReceiveCallback,
+                PoolErrorCallback, PoolDisconnectCallback);
 
             if (File.Exists ("statistics.dat")) {
 
@@ -549,8 +555,8 @@ namespace Server {
                         if (ex != null && !string.IsNullOrEmpty (ex.Message)) {
                             Console.WriteLine ("FLECK: " + message + " " + ex.Message);
 
-                            ExceptionCounter++;
-                            if ((ExceptionCounter % 200) == 0) {
+                            exceptionCounter++;
+                            if ((exceptionCounter % 200) == 0) {
                                 Helper.WriteTextAsyncWrapper ("fleck_error.txt", ex.ToString());
                             }
 
@@ -560,8 +566,8 @@ namespace Server {
                         if (ex != null && !string.IsNullOrEmpty (ex.Message)) {
                             Console.WriteLine ("FLECK: " + message + " " + ex.Message);
 
-                            ExceptionCounter++;
-                            if ((ExceptionCounter % 200) == 0) {
+                            exceptionCounter++;
+                            if ((exceptionCounter % 200) == 0) {
                                 Helper.WriteTextAsyncWrapper ("fleck_warn.txt", ex.ToString());
                             }
                         } else Console.WriteLine ("FLECK: " + message);
@@ -607,8 +613,8 @@ namespace Server {
 
                     Guid guid = socket.ConnectionInfo.Id;
 
-                    if (message.Length > 2000) {
-                        RemoveClient (guid); // that can not be, do not even try to parse
+                    if (message.Length > 3000) {
+                        RemoveClient (guid); // that can't be valid, do not even try to parse
                     }
 
                     JsonData msg = message.FromJson<JsonData> ();
