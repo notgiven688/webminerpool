@@ -15,7 +15,7 @@ namespace Server
 
     public class PoolConnection
 	{
-		public TcpClient Client;
+		public TcpClient TcpClient;
 
 		public byte[] ReceiveBuffer; 
 
@@ -31,18 +31,17 @@ namespace Server
 		public long Hashes = 0;
 
 		public Client LastSender;
-
 		public JsonData LastJob;
 		public DateTime LastInteraction = DateTime.Now;
 		public CcHashset<string> LastSolved;
 
-		public CcDictionary<Client,byte> WebClients = new CcDictionary<Client,byte>();
+		public CcHashset<Client> WebClients = new CcHashset<Client>();
 
 		public void Send(Client client, string msg)
 		{
 			try { 
 				Byte[] bytesSent = Encoding.ASCII.GetBytes(msg);
-				Client.GetStream().BeginWrite(bytesSent,0,bytesSent.Length,SendCallback,null);
+				TcpClient.GetStream().BeginWrite(bytesSent,0,bytesSent.Length,SendCallback,null);
 				this.LastSender = client;
 			}
 			catch { }
@@ -50,10 +49,10 @@ namespace Server
 
 		private void SendCallback(IAsyncResult result)
 		{
-			if (!Client.Connected) return;
+			if (!TcpClient.Connected) return;
 
 			try { 
-				NetworkStream networkStream = Client.GetStream ();
+				NetworkStream networkStream = TcpClient.GetStream ();
 				networkStream.EndWrite(result); }
 			catch { }
 		}
@@ -112,8 +111,8 @@ namespace Server
 
 		private static void ReceiveCallback(IAsyncResult result) {
 
-			PoolConnection mygang = result.AsyncState as PoolConnection;
-			TcpClient client = mygang.Client;
+			PoolConnection mypc = result.AsyncState as PoolConnection;
+			TcpClient client = mypc.TcpClient;
 
 			if (!client.Connected) return;
 
@@ -141,17 +140,17 @@ namespace Server
 						{
 							await Task.Delay(TimeSpan.FromSeconds(4));
 
-							List<Client> cllist = new List<Client> (mygang.WebClients.Keys);
+							List<Client> cllist = new List<Client> (mypc.WebClients.Values);
 							foreach (Client ev in cllist) Disconnect(ev,"lost pool connection.");
 						}); 
 
 					return;
 				}
 
-				json = ASCIIEncoding.ASCII.GetString (mygang.ReceiveBuffer, 0, bytesread);
+				json = ASCIIEncoding.ASCII.GetString (mypc.ReceiveBuffer, 0, bytesread);
 
 
-			networkStream.BeginRead(mygang.ReceiveBuffer, 0, mygang.ReceiveBuffer.Length, new AsyncCallback (ReceiveCallback), mygang);
+			networkStream.BeginRead(mypc.ReceiveBuffer, 0, mypc.ReceiveBuffer.Length, new AsyncCallback (ReceiveCallback), mypc);
 			
 			}
 			catch { return; }
@@ -161,7 +160,7 @@ namespace Server
 			var msg = json.FromJson<JsonData>();
 			if (msg == null) return;
 
-			if (string.IsNullOrEmpty (mygang.PoolId)) {
+			if (string.IsNullOrEmpty (mypc.PoolId)) {
 
 				// this "protocol" is strange
 				if (!msg.ContainsKey ("result")) {
@@ -177,7 +176,7 @@ namespace Server
 					}
 
 
-					List<Client> cllist = new List<Client> (mygang.WebClients.Keys);
+					List<Client> cllist = new List<Client> (mypc.WebClients.Values);
 					foreach (Client ev in cllist)
 						Disconnect (ev, "can not connect. additional information: " +  additionalInfo);
 
@@ -193,7 +192,7 @@ namespace Server
 				if (!msg.ContainsKey ("job"))
 					return;
 
-				mygang.PoolId = msg ["id"].GetString ();
+				mypc.PoolId = msg ["id"].GetString ();
 
 				var lastjob = msg ["job"]  as JsonData;
 
@@ -202,14 +201,14 @@ namespace Server
 					return;
 				}
 
-				mygang.LastJob = lastjob;
-				mygang.LastInteraction = DateTime.Now;
+				mypc.LastJob = lastjob;
+				mypc.LastInteraction = DateTime.Now;
 
-				mygang.LastSolved = new CcHashset<string> ();
+				mypc.LastSolved = new CcHashset<string> ();
 
-				List<Client> cllist2 = new List<Client> (mygang.WebClients.Keys);
+				List<Client> cllist2 = new List<Client> (mypc.WebClients.Values);
 				foreach (Client ev in cllist2) {
-					ReceiveJob (ev, mygang.LastJob, mygang.LastSolved );
+					ReceiveJob (ev, mypc.LastJob, mypc.LastSolved );
 				}
 
 
@@ -226,18 +225,18 @@ namespace Server
 					return;
 				}
 
-				mygang.LastJob = lastjob;
-				mygang.LastInteraction = DateTime.Now;
-				mygang.LastSolved = new CcHashset<string> ();
+				mypc.LastJob = lastjob;
+				mypc.LastInteraction = DateTime.Now;
+				mypc.LastSolved = new CcHashset<string> ();
 
-				List<Client> cllist2 = new List<Client> (mygang.WebClients.Keys);
+				List<Client> cllist2 = new List<Client> (mypc.WebClients.Values);
 
 				Console.WriteLine ("Sending to {0} clients!", cllist2.Count);
 
 
 				
 				foreach (Client ev in cllist2) {
-					ReceiveJob (ev, mygang.LastJob, mygang.LastSolved );
+					ReceiveJob (ev, mypc.LastJob, mypc.LastSolved );
 				}
 
 
@@ -247,7 +246,7 @@ namespace Server
 			{
 				if (msg.ContainsKey ("error")) {
 					// who knows?
-					ReceiveError (mygang.LastSender, msg);
+					ReceiveError (mypc.LastSender, msg);
 
 				} else {
 					Console.WriteLine ("Pool is sending nonsense...");
@@ -258,16 +257,16 @@ namespace Server
 		private static void ConnectCallback(IAsyncResult result) 
 		{
 
-			PoolConnection mygang = result.AsyncState as PoolConnection;
-			TcpClient client = mygang.Client;
+			PoolConnection mypc = result.AsyncState as PoolConnection;
+			TcpClient client = mypc.TcpClient;
 
-			if (!mygang.Closed && client.Connected) {
+			if (!mypc.Closed && client.Connected) {
 
 				try {
 				NetworkStream networkStream = client.GetStream ();
-				mygang.ReceiveBuffer = new byte[client.ReceiveBufferSize];
+				mypc.ReceiveBuffer = new byte[client.ReceiveBufferSize];
 
-				networkStream.BeginRead(mygang.ReceiveBuffer, 0, mygang.ReceiveBuffer.Length, new AsyncCallback (ReceiveCallback), mygang);
+				networkStream.BeginRead(mypc.ReceiveBuffer, 0, mypc.ReceiveBuffer.Length, new AsyncCallback (ReceiveCallback), mypc);
 		
 				/* keep things stupid and simple */
 
@@ -275,9 +274,9 @@ namespace Server
 				string msg1 = "\",\"pass\":\"";
 					string msg2 = "\",\"agent\":\"webminerpool.com\"},\"id\":1}";
 
-				string msg = msg0 + mygang.Login + msg1 + mygang.Password + msg2 + "\n";
+				string msg = msg0 + mypc.Login + msg1 + mypc.Password + msg2 + "\n";
 
-				mygang.Send(mygang.LastSender, msg);
+				mypc.Send(mypc.LastSender, msg);
 				}
 				catch { return; }
 			} 
@@ -288,7 +287,7 @@ namespace Server
 				var t = Task.Run (async delegate {
 					await Task.Delay (TimeSpan.FromSeconds (4));
 
-					List<Client> cllist = new List<Client> (mygang.WebClients.Keys);
+					List<Client> cllist = new List<Client> (mypc.WebClients.Values);
 					foreach (Client ev in cllist)
 						Disconnect (ev, "can not connect to pool.");
 				});
@@ -306,13 +305,13 @@ namespace Server
 				connection.Closed = true;
 
 				try {
-					var networkStream = connection.Client.GetStream (); 
+					var networkStream = connection.TcpClient.GetStream (); 
 					networkStream.EndRead(null);
 				} catch{ }
 
-				try {connection.Client.Close ();}  			catch{ }
-				try {connection.Client.Client.Close ();}  	catch{ }
-				try {connection.ReceiveBuffer = null;}  	catch{ }
+				connection.TcpClient.Close ();
+				connection.TcpClient.Client.Close ();
+				connection.ReceiveBuffer = null;
 
 				try{ PoolConnection dummy; Connections.TryRemove(connection.Credentials, out dummy);}catch{}
 
@@ -337,12 +336,12 @@ namespace Server
 			Console.WriteLine (connection.Credentials);
 
 			try {
-				var networkStream = connection.Client.GetStream (); 
+				var networkStream = connection.TcpClient.GetStream (); 
 				networkStream.EndRead(null);
 			} catch{ }
 
-			try {connection.Client.Close ();}  				catch{ }
-			try {connection.Client.Client.Close ();}  		catch{ }
+			try {connection.TcpClient.Close ();}  			catch{ }
+			try {connection.TcpClient.Client.Close ();}  	catch{ }
 			try {connection.ReceiveBuffer = null;}  		catch{ }
 
 			connection.LastInteraction = DateTime.Now;
@@ -350,12 +349,12 @@ namespace Server
 			connection.PoolId = "";
 			connection.LastJob = null;
 
-			connection.Client = new TcpClient ();
+			connection.TcpClient = new TcpClient ();
 
-			connection.Client.Client.SetKeepAlive (60000, 1000);
-			connection.Client.Client.ReceiveBufferSize = 4096*2;
+			connection.TcpClient.Client.SetKeepAlive (60000, 1000);
+			connection.TcpClient.Client.ReceiveBufferSize = 4096*2;
 
-			try{ connection.Client.BeginConnect (connection.Url, connection.Port, new AsyncCallback (ConnectCallback), connection); }
+			try{ connection.TcpClient.BeginConnect (connection.Url, connection.Port, new AsyncCallback (ConnectCallback), connection); }
 			catch{}
 
 		}
@@ -366,47 +365,47 @@ namespace Server
 							
 			string credential = url + port.ToString () + login + password;
 
-			PoolConnection mygang;
+			PoolConnection mypc;
 
-			if (!Connections.TryGetValue (credential, out mygang)) {
+			if (!Connections.TryGetValue (credential, out mypc)) {
 
 				Console.WriteLine ("{0}: established new pool connection. {1} {2} {3}", client.WebSocket.ConnectionInfo.Id,url, login, password);
 			
-				mygang = new PoolConnection ();
-				mygang.Credentials = credential;
-				mygang.LastSender = client;
+				mypc = new PoolConnection ();
+				mypc.Credentials = credential;
+				mypc.LastSender = client;
 
-				mygang.Client = new TcpClient ();
+				mypc.TcpClient = new TcpClient ();
 
-				mygang.Client.Client.SetKeepAlive (60000, 1000);
-				mygang.Client.Client.ReceiveBufferSize = 4096*2;
+				mypc.TcpClient.Client.SetKeepAlive (60000, 1000);
+				mypc.TcpClient.Client.ReceiveBufferSize = 4096*2;
 
-				mygang.Login = login;
-				mygang.Password = password;
-				mygang.Port = port;
-				mygang.Url = url;
+				mypc.Login = login;
+				mypc.Password = password;
+				mypc.Port = port;
+				mypc.Url = url;
 
-				mygang.WebClients.TryAdd (client,byte.MaxValue);
+				mypc.WebClients.TryAdd (client);
 
-				Connections.TryAdd (credential, mygang);
+				Connections.TryAdd (credential, mypc);
 
-				try{ mygang.Client.Client.BeginConnect (url, port, new AsyncCallback (ConnectCallback), mygang); }
+				try{ mypc.TcpClient.Client.BeginConnect (url, port, new AsyncCallback (ConnectCallback), mypc); }
 				catch{}
 
 			} else {
 
 				Console.WriteLine ("{0}: reusing pool connection.", client.WebSocket.ConnectionInfo.Id);
 
-				mygang.WebClients.TryAdd (client,byte.MaxValue);
+				mypc.WebClients.TryAdd (client);
 
-				if (mygang.LastJob != null) ReceiveJob (client, mygang.LastJob,mygang.LastSolved);
+				if (mypc.LastJob != null) ReceiveJob (client, mypc.LastJob,mypc.LastSolved);
 				else Console.WriteLine ("{0} no job yet.", client.WebSocket.ConnectionInfo.Id);
 
 			}
 
-			client.TcpClient = mygang;
+			client.PoolConnection = mypc;
 
-			return mygang;
+			return mypc;
 
 
 		}

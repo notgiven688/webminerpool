@@ -20,7 +20,7 @@ namespace Server
 
     public class Client
     {
-        public PoolConnection TcpClient;
+        public PoolConnection PoolConnection;
         public IWebSocketConnection WebSocket;
         public string Pool = string.Empty;
         public string Login;
@@ -150,23 +150,23 @@ namespace Server
 
 #if (AEON)
 			PoolPool.Add("aeon-pool.com", new PoolInfo("mine.aeon-pool.com",5555));
-			PoolPool.Add ("minereasy.com", new PoolInfo ("aeon.minereasy.com", 3333));
-			PoolPool.Add ("aeon.sumominer.com", new PoolInfo ("aeon.sumominer.com", 3333));
-			PoolPool.Add ("aeon.rupool.tk", new PoolInfo ("aeon.rupool.tk", 4444));
-			PoolPool.Add ("aeon.hashvault.pro", new PoolInfo ("pool.aeon.hashvault.pro", 3333,"x"));
-			PoolPool.Add ("aeon.n-engine.com", new PoolInfo ("aeon.n-engine.com", 7333));
-			PoolPool.Add ("aeonpool.xyz", new PoolInfo ("mine.aeonpool.xyz", 3333));
-			PoolPool.Add ("aeonpool.dreamitsystems.com", new PoolInfo ("aeonpool.dreamitsystems.com", 13333,"x"));
-			PoolPool.Add ("aeonminingpool.com", new PoolInfo ("pool.aeonminingpool.com", 3333,"x"));
-			PoolPool.Add ("aeonhash.com", new PoolInfo ("pool.aeonhash.com", 3333));
-			PoolPool.Add ("durinsmine.com", new PoolInfo ("mine.durinsmine.com", 3333,"x"));
-			PoolPool.Add ("aeon.uax.io", new PoolInfo ("mine.uax.io", 4446));
-			PoolPool.Add ("aeon-pool.sytes.net", new PoolInfo ("aeon-pool.sytes.net", 3333));
-			PoolPool.Add ("aeonpool.net", new PoolInfo("pool.aeonpool.net",3333,"x"));
-			PoolPool.Add ("supportaeon.com", new PoolInfo("pool.supportaeon.com",3333,"x"));
+			PoolPool.Add("minereasy.com", new PoolInfo ("aeon.minereasy.com", 3333));
+			PoolPool.Add("aeon.sumominer.com", new PoolInfo ("aeon.sumominer.com", 3333));
+			PoolPool.Add("aeon.rupool.tk", new PoolInfo ("aeon.rupool.tk", 4444));
+			PoolPool.Add("aeon.hashvault.pro", new PoolInfo ("pool.aeon.hashvault.pro", 3333,"x"));
+			PoolPool.Add("aeon.n-engine.com", new PoolInfo ("aeon.n-engine.com", 7333));
+			PoolPool.Add("aeonpool.xyz", new PoolInfo ("mine.aeonpool.xyz", 3333));
+			PoolPool.Add("aeonpool.dreamitsystems.com", new PoolInfo ("aeonpool.dreamitsystems.com", 13333,"x"));
+			PoolPool.Add("aeonminingpool.com", new PoolInfo ("pool.aeonminingpool.com", 3333,"x"));
+			PoolPool.Add("aeonhash.com", new PoolInfo ("pool.aeonhash.com", 3333));
+			PoolPool.Add("durinsmine.com", new PoolInfo ("mine.durinsmine.com", 3333,"x"));
+			PoolPool.Add("aeon.uax.io", new PoolInfo ("mine.uax.io", 4446));
+			PoolPool.Add("aeon-pool.sytes.net", new PoolInfo ("aeon-pool.sytes.net", 3333));
+			PoolPool.Add("aeonpool.net", new PoolInfo("pool.aeonpool.net",3333,"x"));
+			PoolPool.Add("supportaeon.com", new PoolInfo("pool.supportaeon.com",3333,"x"));
 
-			PoolPool.Add ("pooltupi.com", new PoolInfo("pooltupi.com",8080,"x"));
-			PoolPool.Add ("aeon.semipool.com", new PoolInfo("pool.aeon.semipool.com",3333,"x"));
+			PoolPool.Add("pooltupi.com", new PoolInfo("pooltupi.com",8080,"x"));
+			PoolPool.Add("aeon.semipool.com", new PoolInfo("pool.aeon.semipool.com",3333,"x"));
 #else
             PoolPool.Add("xmrpool.eu", new PoolInfo("xmrpool.eu", 3333));
             PoolPool.Add("moneropool.com", new PoolInfo("mine.moneropool.com", 3333));
@@ -253,39 +253,33 @@ namespace Server
                 return true;
         }
 
+        private static object hashLocker = new object();
 
         private static bool CheckHash(string blob, string nonce, string target, string result)
         {
-
-            bool validHash = true;
 
             /* first check if result meets target */
             string ourtarget = result.Substring(56, 8);
 
             if (HexToUInt32(ourtarget) >= HexToUInt32(target))
-                validHash = false;
-
+                return false;
 
 #if (!NOHASHCHECK)
 
-			if (validHash) {
-				/* recalculate the hash */
+			/* recalculate the hash */
 
-				string parta = blob.Substring (0, 78);
-				string partb = blob.Substring (86, blob.Length - 86);
+			string parta = blob.Substring (0, 78);
+			string partb = blob.Substring (86, blob.Length - 86);
 
-				IntPtr pStr = hash_cn (parta + nonce + partb);
+            lock(hash_locker) {
+                IntPtr pStr = hash_cn (parta + nonce + partb);
+                string ourresult = Marshal.PtrToStringAnsi (pStr);
+            }
 
-				string ourresult = Marshal.PtrToStringAnsi (pStr);
-
-				validHash = (ourresult == result);
-
-			}
-
+			if (ourresult != result) return false;
 #endif
 
-
-            return validHash;
+            return true;
         }
 
 
@@ -437,12 +431,12 @@ namespace Server
 
                 if (tookown)
                 {
-                    try { if (!Slaves.Contains(client)) Slaves.Add(client); } catch { }
+                    if (!Slaves.Contains(client)) Slaves.TryAdd(client);
                     Console.WriteLine("Send own job!");
                 }
                 else
                 {
-                    try { Slaves.TryRemove(client); } catch { }
+                    Slaves.TryRemove(client); 
                 }
 
                 client.WebSocket.Send(forward);
@@ -460,11 +454,11 @@ namespace Server
             Slaves.TryRemove(client);
 
             var wsoc = client.WebSocket as WebSocketConnection;
-            if (wsoc != null) { Execute.IgnoreExceptions(() => wsoc.CloseSocket()); }
+            if (wsoc != null) wsoc.CloseSocket();
 
             client.WebSocket.Close();
 
-            PoolConnectionFactory.Close(client.TcpClient, client);
+            PoolConnectionFactory.Close(client.PoolConnection, client);
         }
 
 
@@ -500,7 +494,6 @@ namespace Server
 
         private static void CreateOurself()
         {
-
             ourself = new Client();
 
             ourself.Login = MyXMRAddress;
@@ -510,7 +503,7 @@ namespace Server
 
             clients.TryAdd(Guid.Empty, ourself);
 
-            ourself.TcpClient = PoolConnectionFactory.CreatePoolConnection(ourself, MyPoolUrl, MyPoolPort, MyXMRAddress, MyPoolPwd);
+            ourself.PoolConnection = PoolConnectionFactory.CreatePoolConnection(ourself, MyPoolUrl, MyPoolPort, MyXMRAddress, MyPoolPwd);
         }
 
 
@@ -649,13 +642,14 @@ namespace Server
             server.RestartAfterListenError = true;
             server.ListenerSocket.NoDelay = false;
 
+            
+
             server.Start(socket =>
                 {
                     socket.OnOpen = () =>
                     {
-
                         string ipadr = string.Empty;
-                        Execute.IgnoreExceptions(() => ipadr = socket.ConnectionInfo.ClientIpAddress);
+                        try { ipadr = socket.ConnectionInfo.ClientIpAddress; } catch {}
 
                         Client client = new Client();
                         client.WebSocket = socket;
@@ -683,7 +677,7 @@ namespace Server
                     socket.OnMessage = message =>
                     {
                         string ipadr = string.Empty;
-                        Execute.IgnoreExceptions(() => ipadr = socket.ConnectionInfo.ClientIpAddress);
+                        try { ipadr = socket.ConnectionInfo.ClientIpAddress; } catch {}
 
                         // TODO: Add some security measurements.. e.g. block large messages
 
@@ -771,14 +765,6 @@ namespace Server
                                 DisconnectClient(client, "Login, password and pool have to be specified."); return;
                             }
 
-
-
-                            /*#if(!AEON)  // TODO: check for integrated addresses!
-							if(client.Login.Length > 95) client.Login = client.Login.Substring(0,95);
-#else
-							if(client.Login.Length > 97) client.Login = client.Login.Substring(0,97);
-#endif*/
-
                             client.UserId = string.Empty;
 
                             if (msg.ContainsKey("userid"))
@@ -802,12 +788,10 @@ namespace Server
                                 return;
                             }
 
-
-
                             // if pools have some stupid default password
                             if (client.Password == "") client.Password = pi.EmptyPassword;
 
-                            client.TcpClient = PoolConnectionFactory.CreatePoolConnection(
+                            client.PoolConnection = PoolConnectionFactory.CreatePoolConnection(
                                 client, pi.Url, pi.Port, client.Login, client.Password);
 
                         }
@@ -835,9 +819,6 @@ namespace Server
                             string jobid = msg["job_id"].GetString();
 
                             JobInfo ji;
-
-                            //lock(jobInfos) {
-
 
                             if (!jobInfos.TryGetValue(jobid, out ji))
                             {
@@ -871,8 +852,6 @@ namespace Server
 
                             double prob = ((double)HexToUInt32(ji.Target)) / ((double)0xffffffff);
                             long howmanyhashes = ((long)(1.0 / prob));
-
-
 
                             if (ji.OwnJob)
                             {
@@ -924,7 +903,7 @@ namespace Server
 
                                         if (!string.IsNullOrEmpty(ipadr)) Firewall.Update(ipadr, Firewall.UpdateEntry.SolvedJob);
 
-                                        ji.Solved.Add(reportedNonce.ToLower());
+                                        ji.Solved.TryAdd(reportedNonce.ToLower());
 
                                         if (client.UserId != string.Empty)
                                         {
@@ -937,12 +916,12 @@ namespace Server
 
                                         }
 
-                                        if (!ji.OwnJob) client.TcpClient.Hashes += howmanyhashes;
+                                        if (!ji.OwnJob) client.PoolConnection.Hashes += howmanyhashes;
 
                                         Client jiClient = client;
                                         if (ji.OwnJob) jiClient = ourself;
 
-                                        string msg1 = "{\"id\":\"" + jiClient.TcpClient.PoolId
+                                        string msg1 = "{\"id\":\"" + jiClient.PoolConnection.PoolId
                                             + "\",\"job_id\":\"" + ji.InnerId
                                             + "\",\"nonce\":\"" + msg["nonce"].GetString()
                                             + "\",\"result\":\"" + msg["result"].GetString()
@@ -953,7 +932,7 @@ namespace Server
                                             + ",\"id\":\"" + "1" + "\"}\n";  // TODO: check the "1"
 
 
-                                        jiClient.TcpClient.Send(jiClient, msg0);
+                                        jiClient.PoolConnection.Send(jiClient, msg0);
                                     }
 
                                 }).Start();
@@ -966,7 +945,7 @@ namespace Server
 
                                 if (!string.IsNullOrEmpty(ipadr)) Firewall.Update(ipadr, Firewall.UpdateEntry.SolvedJob);
 
-                                ji.Solved.Add(reportedNonce.ToLower());
+                                ji.Solved.TryAdd(reportedNonce.ToLower());
 
                                 if (client.UserId != string.Empty)
                                 {
@@ -982,9 +961,9 @@ namespace Server
                                 Client jiClient = client;
                                 if (ji.OwnJob) jiClient = ourself;
 
-                                if (!ji.OwnJob) client.TcpClient.Hashes += howmanyhashes;
+                                if (!ji.OwnJob) client.PoolConnection.Hashes += howmanyhashes;
 
-                                string msg1 = "{\"id\":\"" + jiClient.TcpClient.PoolId
+                                string msg1 = "{\"id\":\"" + jiClient.PoolConnection.PoolId
                                     + "\",\"job_id\":\"" + ji.InnerId
                                     + "\",\"nonce\":\"" + msg["nonce"].GetString()
                                     + "\",\"result\":\"" + msg["result"].GetString()
@@ -995,7 +974,7 @@ namespace Server
                                     + ",\"id\":\"" + "1" + "\"}\n";  // TODO: check the "1"
 
 
-                                jiClient.TcpClient.Send(jiClient, msg0);
+                                jiClient.PoolConnection.Send(jiClient, msg0);
                             }
 
 
@@ -1014,7 +993,7 @@ namespace Server
 
                             string registerip = string.Empty;
 
-                            Execute.IgnoreExceptions(() => registerip = client.WebSocket.ConnectionInfo.ClientIpAddress);
+                            try { registerip = client.WebSocket.ConnectionInfo.ClientIpAddress; } catch {};
 
                             if (string.IsNullOrEmpty(registerip))
                             { DisconnectClient(guid, "Unknown error."); return; }
@@ -1062,7 +1041,7 @@ namespace Server
 
 
                             bool loginok = false;
-                            Execute.IgnoreExceptions(() => loginok = Regex.IsMatch(crdts.Login, RegexIsXMR));
+                            try { loginok = Regex.IsMatch(crdts.Login, RegexIsXMR); } catch {}
 
                             if (!loginok)
                             {
@@ -1217,8 +1196,8 @@ namespace Server
 
                             if ((now - c.Created).TotalSeconds > GraceConnectionTime)
                             {
-                                if (c.TcpClient == null || c.TcpClient.Client == null) DisconnectClient(c, "timeout.");
-                                else if (!c.TcpClient.Client.Connected) DisconnectClient(c, "lost pool connection.");
+                                if (c.PoolConnection == null || c.PoolConnection.TcpClient == null) DisconnectClient(c, "timeout.");
+                                else if (!c.PoolConnection.TcpClient.Connected) DisconnectClient(c, "lost pool connection.");
                                 else if ((now - c.LastPoolJobTime).TotalSeconds > PoolTimeout)
                                 {
                                     DisconnectClient(c, "pool is not sending new jobs.");
