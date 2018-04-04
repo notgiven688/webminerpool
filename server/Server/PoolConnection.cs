@@ -283,9 +283,9 @@ namespace Server {
 					networkStream.EndRead (null);
 				} catch { }
 
-				connection.TcpClient.Close ();
-				connection.TcpClient.Client.Close ();
-				connection.ReceiveBuffer = null;
+				try { connection.TcpClient.Close ();} catch { }
+				try { connection.TcpClient.Client.Close ();} catch { }
+				try { connection.ReceiveBuffer = null;} catch { }
 
 				Connections.TryRemove(connection.Credentials);
 
