@@ -269,12 +269,13 @@ namespace Server {
                 string parta = blob.Substring (0, 78);
                 string partb = blob.Substring (86, blob.Length - 86);
 
-                lock (hash_locker) {
+                lock (hashLocker) {
                     IntPtr pStr = hash_cn (parta + nonce + partb);
                     string ourresult = Marshal.PtrToStringAnsi (pStr);
+                    if (ourresult != result) return false;
                 }
 
-                if (ourresult != result) return false;
+               
             }
 #endif
 
