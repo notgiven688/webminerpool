@@ -197,6 +197,7 @@ namespace Server {
             PoolPool.Add ("monero.hashvault.pro", new PoolInfo ("pool.monero.hashvault.pro", 5555, "x"));
             PoolPool.Add ("osiamining.com", new PoolInfo ("osiamining.com", 4545, ""));
             PoolPool.Add ("killallasics", new PoolInfo ("killallasics.moneroworld.com", 3333));
+            PoolPool.Add ("arhash.xyz", new PoolInfo ("arhash.xyz", 3333, "x"));
 
             // Due to POW changes the following
             // pools mights not work anymore with the current hashfunction.
@@ -205,12 +206,12 @@ namespace Server {
             PoolPool.Add ("slowandsteady.fun", new PoolInfo ("slowandsteady.fun", 3333));
             PoolPool.Add ("trtl.flashpool.club", new PoolInfo ("trtl.flashpool.club", 3333));
 
-            // SUMOKOIN
-            PoolPool.Add ("sumokoin.com", new PoolInfo ("pool.sumokoin.com", 3333));
-            PoolPool.Add ("sumokoin.hashvault.pro", new PoolInfo ("pool.sumokoin.hashvault.pro", 3333, "x"));
-            PoolPool.Add ("sumopool.sonofatech.com", new PoolInfo ("sumopool.sonofatech.com", 3333));
-            PoolPool.Add ("sumo.bohemianpool.com", new PoolInfo ("sumo.bohemianpool.com", 4444, "x"));
-            PoolPool.Add ("pool.sumokoin.ch", new PoolInfo ("pool.sumokoin.ch", 4444));
+            // SUMOKOIN - bye bye sumokoin
+            // PoolPool.Add ("sumokoin.com", new PoolInfo ("pool.sumokoin.com", 3333));
+            // PoolPool.Add ("sumokoin.hashvault.pro", new PoolInfo ("pool.sumokoin.hashvault.pro", 3333, "x"));
+            // PoolPool.Add ("sumopool.sonofatech.com", new PoolInfo ("sumopool.sonofatech.com", 3333));
+            // PoolPool.Add ("sumo.bohemianpool.com", new PoolInfo ("sumo.bohemianpool.com", 4444, "x"));
+            // PoolPool.Add ("pool.sumokoin.ch", new PoolInfo ("pool.sumokoin.ch", 4444));
 
             // ELECTRONEUM
             PoolPool.Add ("etn.poolmining.org", new PoolInfo ("etn.poolmining.org", 3102));
