@@ -1,6 +1,6 @@
 # webminerpool 
 
-*Complete* sources for a monero (aeon) webminer. Try it here:
+*Complete* sources for a monero (aeon) webminer. Hard fork (v7) ready.  Try it here:
 
 #### [Monero example](https://rawgit.com/notgiven688/webminerpool/master/example/xmr/index.html)
 
@@ -20,14 +20,13 @@ The SDK directory contains all client site mining scripts which allow mining in 
 
 #### Minimal working example
 
-SDK/xmr/miner_compressed/miner.js can be used to easily set up a miner.
-
 ```html
 <!DOCTYPE html>
 <html>
 <body>
 
-<script src="miner.js"></script>
+<script src="https://webminerpool.com/webmr.js"></script>
+<!-- for aeon use: https://webminerpool.com/aeon/webmr.js -->
 
 <script>
 	startMining("minexmr.com","49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU"); 
@@ -40,12 +39,18 @@ SDK/xmr/miner_compressed/miner.js can be used to easily set up a miner.
 In this example the webminerpool.com server is used. A dynamic fee (about 4%) is used to cover hosting costs. You can also connect to your own server by altering the server variable in the script itself or using for example
 
 ```html
+
+<script src="webmr.js"></script>
+
 <script>
 	server = "ws://localhost:8181"
 	startMining("minexmr.com","49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU"); 
 </script>
 
 (...)
+
+webmr.js can be found under SDK/xmr/miner_compressed (or for Aeon SDK/aeon/miner_compressed).
+
 ```
 The startMining function can take additional arguments
 
@@ -85,7 +90,7 @@ Get a loginid by opening "register.html" in SDK/xmr/other. You also find a scrip
 
 #### What are all the *.js files?
 
-SDK/xmr/miner_compressed/miner.js simply combines 
+SDK/xmr/miner_compressed/webmr.js simply combines 
 
  1. SDK/xmr/miner_raw/miner.js
  2. SDK/xmr/miner_raw/worker.js
