@@ -1,6 +1,6 @@
 TARGET = prog
 LIBS = -lm
-CC = emcc -O3  -s SINGLE_FILE=1 -s NO_FILESYSTEM=1  -s 'EXTRA_EXPORTED_RUNTIME_METHODS=["ccall", "cwrap"]'  --llvm-lto 1 -s TOTAL_MEMORY=67108864  -s WASM=1 -s "BINARYEN_TRAP_MODE='allow'"  -s EXPORTED_FUNCTIONS="['_hash_cn']"  --shell-file html_template/shell_minimal.html
+CC = emcc -O3 -s SINGLE_FILE=1  -s NO_FILESYSTEM=1  -s 'EXTRA_EXPORTED_RUNTIME_METHODS=["ccall", "cwrap"]'  --llvm-lto 1 -s TOTAL_MEMORY=67108864  -s WASM=1 -s "BINARYEN_TRAP_MODE='allow'"  -s EXPORTED_FUNCTIONS="['_hash_cn']"  --shell-file html_template/shell_minimal.html
 CFLAGS =  -Wall -msse2
 
 
