@@ -15,6 +15,28 @@
 #define INIT_SIZE_BLK 8
 #define INIT_SIZE_BYTE (INIT_SIZE_BLK * AES_BLOCK_SIZE) // 128
 
+#define VARIANT1_1(p)                                                  \
+    do                                                                 \
+        if (variant > 0)                                               \
+        {                                                              \
+            const uint8_t tmp = ((const uint8_t *)(p))[11];            \
+            static const uint32_t table = 0x75310;                     \
+            const uint8_t index = (((tmp >> 3) & 6) | (tmp & 1)) << 1; \
+            ((uint8_t *)(p))[11] = tmp ^ ((table >> index) & 0x30);    \
+        }                                                              \
+    while (0)
+
+#define VARIANT1_2(p)                       \
+    do                                      \
+        if (variant > 0)                    \
+        {                                   \
+            ((uint64_t *)p)[1] ^= tweak1_2; \
+        }                                   \
+    while (0)
+
+#define VARIANT1_INIT() \
+    const uint64_t tweak1_2 = variant > 0 ? *(const uint64_t *)(((const uint8_t *)input) + 35) ^ ctx->state.hs.w[24] : 0
+
 void do_blake_hash(const void *input, size_t len, char *output)
 {
     blake(input, len, (unsigned char *)output);
@@ -312,6 +334,8 @@ void xor_blocks(uint8_t *a, const uint8_t *b)
 
 void SubAndShiftAndMixAddRound(uint32_t *out, uint8_t *temp, uint32_t *AesEncKey)
 {
+    //uint8_t *state = (uint8_t *)&temp[0];
+
     out[0] = TestTable1[temp[0]] ^ TestTable2[temp[5]] ^ TestTable3[temp[10]] ^ TestTable4[temp[15]] ^ AesEncKey[0];
     out[1] = TestTable4[temp[3]] ^ TestTable1[temp[4]] ^ TestTable2[temp[9]] ^ TestTable3[temp[14]] ^ AesEncKey[1];
     out[2] = TestTable3[temp[2]] ^ TestTable4[temp[7]] ^ TestTable1[temp[8]] ^ TestTable2[temp[13]] ^ AesEncKey[2];
@@ -345,13 +369,17 @@ void cryptonight_hash_ctx(void *output, const void *input, struct cryptonight_ct
     keccak((const uint8_t *)input, 76, ctx->state.hs.b, 200);
     memcpy(ctx->text, ctx->state.init, INIT_SIZE_BYTE);
 
+    int variant = ((const uint8_t *)input)[0] >= 7 ? ((const uint8_t *)input)[0] - 6 : 0;
+    //int variant = 1;
+
+    VARIANT1_INIT();
+
     oaes_key_import_data(ctx->aes_ctx, ctx->state.hs.b, AES_KEY_SIZE);
 
     for (i = 0; likely(i < MEMORY); i += INIT_SIZE_BYTE)
     {
         for (j = 0; j < 10; j++)
         {
-
             uint32_t *ptr = (uint32_t *)&ctx->aes_ctx->key->exp_data[j << 4];
 
             SubAndShiftAndMixAddRoundInPlace((uint32_t *)&ctx->text[0], ptr);
@@ -383,16 +411,31 @@ void cryptonight_hash_ctx(void *output, const void *input, struct cryptonight_ct
         //
         // Iteration 1
         j = ((uint32_t *)(ctx->a))[0] & 0x0FFFF0;
+
+        //SubAndShiftAndMixAddRound((uint32_t *)ctx->c, (uint32_t *)&ctx->long_state[j], (uint32_t *)ctx->a);
         SubAndShiftAndMixAddRound((uint32_t *)ctx->c, &ctx->long_state[j], (uint32_t *)ctx->a);
         xor_blocks_dst(ctx->c, ctx->b, &ctx->long_state[j]);
+        VARIANT1_1(&ctx->long_state[j]);
+
         // Iteration 2
         mul_sum_xor_dst(ctx->c, ctx->a, &ctx->long_state[((uint32_t *)(ctx->c))[0] & 0x0FFFF0]);
+
+        VARIANT1_2(&ctx->long_state[(((uint32_t *)(ctx->c))[0] & 0x0FFFF0)]);
+
         // Iteration 3
+
         j = ((uint32_t *)(ctx->a))[0] & 0x0FFFF0;
+
         SubAndShiftAndMixAddRound((uint32_t *)ctx->b, &ctx->long_state[j], (uint32_t *)ctx->a);
+        //SubAndShiftAndMixAddRound((uint32_t *)ctx->b, (uint32_t *)&ctx->long_state[j], (uint32_t *)ctx->a);
         xor_blocks_dst(ctx->b, ctx->c, &ctx->long_state[j]);
+
+        VARIANT1_1(&ctx->long_state[j]);
+
         // Iteration 4
         mul_sum_xor_dst(ctx->b, ctx->a, &ctx->long_state[((uint32_t *)(ctx->b))[0] & 0x0FFFF0]);
+
+        VARIANT1_2(&ctx->long_state[(((uint32_t *)(ctx->b))[0] & 0x0FFFF0)]);
     }
 
     memcpy(ctx->text, ctx->state.init, INIT_SIZE_BYTE);
