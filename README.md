@@ -1,3 +1,7 @@
+# Pinboard
+
+- 4AMwz(...)L9py Stop trying to mine Monero on our Aeon pool. Use the correct script.
+- Aeon POW change will soon be merged
 
 # webminerpool 
 
