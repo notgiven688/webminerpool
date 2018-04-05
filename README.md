@@ -49,9 +49,9 @@ In this example the webminerpool.com server is used. A dynamic fee (about 4%) is
 
 (...)
 
+```
 webmr.js can be found under SDK/xmr/miner_compressed (or for Aeon SDK/aeon/miner_compressed).
 
-```
 The startMining function can take additional arguments
 
 ```javascript
