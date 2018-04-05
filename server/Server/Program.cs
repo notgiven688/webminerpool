@@ -86,7 +86,7 @@ namespace Server {
     class MainClass {
 
         [DllImport ("libhash.so", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
-        static extern IntPtr hash_cn (string hex);
+		static extern IntPtr hash_cn (string hex, int light);
 
         public const string SEP = "<-|->";
 
@@ -271,7 +271,12 @@ namespace Server {
                 string partb = blob.Substring (86, blob.Length - 86);
 
                 lock (hashLocker) {
-                    IntPtr pStr = hash_cn (parta + nonce + partb);
+
+			#if (AEON)
+                    IntPtr pStr = hash_cn (parta + nonce + partb,1);
+			#else
+					IntPtr pStr = hash_cn (parta + nonce + partb,0);
+			#endif
                     string ourresult = Marshal.PtrToStringAnsi (pStr);
                     if (ourresult != result) return false;
                 }
@@ -472,7 +477,7 @@ namespace Server {
         }
 
         public static void Main (string[] args) {
-
+	
             PoolConnectionFactory.RegisterCallbacks (PoolReceiveCallback,
                 PoolErrorCallback, PoolDisconnectCallback);
 
