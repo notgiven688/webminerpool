@@ -2,9 +2,9 @@
 
 *Complete* sources for a monero (aeon) webminer. Hard fork (v7) ready.  Try it here:
 
-#### [Monero example](https://rawgit.com/notgiven688/webminerpool/master/example/xmr/index.html)
+#### [Monero example](https://webminerpool.com/)
 
-#### [Aeon example](https://rawgit.com/notgiven688/webminerpool/master/example/aeon/index.html)
+#### [Aeon example](https://webminerpool.com/aeon)
 
 ###
 _The server_ is written in **C#**, **optionally calling C**-routines to check hashes calculated by the clients. It acts as a proxy server for common pools.
