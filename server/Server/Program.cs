@@ -997,7 +997,7 @@ namespace Server {
                     }
 
                     Console.WriteLine ("[{0}] heartbeat, connections: client {1}, pool {2}, jobqueue: {3}, total/own: {4}/{5} h/s", DateTime.Now.ToString (),
-                        clients.Count, PoolConnectionFactory.Connections.Count, jobQueue.Count, totalownspeed, totalspeed);
+				clients.Count, PoolConnectionFactory.Connections.Count, jobQueue.Count,  totalspeed,totalownspeed);
 
                     while (jobQueue.Count > JobCacheSize) {
                         string deq;
