@@ -94,7 +94,7 @@ namespace Server {
 
         public const string RegexIsXMR = "[a-zA-Z|\\d]{95}";
 
-        public const int JobCacheSize = (int) 40e3;
+        public const int JobCacheSize = (int) 90e3;
 
 #if (AEON)
         private const string MyXMRAddress = "WmtUFkPrboCKzL5iZhia4iNHKw9UmUXzGgbm5Uo3HPYwWcsY1JTyJ2n335gYiejNysLEs1G2JZxEm3uXUX93ArrV1yrXDyfPH";
@@ -117,7 +117,7 @@ namespace Server {
 
         private static Dictionary<string, PoolInfo> PoolPool = new Dictionary<string, PoolInfo> ();
 
-        private const int GraceConnectionTime = 10;                 // time to connect to a pool in seconds 
+        private const int GraceConnectionTime = 16;                 // time to connect to a pool in seconds 
         private const int HeartbeatRate = 10;                       // server logic every x seconds
         private const int TimeOwnJobsAreOld = 600;                  // after that job-age we do not forward our jobs 
         private const int PoolTimeout = 60 * 12;                    // in seconds, pool is not sending new jobs 
@@ -125,6 +125,12 @@ namespace Server {
         private const int MaxHashChecksPerHeartbeat = 20;           // try not to kill ourselfs  
         private const int ForceGCEveryXHeartbeat = 40;              // so we can keep an eye on the memory 
         private const int SaveStatisticsEveryXHeartbeat = 40;       // save statistics 
+        public const int BatchSize = 200;							// mining with the same credentials (pool, login, password)
+																	// results in connections beeing "bundled" to a single connection
+																	// seen by the pool. that can result in large difficulties and
+																	// hashrate fluctuations. this parameter sets the number of clients
+																	// in one batch, e.g. for BatchSize = 100 and 1000 pool connections
+																	// there will be 10 pool connections.
 
         private static int Hearbeats = 0;
         private static int HashesCheckedThisHeartbeat = 0;
@@ -202,9 +208,9 @@ namespace Server {
             // Due to POW changes the following
             // pools mights not work anymore with the current hashfunction.
 
-            // TURTLE
-            PoolPool.Add ("slowandsteady.fun", new PoolInfo ("slowandsteady.fun", 3333));
-            PoolPool.Add ("trtl.flashpool.club", new PoolInfo ("trtl.flashpool.club", 3333));
+            // TURTLE  - bye bye turtle
+            // PoolPool.Add ("slowandsteady.fun", new PoolInfo ("slowandsteady.fun", 3333));
+            // PoolPool.Add ("trtl.flashpool.club", new PoolInfo ("trtl.flashpool.club", 3333));
 
             // SUMOKOIN - bye bye sumokoin
             // PoolPool.Add ("sumokoin.com", new PoolInfo ("pool.sumokoin.com", 3333));
@@ -432,10 +438,12 @@ namespace Server {
 
             slaves.TryRemove (client);
 
+            try {
             var wsoc = client.WebSocket as WebSocketConnection;
             if (wsoc != null) wsoc.CloseSocket ();
+            } catch{}
 
-            client.WebSocket.Close ();
+             try { client.WebSocket.Close (); } catch{}
 
             PoolConnectionFactory.Close (client.PoolConnection, client);
         }

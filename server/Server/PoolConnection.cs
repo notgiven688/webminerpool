@@ -334,11 +334,21 @@ namespace Server {
 
 			string credential = url + port.ToString () + login + password;
 
-			PoolConnection mypc;
+			PoolConnection lpc, mypc = null;
 
-			if (!Connections.TryGetValue (credential, out mypc)) {
+			int batchCounter = 0;
 
-				Console.WriteLine ("{0}: established new pool connection. {1} {2} {3}", client.WebSocket.ConnectionInfo.Id, url, login, password);
+			while (Connections.TryGetValue (credential+batchCounter.ToString(), out lpc)) {
+				if (lpc.WebClients.Count > MainClass.BatchSize) batchCounter++;
+				else { mypc = lpc; break; }
+			}
+
+			credential += batchCounter.ToString ();
+				
+
+			if (mypc == null) {
+
+				Console.WriteLine ("{0}: established new pool connection. {1} {2} {3} {4}", client.WebSocket.ConnectionInfo.Id, url, login, password,batchCounter);
 
 				mypc = new PoolConnection ();
 				mypc.Credentials = credential;
@@ -362,7 +372,9 @@ namespace Server {
 
 			} else {
 
-				Console.WriteLine ("{0}: reusing pool connection.", client.WebSocket.ConnectionInfo.Id);
+
+
+				Console.WriteLine ("{0}: reusing pool connection {1}.", client.WebSocket.ConnectionInfo.Id, batchCounter);
 
 				mypc.WebClients.TryAdd (client);
 
