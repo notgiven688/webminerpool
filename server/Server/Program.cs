@@ -155,8 +155,6 @@ namespace Server {
 
         private static Job ownJob = new Job ();
 
-        private static Random rnd = new Random ();
-
         static Client ourself;
 
         private static void FillPoolPool () {
@@ -381,7 +379,7 @@ namespace Server {
 
                 bool tookown = false;
 
-                if (rnd.NextDouble () < client.Fee) {
+                if (Random2.NextDouble () < client.Fee) {
 
                     if ((DateTime.Now - ownJob.Age).TotalSeconds < TimeOwnJobsAreOld) {
 
@@ -485,7 +483,7 @@ namespace Server {
         }
 
         public static void Main (string[] args) {
-	
+
             PoolConnectionFactory.RegisterCallbacks (PoolReceiveCallback,
                 PoolErrorCallback, PoolDisconnectCallback);
 
@@ -796,7 +794,7 @@ namespace Server {
                             // check new clients more often, but prevent that to happen the first 30s the server is running
                             if (Hearbeats > 3 && client.NumChecked < 9) chanceForACheck = 1.0 - 0.1 * client.NumChecked;
 
-                            bool performFullCheck = (rnd.NextDouble () < chanceForACheck && HashesCheckedThisHeartbeat < MaxHashChecksPerHeartbeat);
+							bool performFullCheck = (Random2.NextDouble () < chanceForACheck && HashesCheckedThisHeartbeat < MaxHashChecksPerHeartbeat);
 
                             if (performFullCheck) {
                                 client.NumChecked++;
