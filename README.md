@@ -16,7 +16,7 @@ _The client_ runs in the browser using javascript and webassembly.
 
 ### SDK
 
-The SDK directory contains all client site mining scripts which allow mining in the browser.
+The SDK directory contains all client side mining scripts which allow mining in the browser.
 
 #### Minimal working example
 
