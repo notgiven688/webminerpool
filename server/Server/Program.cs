@@ -129,7 +129,7 @@ namespace Server {
 																	// results in connections beeing "bundled" to a single connection
 																	// seen by the pool. that can result in large difficulties and
 																	// hashrate fluctuations. this parameter sets the number of clients
-																	// in one batch, e.g. for BatchSize = 100 and 1000 pool connections
+																	// in one batch, e.g. for BatchSize = 100 and 1000 clients
 																	// there will be 10 pool connections.
 
         private static int Hearbeats = 0;
