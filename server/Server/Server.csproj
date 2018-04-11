@@ -86,6 +86,7 @@
     <Compile Include="Fleck\Interfaces\IWebSocketConnection.cs" />
     <Compile Include="Fleck\Interfaces\IWebSocketConnectionInfo.cs" />
     <Compile Include="Fleck\Interfaces\IWebSocketServer.cs" />
+    <Compile Include="CConsole.cs" />
     <Compile Include="Firewall.cs" />
     <Compile Include="EmptyWebsocket.cs" />
     <Compile Include="Helper.cs" />
