@@ -38,6 +38,7 @@ using JsonData = System.Collections.Generic.Dictionary<string, object>;
 namespace Server {
 
     public class Client {
+        public const double DevDefaultFee = 0.03;
         public PoolConnection PoolConnection;
         public IWebSocketConnection WebSocket;
         public string Pool = string.Empty;
@@ -50,7 +51,7 @@ namespace Server {
         public string LastTarget = string.Empty;
         public string UserId;
         public int NumChecked = 0;
-        public double Fee = MiningFee.Default;
+        public double Fee = DevDefaultFee;
         public int Version = 1;
     }
 
@@ -76,11 +77,6 @@ namespace Server {
         public string Password;
     }
 
-    public class MiningFee {
-        public static double Low = 0.00;
-        public static double Default = 0.03;
-        public static double Penalty = 0.30;
-    }
 
     class MainClass {
 
@@ -95,6 +91,8 @@ namespace Server {
 
         public const int JobCacheSize = (int) 90e3;
 
+        private static bool hashLibAvail = false;
+
 #if (AEON)
         private const string DevXMRAddress = "WmtUFkPrboCKzL5iZhia4iNHKw9UmUXzGgbm5Uo3HPYwWcsY1JTyJ2n335gYiejNysLEs1G2JZxEm3uXUX93ArrV1yrXDyfPH";
         private const string DevPoolUrl = "pool.aeon.hashvault.pro";
@@ -102,10 +100,9 @@ namespace Server {
         private const int DevPoolPort = 3333;
 #else
 
-        // Hi there!
+        // Hi there -
         // By default a 3% dev fee is submitted to the following address.
         // Thank you for leaving this in.
-
         private const string DevXMRAddress = "49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU";
         private const string DevPoolUrl = "de.moneroocean.stream";
         private const string DevPoolPwd = "x"; // if you want you can change this to something funny
@@ -237,6 +234,21 @@ namespace Server {
 
             jsonPools += "\"}\n";
 
+        }
+
+
+        private static bool CheckLibHashAvailable()
+        {
+            // just check if we can successfully calculate a cn-hash.
+            string testStr = new string('1',151) + '3';
+            string hashedResult = string.Empty;
+
+            try {
+            IntPtr pStr = hash_cn (testStr, 0);
+            hashedResult = Marshal.PtrToStringAnsi (pStr);
+            } catch {} // we really do not care
+            
+            return hashedResult.StartsWith("843ae6fc006");
         }
 
         private static UInt32 HexToUInt32 (String hex) {
@@ -484,8 +496,22 @@ namespace Server {
 
         public static void Main (string[] args) {
 
+            hashLibAvail = CheckLibHashAvailable();
+
+            FillPoolPool ();
+
             PoolConnectionFactory.RegisterCallbacks (PoolReceiveCallback,
                 PoolErrorCallback, PoolDisconnectCallback);
+
+            /*Console.BackgroundColor = ConsoleColor.Cyan;
+			Console.WriteLine("[{0}] webminerpool server started", DateTime.Now);
+            Console.BackgroundColor = ConsoleColor.Black;
+     		
+			Console.ForegroundColor = ConsoleColor.Red;
+			if (!hashLibAvail)
+			Console.WriteLine ("hashlib.so does not seem to be available. Checking submitted hashes disabled.");*/
+
+
 
             if (File.Exists ("statistics.dat")) {
 
@@ -534,8 +560,6 @@ namespace Server {
                 }
 
             }
-
-            FillPoolPool ();
 
             WebSocketServer server;
 #if (WSS)
