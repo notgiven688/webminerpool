@@ -26,11 +26,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Security.Cryptography.X509Certificates;
-
 using Fleck;
 using TinyJson;
 
@@ -86,7 +85,7 @@ namespace Server {
     class MainClass {
 
         [DllImport ("libhash.so", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
-		static extern IntPtr hash_cn (string hex, int light);
+        static extern IntPtr hash_cn (string hex, int light);
 
         public const string SEP = "<-|->";
 
@@ -109,7 +108,7 @@ namespace Server {
 
         private const string DevXMRAddress = "49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU";
         private const string DevPoolUrl = "de.moneroocean.stream";
-		private const string DevPoolPwd = "x"; // if you want you can change this to something funny
+        private const string DevPoolPwd = "x"; // if you want you can change this to something funny
         private const int DevPoolPort = 10064;
 #endif
 
@@ -122,24 +121,23 @@ namespace Server {
 
         private static Dictionary<string, PoolInfo> PoolPool = new Dictionary<string, PoolInfo> ();
 
-        private const int GraceConnectionTime = 16;                 // time to connect to a pool in seconds 
-        private const int HeartbeatRate = 10;                       // server logic every x seconds
-        private const int TimeDevJobsAreOld = 600;                  // after that job-age we do not forward dev jobs 
-        private const int PoolTimeout = 60 * 12;                    // in seconds, pool is not sending new jobs 
-        private const int SpeedAverageOverXHeartbeats = 10;         // stupid pool is not sending new jobs 
-        private const int MaxHashChecksPerHeartbeat = 20;           // try not to kill ourselfs  
-        private const int ForceGCEveryXHeartbeat = 40;              // so we can keep an eye on the memory 
-        private const int SaveStatisticsEveryXHeartbeat = 40;       // save statistics 
-        public const int BatchSize = 200;                           // mining with the same credentials (pool, login, password)
-																	// results in connections beeing "bundled" to a single connection
-																	// seen by the pool. that can result in large difficulties and
-																	// hashrate fluctuations. this parameter sets the number of clients
-																	// in one batch, e.g. for BatchSize = 100 and 1000 clients
-																	// there will be 10 pool connections.
+        private const int GraceConnectionTime = 16; // time to connect to a pool in seconds 
+        private const int HeartbeatRate = 10; // server logic every x seconds
+        private const int TimeDevJobsAreOld = 600; // after that job-age we do not forward dev jobs 
+        private const int PoolTimeout = 60 * 12; // in seconds, pool is not sending new jobs 
+        private const int SpeedAverageOverXHeartbeats = 10; // stupid pool is not sending new jobs 
+        private const int MaxHashChecksPerHeartbeat = 20; // try not to kill ourselfs  
+        private const int ForceGCEveryXHeartbeat = 40; // so we can keep an eye on the memory 
+        private const int SaveStatisticsEveryXHeartbeat = 40; // save statistics 
+        public const int BatchSize = 200; // mining with the same credentials (pool, login, password)
+        // results in connections beeing "bundled" to a single connection
+        // seen by the pool. that can result in large difficulties and
+        // hashrate fluctuations. this parameter sets the number of clients
+        // in one batch, e.g. for BatchSize = 100 and 1000 clients
+        // there will be 10 pool connections.
 
         private static int Hearbeats = 0;
         private static int HashesCheckedThisHeartbeat = 0;
-
 
         private static string jsonPools = "";
         private static long totalHashes = 0;
@@ -281,16 +279,15 @@ namespace Server {
 
                 lock (hashLocker) {
 
-			#if (AEON)
-                    IntPtr pStr = hash_cn (parta + nonce + partb,1);
-			#else
-					IntPtr pStr = hash_cn (parta + nonce + partb,0);
-			#endif
+#if (AEON)
+                    IntPtr pStr = hash_cn (parta + nonce + partb, 1);
+#else
+                    IntPtr pStr = hash_cn (parta + nonce + partb, 0);
+#endif
                     string ourresult = Marshal.PtrToStringAnsi (pStr);
                     if (ourresult != result) return false;
                 }
 
-               
             }
 #endif
 
@@ -348,9 +345,9 @@ namespace Server {
                 devJob.Age = DateTime.Now;
                 devJob.Target = msg["target"].GetString ();
 
-				List<Client> slavelist = new List<Client> (slaves.Values);
+                List<Client> slavelist = new List<Client> (slaves.Values);
 
-				foreach (Client slave in slavelist) {
+                foreach (Client slave in slavelist) {
 
                     string forward = string.Empty;
                     string newtarget = string.Empty;
@@ -440,11 +437,11 @@ namespace Server {
             slaves.TryRemove (client);
 
             try {
-            var wsoc = client.WebSocket as WebSocketConnection;
-            if (wsoc != null) wsoc.CloseSocket ();
-            } catch{}
+                var wsoc = client.WebSocket as WebSocketConnection;
+                if (wsoc != null) wsoc.CloseSocket ();
+            } catch { }
 
-             try { client.WebSocket.Close (); } catch{}
+            try { client.WebSocket.Close (); } catch { }
 
             PoolConnectionFactory.Close (client.PoolConnection, client);
         }
@@ -565,8 +562,8 @@ namespace Server {
             FleckLog.LogAction = (level, message, ex) => {
                 switch (level) {
                     case LogLevel.Debug:
-#if(DEBUG)
-                        Console.WriteLine("FLECK (Debug): " + message);
+#if (DEBUG)
+                        Console.WriteLine ("FLECK (Debug): " + message);
 #endif
                         break;
                     case LogLevel.Error:
@@ -575,7 +572,7 @@ namespace Server {
 
                             exceptionCounter++;
                             if ((exceptionCounter % 200) == 0) {
-                                Helper.WriteTextAsyncWrapper ("fleck_error.txt", ex.ToString());
+                                Helper.WriteTextAsyncWrapper ("fleck_error.txt", ex.ToString ());
                             }
 
                         } else Console.WriteLine ("FLECK: " + message);
@@ -586,7 +583,7 @@ namespace Server {
 
                             exceptionCounter++;
                             if ((exceptionCounter % 200) == 0) {
-                                Helper.WriteTextAsyncWrapper ("fleck_warn.txt", ex.ToString());
+                                Helper.WriteTextAsyncWrapper ("fleck_warn.txt", ex.ToString ());
                             }
                         } else Console.WriteLine ("FLECK: " + message);
                         break;
@@ -649,7 +646,7 @@ namespace Server {
 
                     if (client == null) {
                         // famous comment: this should not happen
-                        RemoveClient (guid); 
+                        RemoveClient (guid);
                         return;
                     }
 
@@ -728,7 +725,7 @@ namespace Server {
                             client, pi.Url, pi.Port, client.Login, client.Password);
 
                     } else if (identifier == "solved") {
-						
+
                         if (!client.GotHandshake) {
                             // no merci
                             RemoveClient (socket.ConnectionInfo.Id);
@@ -797,7 +794,7 @@ namespace Server {
                             // check new clients more often, but prevent that to happen the first 30s the server is running
                             if (Hearbeats > 3 && client.NumChecked < 9) chanceForACheck = 1.0 - 0.1 * client.NumChecked;
 
-							bool performFullCheck = (Random2.NextDouble () < chanceForACheck && HashesCheckedThisHeartbeat < MaxHashChecksPerHeartbeat);
+                            bool performFullCheck = (Random2.NextDouble () < chanceForACheck && HashesCheckedThisHeartbeat < MaxHashChecksPerHeartbeat);
 
                             if (performFullCheck) {
                                 client.NumChecked++;
@@ -813,8 +810,8 @@ namespace Server {
                                 RemoveClient (client.WebSocket.ConnectionInfo.Id);
                             } else {
 
-                                if(performFullCheck)
-                                Console.WriteLine ("{0}: got hash-checked", client.WebSocket.ConnectionInfo.Id.ToString ());
+                                if (performFullCheck)
+                                    Console.WriteLine ("{0}: got hash-checked", client.WebSocket.ConnectionInfo.Id.ToString ());
 
                                 if (!string.IsNullOrEmpty (ipadr)) Firewall.Update (ipadr, Firewall.UpdateEntry.SolvedJob);
 
@@ -947,7 +944,7 @@ namespace Server {
 
             bool running = true;
 
-            double totalspeed = 0, totalownspeed = 0;
+            double totalSpeed = 0, totalDevSpeed = 0;
 
             while (running) {
 
@@ -970,7 +967,7 @@ namespace Server {
                         Console.WriteLine ("done.");
                     }
 
-                } catch(Exception ex) {
+                } catch (Exception ex) {
                     Console.WriteLine ("Error saving statistics.dat: {0}", ex);
                 }
 
@@ -989,7 +986,7 @@ namespace Server {
 
                         Console.WriteLine ("done.");
                     }
-                }  catch(Exception ex) {
+                } catch (Exception ex) {
                     Console.WriteLine ("Error saving logins.dat: {0}", ex);
                 }
 
@@ -998,15 +995,15 @@ namespace Server {
                     Task.Run (async delegate { await Task.Delay (TimeSpan.FromSeconds (HeartbeatRate)); }).Wait ();
 
                     if (Hearbeats % SpeedAverageOverXHeartbeats == 0) {
-                        totalspeed = (double) totalHashes / (double) (HeartbeatRate * SpeedAverageOverXHeartbeats);
-                        totalownspeed = (double) totalDevHashes / (double) (HeartbeatRate * SpeedAverageOverXHeartbeats);
+                        totalSpeed = (double) totalHashes / (double) (HeartbeatRate * SpeedAverageOverXHeartbeats);
+                        totalDevSpeed = (double) totalDevHashes / (double) (HeartbeatRate * SpeedAverageOverXHeartbeats);
 
                         totalHashes = 0;
                         totalDevHashes = 0;
                     }
 
-                    Console.WriteLine ("[{0}] heartbeat, connections: client {1}, pool {2}, jobqueue: {3}, total/own: {4}/{5} h/s", DateTime.Now.ToString (),
-				clients.Count, PoolConnectionFactory.Connections.Count, jobQueue.Count,  totalspeed,totalownspeed);
+                    Console.WriteLine ("[{0}] heartbeat, connections: client {1}, pool {2}, jobqueue: {3}, total/dev: {4}/{5} h/s", DateTime.Now.ToString (),
+                        clients.Count, PoolConnectionFactory.Connections.Count, jobQueue.Count, totalSpeed, totalDevSpeed);
 
                     while (jobQueue.Count > JobCacheSize) {
                         string deq;
@@ -1047,7 +1044,7 @@ namespace Server {
                         // we removed ourself because we got disconnected from the pool
                         // make us alive again!
                         if (clients.Count > 0) {
-                            Console.WriteLine ("disconnected from own pool. trying to reconnect.");
+                            Console.WriteLine ("disconnected from dev pool. trying to reconnect.");
                             devJob = new Job ();
                             CreateOurself ();
                         }
