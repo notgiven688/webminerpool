@@ -19,7 +19,7 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#define NOHASHCHECK
+// #define AEON // uncomment for AEON
 
 using System;
 using System.Collections.Generic;
@@ -77,7 +77,6 @@ namespace Server {
         public string Password;
     }
 
-
     class MainClass {
 
         [DllImport ("libhash.so", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
@@ -89,9 +88,9 @@ namespace Server {
 
         public const string RegexIsXMR = "[a-zA-Z|\\d]{95}";
 
-        public const int JobCacheSize = (int) 90e3;
+        public const int JobCacheSize = (int) 1e4;
 
-        private static bool hashLibAvail = false;
+        private static bool hashLibAvailable = false;
 
 #if (AEON)
         private const string DevXMRAddress = "WmtUFkPrboCKzL5iZhia4iNHKw9UmUXzGgbm5Uo3HPYwWcsY1JTyJ2n335gYiejNysLEs1G2JZxEm3uXUX93ArrV1yrXDyfPH";
@@ -100,9 +99,8 @@ namespace Server {
         private const int DevPoolPort = 3333;
 #else
 
-        // Hi there -
-        // By default a 3% dev fee is submitted to the following address.
-        // Thank you for leaving this in.
+        // by default a 3% dev fee is submitted to the following address.
+        // thank you for leaving this in.
         private const string DevXMRAddress = "49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU";
         private const string DevPoolUrl = "de.moneroocean.stream";
         private const string DevPoolPwd = "x"; // if you want you can change this to something funny
@@ -118,20 +116,20 @@ namespace Server {
 
         private static Dictionary<string, PoolInfo> PoolPool = new Dictionary<string, PoolInfo> ();
 
-        private const int GraceConnectionTime = 16;             // time to connect to a pool in seconds 
-        private const int HeartbeatRate = 10;                   // server logic every x seconds
-        private const int TimeDevJobsAreOld = 600;              // after that job-age we do not forward dev jobs 
-        private const int PoolTimeout = 60 * 12;                // in seconds, pool is not sending new jobs 
-        private const int SpeedAverageOverXHeartbeats = 10;     // for the statistics shown every heartbeat
-        private const int MaxHashChecksPerHeartbeat = 20;       // try not to kill ourselfs  
-        private const int ForceGCEveryXHeartbeat = 40;          // so we can keep an eye on the memory 
-        private const int SaveStatisticsEveryXHeartbeat = 40;   // save statistics 
-        public const int BatchSize = 200;                       // mining with the same credentials (pool, login, password)
-                                                                // results in connections beeing "bundled" to a single connection
-                                                                // seen by the pool. that can result in large difficulties and
-                                                                // hashrate fluctuations. this parameter sets the number of clients
-                                                                // in one batch, e.g. for BatchSize = 100 and 1000 clients
-                                                                // there will be 10 pool connections.
+        private const int GraceConnectionTime = 16; // time to connect to a pool in seconds 
+        private const int HeartbeatRate = 10; // server logic every x seconds
+        private const int TimeDevJobsAreOld = 600; // after that job-age we do not forward dev jobs 
+        private const int PoolTimeout = 60 * 12; // in seconds, pool is not sending new jobs 
+        private const int SpeedAverageOverXHeartbeats = 10; // for the statistics shown every heartbeat
+        private const int MaxHashChecksPerHeartbeat = 20; // try not to kill ourselfs  
+        private const int ForceGCEveryXHeartbeat = 40; // so we can keep an eye on the memory 
+        private const int SaveStatisticsEveryXHeartbeat = 40; // save statistics 
+        public const int BatchSize = 200; // mining with the same credentials (pool, login, password)
+        // results in connections beeing "bundled" to a single connection
+        // seen by the pool. that can result in large difficulties and
+        // hashrate fluctuations. this parameter sets the number of clients
+        // in one batch, e.g. for BatchSize = 100 and 1000 clients
+        // there will be 10 pool connections.
 
         private static int Hearbeats = 0;
         private static int HashesCheckedThisHeartbeat = 0;
@@ -236,21 +234,6 @@ namespace Server {
 
         }
 
-
-        private static bool CheckLibHashAvailable()
-        {
-            // just check if we can successfully calculate a cn-hash.
-            string testStr = new string('1',151) + '3';
-            string hashedResult = string.Empty;
-
-            try {
-            IntPtr pStr = hash_cn (testStr, 0);
-            hashedResult = Marshal.PtrToStringAnsi (pStr);
-            } catch {} // we really do not care
-            
-            return hashedResult.StartsWith("843ae6fc006");
-        }
-
         private static UInt32 HexToUInt32 (String hex) {
             int NumberChars = hex.Length;
             byte[] bytes = new byte[NumberChars / 2];
@@ -269,10 +252,7 @@ namespace Server {
                 return true;
         }
 
-#if (!NOHASHCHECK)
         private static object hashLocker = new object ();
-#endif
-
         private static bool CheckHash (string blob, string nonce, string target, string result, bool fullcheck) {
 
             // first check if result meets target
@@ -281,9 +261,7 @@ namespace Server {
             if (HexToUInt32 (ourtarget) >= HexToUInt32 (target))
                 return false;
 
-#if (!NOHASHCHECK)
-
-            if (fullcheck) {
+            if (hashLibAvailable && fullcheck) {
                 // recalculate the hash
 
                 string parta = blob.Substring (0, 78);
@@ -301,7 +279,6 @@ namespace Server {
                 }
 
             }
-#endif
 
             return true;
         }
@@ -455,7 +432,8 @@ namespace Server {
 
             try { client.WebSocket.Close (); } catch { }
 
-            PoolConnectionFactory.Close (client.PoolConnection, client);
+            if (client.PoolConnection != null)
+                PoolConnectionFactory.Close (client.PoolConnection, client);
         }
 
         public static void DisconnectClient (Client client, string reason) {
@@ -494,29 +472,62 @@ namespace Server {
             ourself.PoolConnection = PoolConnectionFactory.CreatePoolConnection (ourself, DevPoolUrl, DevPoolPort, DevXMRAddress, DevPoolPwd);
         }
 
+        private static bool CheckLibHash (out Exception ex) {
+
+            // just check if we can successfully calculate a cn-hash.
+            string testStr = new string ('1', 151) + '3';
+            string hashedResult = string.Empty;
+
+            try {
+                IntPtr pStr = hash_cn (testStr, 0);
+                hashedResult = Marshal.PtrToStringAnsi (pStr);
+            } catch (Exception e) {
+                ex = e;
+                return false;
+            }
+
+            if (!hashedResult.StartsWith ("843ae6fc006")) {
+                ex = new Exception ("Hash function returned wrong hash");
+                return false;
+            }
+
+            ex = null;
+            return true;
+        }
+
+        private static X509Certificate2 CheckSSLCertificate (out Exception ex) {
+            X509Certificate2 cert = null;
+
+            try { cert = new X509Certificate2 ("certificate.pfx", "miner"); } catch (Exception e) { ex = e; return null; }
+
+            ex = null;
+            return cert;
+        }
+
         public static void Main (string[] args) {
 
-            hashLibAvail = CheckLibHashAvailable();
+            CConsole.WriteInfo (() => {
+                Console.WriteLine ("[{0}] webminerpool server.", DateTime.Now);
+                double devfee = (new Client ()).Fee;
+                if (devfee > double.Epsilon)
+                    Console.WriteLine ("Developer fee of {0}% enabled.", (devfee * 100.0d).ToString ("F1"));
+            });
+
+            Exception exception = null;
+
+            hashLibAvailable = CheckLibHash (out exception);
+
+            if (!hashLibAvailable) CConsole.WriteWarning (() =>
+                Console.WriteLine ("hashlib.so support is not available. Checking user submitted hashes is therefore disabled.")
+            );
+
+            PoolConnectionFactory.RegisterCallbacks (PoolReceiveCallback, PoolErrorCallback, PoolDisconnectCallback);
 
             FillPoolPool ();
-
-            PoolConnectionFactory.RegisterCallbacks (PoolReceiveCallback,
-                PoolErrorCallback, PoolDisconnectCallback);
-
-            /*Console.BackgroundColor = ConsoleColor.Cyan;
-			Console.WriteLine("[{0}] webminerpool server started", DateTime.Now);
-            Console.BackgroundColor = ConsoleColor.Black;
-     		
-			Console.ForegroundColor = ConsoleColor.Red;
-			if (!hashLibAvail)
-			Console.WriteLine ("hashlib.so does not seem to be available. Checking submitted hashes disabled.");*/
-
-
 
             if (File.Exists ("statistics.dat")) {
 
                 try {
-
                     statistics.Clear ();
 
                     string[] lines = File.ReadAllLines ("statistics.dat");
@@ -532,7 +543,8 @@ namespace Server {
                     }
 
                 } catch (Exception ex) {
-                    Console.WriteLine ("Error while reading statistics: {0}", ex);
+                    CConsole.WriteAlert (() =>
+                        Console.WriteLine ("Error while reading statistics: {0}", ex));
                 }
             }
 
@@ -556,32 +568,29 @@ namespace Server {
                     }
 
                 } catch (Exception ex) {
-                    Console.WriteLine ("Error while reading logins: {0}", ex);
+                    CConsole.WriteAlert (() =>
+                        Console.WriteLine ("Error while reading logins: {0}", ex));
                 }
 
             }
 
-            WebSocketServer server;
-#if (WSS)
+            X509Certificate2 cert = CheckSSLCertificate (out exception);
+            bool certAvailable = (cert != null);
 
-            X509Certificate2 cert = new X509Certificate2 ("certificate.pfx", "miner");
+            if (!certAvailable)
+                CConsole.WriteWarning (() => Console.WriteLine ("SSL certificate could not be loaded. Secure connection disabled."));
+
+            WebSocketServer server;
 
 #if (AEON)
-            server = new WebSocketServer ("wss://0.0.0.0:8282");
+            string localAddr = (certAvailable ? "wss://" : "ws://") + "0.0.0.0:8282";
 #else
-            server = new WebSocketServer ("wss://0.0.0.0:8181");
+            string localAddr = (certAvailable ? "wss://" : "ws://") + "0.0.0.0:8181";
 #endif
+
+            server = new WebSocketServer (localAddr);
 
             server.Certificate = cert;
-
-#else
-#if (AEON)
-            server = new WebSocketServer ("ws://0.0.0.0:8282");
-#else
-            server = new WebSocketServer ("ws://0.0.0.0:8181");
-#endif
-
-#endif
 
             FleckLog.LogAction = (level, message, ex) => {
                 switch (level) {
@@ -828,7 +837,9 @@ namespace Server {
                             bool validHash = CheckHash (ji.Blob, reportedNonce, ji.Target, reportedResult, performFullCheck);
 
                             if (!validHash) {
-                                Console.WriteLine ("{0} got disconnected for WRONG HASH.", client.WebSocket.ConnectionInfo.Id.ToString ());
+
+                                CConsole.WriteWarning (() =>
+                                    Console.WriteLine ("{0} got disconnected for WRONG HASH.", client.WebSocket.ConnectionInfo.Id.ToString ()));
 
                                 if (!string.IsNullOrEmpty (ipadr)) Firewall.Update (ipadr, Firewall.UpdateEntry.WrongHash);
                                 RemoveClient (client.WebSocket.ConnectionInfo.Id);
@@ -1026,8 +1037,9 @@ namespace Server {
                         totalDevHashes = 0;
                     }
 
-                    Console.WriteLine ("[{0}] heartbeat, connections: client {1}, pool {2}, jobqueue: {3}, total/dev: {4}/{5} h/s", DateTime.Now.ToString (),
-                        clients.Count, PoolConnectionFactory.Connections.Count, jobQueue.Count, totalSpeed, totalDevSpeed);
+                    CConsole.WriteInfo (() =>
+                        Console.WriteLine ("[{0}] heartbeat, connections: client {1}, pool {2}, jobqueue: {3}, total/dev: {4}/{5} h/s", DateTime.Now.ToString (),
+                            clients.Count, PoolConnectionFactory.Connections.Count, jobQueue.Count, totalSpeed, totalDevSpeed));
 
                     while (jobQueue.Count > JobCacheSize) {
                         string deq;
@@ -1088,7 +1100,8 @@ namespace Server {
                     }
 
                 } catch (Exception ex) {
-                    Console.WriteLine ("{0} Exception caught in the main loop !", ex);
+                    CConsole.WriteAlert (() =>
+                        Console.WriteLine ("{0} Exception caught in the main loop !", ex));
                 }
 
             }
