@@ -121,20 +121,20 @@ namespace Server {
 
         private static Dictionary<string, PoolInfo> PoolPool = new Dictionary<string, PoolInfo> ();
 
-        private const int GraceConnectionTime = 16; // time to connect to a pool in seconds 
-        private const int HeartbeatRate = 10; // server logic every x seconds
-        private const int TimeDevJobsAreOld = 600; // after that job-age we do not forward dev jobs 
-        private const int PoolTimeout = 60 * 12; // in seconds, pool is not sending new jobs 
-        private const int SpeedAverageOverXHeartbeats = 10; // stupid pool is not sending new jobs 
-        private const int MaxHashChecksPerHeartbeat = 20; // try not to kill ourselfs  
-        private const int ForceGCEveryXHeartbeat = 40; // so we can keep an eye on the memory 
-        private const int SaveStatisticsEveryXHeartbeat = 40; // save statistics 
-        public const int BatchSize = 200; // mining with the same credentials (pool, login, password)
-        // results in connections beeing "bundled" to a single connection
-        // seen by the pool. that can result in large difficulties and
-        // hashrate fluctuations. this parameter sets the number of clients
-        // in one batch, e.g. for BatchSize = 100 and 1000 clients
-        // there will be 10 pool connections.
+        private const int GraceConnectionTime = 16;             // time to connect to a pool in seconds 
+        private const int HeartbeatRate = 10;                   // server logic every x seconds
+        private const int TimeDevJobsAreOld = 600;              // after that job-age we do not forward dev jobs 
+        private const int PoolTimeout = 60 * 12;                // in seconds, pool is not sending new jobs 
+        private const int SpeedAverageOverXHeartbeats = 10;     // for the statistics shown every heartbeat
+        private const int MaxHashChecksPerHeartbeat = 20;       // try not to kill ourselfs  
+        private const int ForceGCEveryXHeartbeat = 40;          // so we can keep an eye on the memory 
+        private const int SaveStatisticsEveryXHeartbeat = 40;   // save statistics 
+        public const int BatchSize = 200;                       // mining with the same credentials (pool, login, password)
+                                                                // results in connections beeing "bundled" to a single connection
+                                                                // seen by the pool. that can result in large difficulties and
+                                                                // hashrate fluctuations. this parameter sets the number of clients
+                                                                // in one batch, e.g. for BatchSize = 100 and 1000 clients
+                                                                // there will be 10 pool connections.
 
         private static int Hearbeats = 0;
         private static int HashesCheckedThisHeartbeat = 0;
