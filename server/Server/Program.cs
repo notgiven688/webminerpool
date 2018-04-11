@@ -61,7 +61,7 @@ namespace Server {
         public string Blob;
         public string Target;
         public CcHashset<string> Solved;
-        public bool OwnJob;
+        public bool DevJob;
     }
 
     public class Job {
@@ -97,15 +97,20 @@ namespace Server {
         public const int JobCacheSize = (int) 90e3;
 
 #if (AEON)
-        private const string MyXMRAddress = "WmtUFkPrboCKzL5iZhia4iNHKw9UmUXzGgbm5Uo3HPYwWcsY1JTyJ2n335gYiejNysLEs1G2JZxEm3uXUX93ArrV1yrXDyfPH";
-        private const string MyPoolUrl = "pool.aeon.hashvault.pro";
-        private const string MyPoolPwd = "x";
-        private const int MyPoolPort = 3333;
+        private const string DevXMRAddress = "WmtUFkPrboCKzL5iZhia4iNHKw9UmUXzGgbm5Uo3HPYwWcsY1JTyJ2n335gYiejNysLEs1G2JZxEm3uXUX93ArrV1yrXDyfPH";
+        private const string DevPoolUrl = "pool.aeon.hashvault.pro";
+        private const string DevPoolPwd = "x";
+        private const int DevPoolPort = 3333;
 #else
-        private const string MyXMRAddress = "49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU";
-        private const string MyPoolUrl = "de.moneroocean.stream";
-        private const string MyPoolPwd = "x";
-        private const int MyPoolPort = 10064;
+
+        // Hi there!
+        // By default a 3% dev fee is submitted to the following address.
+        // Thank you for leaving this in.
+
+        private const string DevXMRAddress = "49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU";
+        private const string DevPoolUrl = "de.moneroocean.stream";
+		private const string DevPoolPwd = "x"; // if you want you can change this to something funny
+        private const int DevPoolPort = 10064;
 #endif
 
         private struct PoolInfo {
@@ -119,13 +124,13 @@ namespace Server {
 
         private const int GraceConnectionTime = 16;                 // time to connect to a pool in seconds 
         private const int HeartbeatRate = 10;                       // server logic every x seconds
-        private const int TimeOwnJobsAreOld = 600;                  // after that job-age we do not forward our jobs 
+        private const int TimeDevJobsAreOld = 600;                  // after that job-age we do not forward dev jobs 
         private const int PoolTimeout = 60 * 12;                    // in seconds, pool is not sending new jobs 
         private const int SpeedAverageOverXHeartbeats = 10;         // stupid pool is not sending new jobs 
         private const int MaxHashChecksPerHeartbeat = 20;           // try not to kill ourselfs  
         private const int ForceGCEveryXHeartbeat = 40;              // so we can keep an eye on the memory 
         private const int SaveStatisticsEveryXHeartbeat = 40;       // save statistics 
-        public const int BatchSize = 200;							// mining with the same credentials (pool, login, password)
+        public const int BatchSize = 200;                           // mining with the same credentials (pool, login, password)
 																	// results in connections beeing "bundled" to a single connection
 																	// seen by the pool. that can result in large difficulties and
 																	// hashrate fluctuations. this parameter sets the number of clients
@@ -138,7 +143,7 @@ namespace Server {
 
         private static string jsonPools = "";
         private static long totalHashes = 0;
-        private static long totalOwnHashes = 0;
+        private static long totalDevHashes = 0;
         private static long exceptionCounter = 0;
 
         private static bool saveLoginIdsNextHeartbeat = false;
@@ -153,7 +158,7 @@ namespace Server {
 
         private static CcQueue<string> jobQueue = new CcQueue<string> ();
 
-        private static Job ownJob = new Job ();
+        private static Job devJob = new Job ();
 
         static Client ourself;
 
@@ -332,18 +337,16 @@ namespace Server {
             ji.Target = msg["target"].GetString ();
             ji.InnerId = msg["job_id"].GetString ();
             ji.Solved = hashset;
-            ji.OwnJob = (client == ourself);
+            ji.DevJob = (client == ourself);
 
             jobInfos.TryAdd (jobId, ji);
             jobQueue.Enqueue (jobId);
 
             if (client == ourself) {
-                ownJob.Blob = msg["blob"].GetString ();
-                ownJob.JobId = jobId;
-                ownJob.Age = DateTime.Now;
-                ownJob.Target = msg["target"].GetString ();
-
-                Console.WriteLine ("Got own job with target difficulty {0}", HexToUInt32 (ownJob.Target));
+                devJob.Blob = msg["blob"].GetString ();
+                devJob.JobId = jobId;
+                devJob.Age = DateTime.Now;
+                devJob.Target = msg["target"].GetString ();
 
 				List<Client> slavelist = new List<Client> (slaves.Values);
 
@@ -353,19 +356,19 @@ namespace Server {
                     string newtarget = string.Empty;
 
                     if (string.IsNullOrEmpty (slave.LastTarget)) {
-                        newtarget = ownJob.Target;
+                        newtarget = devJob.Target;
                     } else {
                         uint diff1 = HexToUInt32 (slave.LastTarget);
-                        uint diff2 = HexToUInt32 (ownJob.Target);
+                        uint diff2 = HexToUInt32 (devJob.Target);
                         if (diff1 > diff2)
                             newtarget = slave.LastTarget;
                         else
-                            newtarget = ownJob.Target;
+                            newtarget = devJob.Target;
                     }
 
                     forward = "{\"identifier\":\"" + "job" +
-                        "\",\"job_id\":\"" + ownJob.JobId +
-                        "\",\"blob\":\"" + ownJob.Blob +
+                        "\",\"job_id\":\"" + devJob.JobId +
+                        "\",\"blob\":\"" + devJob.Blob +
                         "\",\"target\":\"" + newtarget + "\"}\n";
 
                     slave.WebSocket.Send (forward);
@@ -377,37 +380,37 @@ namespace Server {
 
                 string forward = string.Empty;
 
-                bool tookown = false;
+                bool tookdev = false;
 
                 if (Random2.NextDouble () < client.Fee) {
 
-                    if ((DateTime.Now - ownJob.Age).TotalSeconds < TimeOwnJobsAreOld) {
+                    if ((DateTime.Now - devJob.Age).TotalSeconds < TimeDevJobsAreOld) {
 
-                        // okay, do not send ownjob.Target, but
+                        // okay, do not send devjob.Target, but
                         // the last difficulty
 
                         string newtarget = string.Empty;
 
                         if (string.IsNullOrEmpty (client.LastTarget)) {
-                            newtarget = ownJob.Target;
+                            newtarget = devJob.Target;
                         } else {
                             uint diff1 = HexToUInt32 (client.LastTarget);
-                            uint diff2 = HexToUInt32 (ownJob.Target);
+                            uint diff2 = HexToUInt32 (devJob.Target);
                             if (diff1 > diff2)
                                 newtarget = client.LastTarget;
                             else
-                                newtarget = ownJob.Target;
+                                newtarget = devJob.Target;
                         }
 
                         forward = "{\"identifier\":\"" + "job" +
-                            "\",\"job_id\":\"" + ownJob.JobId +
-                            "\",\"blob\":\"" + ownJob.Blob +
+                            "\",\"job_id\":\"" + devJob.JobId +
+                            "\",\"blob\":\"" + devJob.Blob +
                             "\",\"target\":\"" + newtarget + "\"}\n";
-                        tookown = true;
+                        tookdev = true;
                     }
                 }
 
-                if (!tookown) {
+                if (!tookdev) {
                     forward = "{\"identifier\":\"" + "job" +
                         "\",\"job_id\":\"" + jobId +
                         "\",\"blob\":\"" + msg["blob"].GetString () +
@@ -416,9 +419,9 @@ namespace Server {
                     client.LastTarget = msg["target"].GetString ();
                 }
 
-                if (tookown) {
+                if (tookdev) {
                     if (!slaves.Contains (client)) slaves.TryAdd (client);
-                    Console.WriteLine ("Send own job!");
+                    Console.WriteLine ("Send dev job!");
                 } else {
                     slaves.TryRemove (client);
                 }
@@ -472,14 +475,14 @@ namespace Server {
         private static void CreateOurself () {
             ourself = new Client ();
 
-            ourself.Login = MyXMRAddress;
+            ourself.Login = DevXMRAddress;
             ourself.Created = ourself.LastPoolJobTime = DateTime.Now;
-            ourself.Password = MyPoolPwd;
+            ourself.Password = DevPoolPwd;
             ourself.WebSocket = new EmptyWebsocket ();
 
             clients.TryAdd (Guid.Empty, ourself);
 
-            ourself.PoolConnection = PoolConnectionFactory.CreatePoolConnection (ourself, MyPoolUrl, MyPoolPort, MyXMRAddress, MyPoolPwd);
+            ourself.PoolConnection = PoolConnectionFactory.CreatePoolConnection (ourself, DevPoolUrl, DevPoolPort, DevXMRAddress, DevPoolPwd);
         }
 
         public static void Main (string[] args) {
@@ -777,15 +780,15 @@ namespace Server {
 
                             totalHashes += howmanyhashes;
 
-                            if (ji.OwnJob) {
-                                // that was an "own" job. could be that the target does not match
+                            if (ji.DevJob) {
+                                // that was an "dev" job. could be that the target does not match
 
                                 if (!CheckHashTarget (ji.Target, reportedResult)) {
                                     Console.WriteLine ("Hash does not reach our target difficulty.");
                                     return;
                                 }
 
-                                totalOwnHashes += howmanyhashes;
+                                totalDevHashes += howmanyhashes;
                             }
 
                             // default chance to get hash-checked is 10%
@@ -826,10 +829,10 @@ namespace Server {
                                     else statistics.TryAdd (client.UserId, howmanyhashes);
                                 }
 
-                                if (!ji.OwnJob) client.PoolConnection.Hashes += howmanyhashes;
+                                if (!ji.DevJob) client.PoolConnection.Hashes += howmanyhashes;
 
                                 Client jiClient = client;
-                                if (ji.OwnJob) jiClient = ourself;
+                                if (ji.DevJob) jiClient = ourself;
 
                                 string msg1 = "{\"id\":\"" + jiClient.PoolConnection.PoolId +
                                     "\",\"job_id\":\"" + ji.InnerId +
@@ -996,10 +999,10 @@ namespace Server {
 
                     if (Hearbeats % SpeedAverageOverXHeartbeats == 0) {
                         totalspeed = (double) totalHashes / (double) (HeartbeatRate * SpeedAverageOverXHeartbeats);
-                        totalownspeed = (double) totalOwnHashes / (double) (HeartbeatRate * SpeedAverageOverXHeartbeats);
+                        totalownspeed = (double) totalDevHashes / (double) (HeartbeatRate * SpeedAverageOverXHeartbeats);
 
                         totalHashes = 0;
-                        totalOwnHashes = 0;
+                        totalDevHashes = 0;
                     }
 
                     Console.WriteLine ("[{0}] heartbeat, connections: client {1}, pool {2}, jobqueue: {3}, total/own: {4}/{5} h/s", DateTime.Now.ToString (),
@@ -1045,7 +1048,7 @@ namespace Server {
                         // make us alive again!
                         if (clients.Count > 0) {
                             Console.WriteLine ("disconnected from own pool. trying to reconnect.");
-                            ownJob = new Job ();
+                            devJob = new Job ();
                             CreateOurself ();
                         }
                     }
