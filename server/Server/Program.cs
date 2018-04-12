@@ -19,8 +19,6 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#define WRITELOG
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -114,12 +112,6 @@ namespace Server {
         }
 
         private static Dictionary<string, PoolInfo> PoolPool = new Dictionary<string, PoolInfo> ();
-
-#if(WRITELOG)
-        public const string LogFile = "out.log";                // rotate the out.log -> old_out.log
-        private const int RotateLogEveryXHeartbeats = 2160;     // every 6h  
-#endif
-
 
         private const int GraceConnectionTime = 16;             // time to connect to a pool in seconds 
         private const int HeartbeatRate = 10;                   // server logic every x seconds
@@ -501,10 +493,6 @@ namespace Server {
         }
 
         public static void Main (string[] args) {
-
-#if(WRITELOG)
-            CConsole.DirectToFile(LogFile);
-#endif
 
             CConsole.ColorInfo (() => {
 
@@ -1001,16 +989,6 @@ namespace Server {
                 Heartbeats++;
 
                 Firewall.Heartbeat (Heartbeats);
-
-#if(WRITELOG)
-                if(Heartbeats % RotateLogEveryXHeartbeats == 0)
-                {
-                    CConsole.ColorWarning(() => Console.WriteLine("Rotating logfile: LogFile -> old_LogFile"));
-                    CConsole.CloseFile();
-                    File.Copy(LogFile, "old_" + LogFile,true);
-                    CConsole.DirectToFile(LogFile);
-                }
-#endif
 
                 try {
                     if (Heartbeats % SaveStatisticsEveryXHeartbeat == 0) {
