@@ -137,7 +137,7 @@ namespace Server {
                                                                 // in one batch, e.g. for BatchSize = 100 and 1000 clients
                                                                 // there will be 10 pool connections.
 
-        private static int Hearbeats = 0;
+        private static int Heartbeats = 0;
         private static int HashesCheckedThisHeartbeat = 0;
 
         private static string jsonPools = "";
@@ -841,7 +841,7 @@ namespace Server {
                             double chanceForACheck = 0.1;
 
                             // check new clients more often, but prevent that to happen the first 30s the server is running
-                            if (Hearbeats > 3 && client.NumChecked < 9) chanceForACheck = 1.0 - 0.1 * client.NumChecked;
+                            if (Heartbeats > 3 && client.NumChecked < 9) chanceForACheck = 1.0 - 0.1 * client.NumChecked;
 
                             bool performFullCheck = (Random2.NextDouble () < chanceForACheck && HashesCheckedThisHeartbeat < MaxHashChecksPerHeartbeat);
 
@@ -999,12 +999,12 @@ namespace Server {
 
             while (running) {
 
-                Hearbeats++;
+                Heartbeats++;
 
-                Firewall.Heartbeat (Hearbeats);
+                Firewall.Heartbeat (Heartbeats);
 
 #if(WRITELOG)
-                if(Hearbeats % RotateLogEveryXHeartbeats == 0)
+                if(Heartbeats % RotateLogEveryXHeartbeats == 0)
                 {
                     CConsole.ColorWarning(() => Console.WriteLine("Rotating logfile: LogFile -> old_LogFile"));
                     CConsole.CloseFile();
@@ -1014,7 +1014,7 @@ namespace Server {
 #endif
 
                 try {
-                    if (Hearbeats % SaveStatisticsEveryXHeartbeat == 0) {
+                    if (Heartbeats % SaveStatisticsEveryXHeartbeat == 0) {
                         CConsole.ColorInfo (() => Console.WriteLine ("Saving statistics."));
 
                         StringBuilder sb = new StringBuilder ();
@@ -1052,7 +1052,7 @@ namespace Server {
 
                     Task.Run (async delegate { await Task.Delay (TimeSpan.FromSeconds (HeartbeatRate)); }).Wait ();
 
-                    if (Hearbeats % SpeedAverageOverXHeartbeats == 0) {
+                    if (Heartbeats % SpeedAverageOverXHeartbeats == 0) {
                         totalSpeed = (double) totalHashes / (double) (HeartbeatRate * SpeedAverageOverXHeartbeats);
                         totalDevSpeed = (double) totalDevHashes / (double) (HeartbeatRate * SpeedAverageOverXHeartbeats);
 
@@ -1117,7 +1117,7 @@ namespace Server {
 
                     HashesCheckedThisHeartbeat = 0;
 
-                    if (Hearbeats % ForceGCEveryXHeartbeat == 0) {
+                    if (Heartbeats % ForceGCEveryXHeartbeat == 0) {
                         CConsole.ColorInfo (() => {
 
                             Console.WriteLine ("Garbage collection. Currently using {0} MB.", Math.Round (((double) (GC.GetTotalMemory (false)) / 1024 / 1024)));
