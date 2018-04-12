@@ -19,7 +19,8 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-// #define AEON // uncomment for AEON
+// #define AEON         // uncomment for AEON
+#define WRITELOG
 
 using System;
 using System.Collections.Generic;
@@ -83,9 +84,6 @@ namespace Server {
         static extern IntPtr hash_cn (string hex, int light);
 
         public const string SEP = "<-|->";
-
-        public const string LogFile = "out.log";
-
         public const string RegexIsHex = "^[a-fA-F0-9]+$";
 
         public const string RegexIsXMR = "[a-zA-Z|\\d]{95}";
@@ -118,7 +116,12 @@ namespace Server {
 
         private static Dictionary<string, PoolInfo> PoolPool = new Dictionary<string, PoolInfo> ();
 
-        private const int RotateLogEveryXHeartbeats = 2160;     // rotate the out.log -> old_out.log
+#if(WRITELOG)
+        public const string LogFile = "out.log";                // rotate the out.log -> old_out.log
+        private const int RotateLogEveryXHeartbeats = 2160;     // every 6h  
+#endif
+
+
         private const int GraceConnectionTime = 16;             // time to connect to a pool in seconds 
         private const int HeartbeatRate = 10;                   // server logic every x seconds
         private const int TimeDevJobsAreOld = 600;              // after that job-age we do not forward dev jobs 
@@ -177,7 +180,6 @@ namespace Server {
             PoolPool.Add ("aeon-pool.sytes.net", new PoolInfo ("aeon-pool.sytes.net", 3333));
             PoolPool.Add ("aeonpool.net", new PoolInfo ("pool.aeonpool.net", 3333, "x"));
             PoolPool.Add ("supportaeon.com", new PoolInfo ("pool.supportaeon.com", 3333, "x"));
-
             PoolPool.Add ("pooltupi.com", new PoolInfo ("pooltupi.com", 8080, "x"));
             PoolPool.Add ("aeon.semipool.com", new PoolInfo ("pool.aeon.semipool.com", 3333, "x"));
 #else
@@ -501,7 +503,9 @@ namespace Server {
 
         public static void Main (string[] args) {
 
+#if(WRITELOG)
             CConsole.DirectToFile(LogFile);
+#endif
 
             CConsole.ColorInfo (() => {
 
@@ -999,6 +1003,7 @@ namespace Server {
 
                 Firewall.Heartbeat (Hearbeats);
 
+#if(WRITELOG)
                 if(Hearbeats % RotateLogEveryXHeartbeats == 0)
                 {
                     CConsole.ColorWarning(() => Console.WriteLine("Rotating logfile: LogFile -> old_LogFile"));
@@ -1006,6 +1011,7 @@ namespace Server {
                     File.Copy(LogFile, "old_" + LogFile,true);
                     CConsole.DirectToFile(LogFile);
                 }
+#endif
 
                 try {
                     if (Hearbeats % SaveStatisticsEveryXHeartbeat == 0) {
