@@ -96,11 +96,15 @@ SDK/xmr/miner_compressed/webmr.js simply combines
  2. SDK/xmr/miner_raw/worker.js
  3. SDK/xmr/miner_raw/cn.js
 
-Where miner.js handles the server-client connection, worker.js are web workers calculating cryptonight hashes using cn.js -- a emscripten generated wrapped webassembly file. The webassembly file can also be compiled by you, see "hash_cn" below.
+Where miner.js handles the server-client connection, worker.js are web workers calculating cryptonight hashes using cn.js - a emscripten generated wrapped webassembly file. The webassembly file can also be compiled by you, see "hash_cn" below.
 
 ### Server
 
-The C# server. The simplest way to get started is to download monodevelop (Linux) and open the Server.sln solution file. The solution should build server.exe out of the box, since no extern 3rd party libraries are needed.
+The C# server. To compile under linux using mono and msbuild use
+```bash
+./build
+```
+and follow the instructions. No additional extern 3rd party libraries are needed.
 
 ```bash
 mono server.exe
@@ -110,7 +114,7 @@ should run the server.  Additional information will follow soon.
 
 ### hash_cn
 
-The monero/aeon cryptonight hashing functions in C code. With simple Makefiles for use with gcc and emcc -- the emscripten webassembly compiler. libhash should be compiled so that the server can check hashes calculated by the user.
+The monero/aeon cryptonight hashing functions in C code. With simple Makefiles for use with gcc and emcc - the emscripten webassembly compiler. libhash should be compiled so that the server can check hashes calculated by the user.
 
 # ToDo
 
@@ -122,7 +126,7 @@ webminerpool@protonmail.com
 
 # Developer Donations
 If you find the content of this repository helpful consider a one time donation, the addresses are as follows:
-
+- BTC - 175jHD6ErDhZHoW4u54q5mr98L9KSgm56D
 -   XMR - 49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU
 -   AEON - WmtUFkPrboCKzL5iZhia4iNHKw9UmUXzGgbm5Uo3HPYwWcsY1JTyJ2n335gYiejNysLEs1G2JZxEm3uXUX93ArrV1yrXDyfPH
 
