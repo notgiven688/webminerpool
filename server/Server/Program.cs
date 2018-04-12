@@ -503,7 +503,7 @@ namespace Server {
 
             CConsole.DirectToFile(LogFile);
 
-            CConsole.WriteInfo (() => {
+            CConsole.ColorInfo (() => {
 
 #if (DEBUG)
                 Console.WriteLine ("[{0}] webminerpool server started - DEBUG MODE", DateTime.Now);
@@ -524,7 +524,7 @@ namespace Server {
 
             hashLibAvailable = CheckLibHash (out exception);
 
-            if (!hashLibAvailable) CConsole.WriteWarning (() =>
+            if (!hashLibAvailable) CConsole.ColorWarning (() =>
                 Console.WriteLine ("hashlib.so is not available. Checking user submitted hashes disabled.")
             );
 
@@ -550,7 +550,7 @@ namespace Server {
                     }
 
                 } catch (Exception ex) {
-                    CConsole.WriteAlert (() =>
+                    CConsole.ColorAlert (() =>
                         Console.WriteLine ("Error while reading statistics: {0}", ex));
                 }
             }
@@ -575,7 +575,7 @@ namespace Server {
                     }
 
                 } catch (Exception ex) {
-                    CConsole.WriteAlert (() =>
+                    CConsole.ColorAlert (() =>
                         Console.WriteLine ("Error while reading logins: {0}", ex));
                 }
 
@@ -588,7 +588,7 @@ namespace Server {
             bool certAvailable = (cert != null);
 
             if (!certAvailable)
-                CConsole.WriteWarning (() => Console.WriteLine ("SSL certificate could not be loaded. Secure connection disabled."));
+                CConsole.ColorWarning (() => Console.WriteLine ("SSL certificate could not be loaded. Secure connection disabled."));
 
             WebSocketServer server;
 
@@ -612,7 +612,7 @@ namespace Server {
                     case LogLevel.Error:
                         if (ex != null && !string.IsNullOrEmpty (ex.Message)) {
 
-                            CConsole.WriteAlert (() => Console.WriteLine ("FLECK: " + message + " " + ex.Message));
+                            CConsole.ColorAlert (() => Console.WriteLine ("FLECK: " + message + " " + ex.Message));
 
                             exceptionCounter++;
                             if ((exceptionCounter % 200) == 0) {
@@ -850,7 +850,7 @@ namespace Server {
 
                             if (!validHash) {
 
-                                CConsole.WriteWarning (() =>
+                                CConsole.ColorWarning (() =>
                                     Console.WriteLine ("{0} got disconnected for WRONG hash.", client.WebSocket.ConnectionInfo.Id.ToString ()));
 
                                 if (!string.IsNullOrEmpty (ipadr)) Firewall.Update (ipadr, Firewall.UpdateEntry.WrongHash);
@@ -1001,16 +1001,15 @@ namespace Server {
 
                 if(Hearbeats % RotateLogEveryXHeartbeats == 0)
                 {
-                    CConsole.WriteWarning(() => Console.WriteLine("Rotating logfile: LogFile -> old_LogFile"));
+                    CConsole.ColorWarning(() => Console.WriteLine("Rotating logfile: LogFile -> old_LogFile"));
                     CConsole.CloseFile();
                     File.Copy(LogFile, "old_" + LogFile,true);
                     CConsole.DirectToFile(LogFile);
                 }
 
-
                 try {
                     if (Hearbeats % SaveStatisticsEveryXHeartbeat == 0) {
-                        CConsole.WriteInfo (() => Console.WriteLine ("Saving statistics."));
+                        CConsole.ColorInfo (() => Console.WriteLine ("Saving statistics."));
 
                         StringBuilder sb = new StringBuilder ();
 
@@ -1022,14 +1021,14 @@ namespace Server {
                     }
 
                 } catch (Exception ex) {
-                    CConsole.WriteAlert (() => Console.WriteLine ("Error saving statistics.dat: {0}", ex));
+                    CConsole.ColorAlert (() => Console.WriteLine ("Error saving statistics.dat: {0}", ex));
                 }
 
                 try {
                     if (saveLoginIdsNextHeartbeat) {
 
                         saveLoginIdsNextHeartbeat = false;
-                        CConsole.WriteInfo (() => Console.WriteLine ("Saving logins."));
+                        CConsole.ColorInfo (() => Console.WriteLine ("Saving logins."));
 
                         StringBuilder sb = new StringBuilder ();
 
@@ -1040,7 +1039,7 @@ namespace Server {
                         File.WriteAllText ("logins.dat", sb.ToString ().TrimEnd ('\r', '\n'));
                     }
                 } catch (Exception ex) {
-                    CConsole.WriteAlert (() => Console.WriteLine ("Error saving logins.dat: {0}", ex));
+                    CConsole.ColorAlert (() => Console.WriteLine ("Error saving logins.dat: {0}", ex));
                 }
 
                 try {
@@ -1055,7 +1054,7 @@ namespace Server {
                         totalDevHashes = 0;
                     }
 
-                    CConsole.WriteInfo (() =>
+                    CConsole.ColorInfo (() =>
                         Console.WriteLine ("[{0}] heartbeat; connections client/pool: {1}/{2}; jobqueue: {3}k; speed total/dev: {4}/{5} kH/s",
                             DateTime.Now.ToString (),
                             clients.Count,
@@ -1103,7 +1102,7 @@ namespace Server {
                         // we removed ourself because we got disconnected from the pool
                         // make us alive again!
                         if (clients.Count > 0) {
-                            CConsole.WriteWarning (() =>
+                            CConsole.ColorWarning (() =>
                                 Console.WriteLine ("disconnected from dev pool. trying to reconnect."));
                             devJob = new Job ();
                             CreateOurself ();
@@ -1113,7 +1112,7 @@ namespace Server {
                     HashesCheckedThisHeartbeat = 0;
 
                     if (Hearbeats % ForceGCEveryXHeartbeat == 0) {
-                        CConsole.WriteInfo (() => {
+                        CConsole.ColorInfo (() => {
 
                             Console.WriteLine ("Garbage collection. Currently using {0} MB.", Math.Round (((double) (GC.GetTotalMemory (false)) / 1024 / 1024)));
 
@@ -1128,7 +1127,7 @@ namespace Server {
                     }
 
                 } catch (Exception ex) {
-                    CConsole.WriteAlert (() =>
+                    CConsole.ColorAlert (() =>
                         Console.WriteLine ("Exception caught in the main loop ! {0}", ex));
                 }
 
