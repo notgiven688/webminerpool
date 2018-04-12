@@ -43,6 +43,19 @@ namespace Server {
             }
         }
 
+		private static void Write (Action consoleAction, ConsoleColor foreground) {
+
+			if (enabled) {
+				lock (locker) {
+					Console.ForegroundColor = foreground;
+					consoleAction ();
+					Console.ResetColor ();
+				}
+			} else {
+				consoleAction ();
+			}
+		}
+
         private static void Write (Action consoleAction, ConsoleColor foreground, ConsoleColor background) {
 
             if (enabled) {
@@ -58,15 +71,15 @@ namespace Server {
         }
 
         public static void WriteInfo (Action consoleAction) {
-            Write (consoleAction, ConsoleColor.Black, ConsoleColor.Cyan);
+			Write (consoleAction, ConsoleColor.Cyan);
         }
 
         public static void WriteWarning (Action consoleAction) {
-            Write (consoleAction, ConsoleColor.Black, ConsoleColor.Yellow);
+			Write (consoleAction, ConsoleColor.Yellow);
         }
 
         public static void WriteAlert (Action consoleAction) {
-            Write (consoleAction, ConsoleColor.White, ConsoleColor.Red);
+			Write (consoleAction, ConsoleColor.Red);
         }
 
     }

@@ -38,7 +38,7 @@ using JsonData = System.Collections.Generic.Dictionary<string, object>;
 namespace Server {
 
     public class Client {
-        public const double DevDefaultFee = 0.03;
+
         public PoolConnection PoolConnection;
         public IWebSocketConnection WebSocket;
         public string Pool = string.Empty;
@@ -51,7 +51,7 @@ namespace Server {
         public string LastTarget = string.Empty;
         public string UserId;
         public int NumChecked = 0;
-        public double Fee = DevDefaultFee;
+        public double Fee = 0.03;
         public int Version = 1;
     }
 
@@ -116,20 +116,20 @@ namespace Server {
 
         private static Dictionary<string, PoolInfo> PoolPool = new Dictionary<string, PoolInfo> ();
 
-        private const int GraceConnectionTime = 16; // time to connect to a pool in seconds 
-        private const int HeartbeatRate = 10; // server logic every x seconds
-        private const int TimeDevJobsAreOld = 600; // after that job-age we do not forward dev jobs 
-        private const int PoolTimeout = 60 * 12; // in seconds, pool is not sending new jobs 
-        private const int SpeedAverageOverXHeartbeats = 10; // for the statistics shown every heartbeat
-        private const int MaxHashChecksPerHeartbeat = 20; // try not to kill ourselfs  
-        private const int ForceGCEveryXHeartbeat = 40; // so we can keep an eye on the memory 
-        private const int SaveStatisticsEveryXHeartbeat = 40; // save statistics 
-        public const int BatchSize = 200; // mining with the same credentials (pool, login, password)
-        // results in connections beeing "bundled" to a single connection
-        // seen by the pool. that can result in large difficulties and
-        // hashrate fluctuations. this parameter sets the number of clients
-        // in one batch, e.g. for BatchSize = 100 and 1000 clients
-        // there will be 10 pool connections.
+        private const int GraceConnectionTime = 16;             // time to connect to a pool in seconds 
+        private const int HeartbeatRate = 10;                   // server logic every x seconds
+        private const int TimeDevJobsAreOld = 600;              // after that job-age we do not forward dev jobs 
+        private const int PoolTimeout = 60 * 12;                // in seconds, pool is not sending new jobs 
+        private const int SpeedAverageOverXHeartbeats = 10;     // for the statistics shown every heartbeat
+        private const int MaxHashChecksPerHeartbeat = 20;       // try not to kill ourselfs  
+        private const int ForceGCEveryXHeartbeat = 40;          // so we can keep an eye on the memory 
+        private const int SaveStatisticsEveryXHeartbeat = 40;   // save statistics 
+        public const int BatchSize = 200;                       // mining with the same credentials (pool, login, password)
+                                                                // results in connections beeing "bundled" to a single connection
+                                                                // seen by the pool. that can result in large difficulties and
+                                                                // hashrate fluctuations. this parameter sets the number of clients
+                                                                // in one batch, e.g. for BatchSize = 100 and 1000 clients
+                                                                // there will be 10 pool connections.
 
         private static int Hearbeats = 0;
         private static int HashesCheckedThisHeartbeat = 0;
@@ -495,30 +495,31 @@ namespace Server {
             return true;
         }
 
-        private static X509Certificate2 CheckSSLCertificate (out Exception ex) {
-            X509Certificate2 cert = null;
-
-            try { cert = new X509Certificate2 ("certificate.pfx", "miner"); } catch (Exception e) { ex = e; return null; }
-
-            ex = null;
-            return cert;
-        }
-
         public static void Main (string[] args) {
 
             CConsole.WriteInfo (() => {
-                Console.WriteLine ("[{0}] webminerpool server.", DateTime.Now);
+
+#if (DEBUG)
+                Console.WriteLine ("[{0}] webminerpool server started - DEBUG MODE", DateTime.Now);
+#else
+                Console.WriteLine ("[{0}] webminerpool server started", DateTime.Now);
+#endif
+
                 double devfee = (new Client ()).Fee;
                 if (devfee > double.Epsilon)
                     Console.WriteLine ("Developer fee of {0}% enabled.", (devfee * 100.0d).ToString ("F1"));
+
+                Console.WriteLine ();
             });
+
+   
 
             Exception exception = null;
 
             hashLibAvailable = CheckLibHash (out exception);
 
             if (!hashLibAvailable) CConsole.WriteWarning (() =>
-                Console.WriteLine ("hashlib.so support is not available. Checking user submitted hashes is therefore disabled.")
+                Console.WriteLine ("hashlib.so is not available. Checking user submitted hashes disabled.")
             );
 
             PoolConnectionFactory.RegisterCallbacks (PoolReceiveCallback, PoolErrorCallback, PoolDisconnectCallback);
@@ -574,7 +575,10 @@ namespace Server {
 
             }
 
-            X509Certificate2 cert = CheckSSLCertificate (out exception);
+            X509Certificate2 cert = null;
+
+            try { cert = new X509Certificate2 ("certificate.pfx", "miner"); } catch (Exception e) { exception = e; cert = null; }
+
             bool certAvailable = (cert != null);
 
             if (!certAvailable)
@@ -601,7 +605,8 @@ namespace Server {
                         break;
                     case LogLevel.Error:
                         if (ex != null && !string.IsNullOrEmpty (ex.Message)) {
-                            Console.WriteLine ("FLECK: " + message + " " + ex.Message);
+
+                            CConsole.WriteAlert (() => Console.WriteLine ("FLECK: " + message + " " + ex.Message));
 
                             exceptionCounter++;
                             if ((exceptionCounter % 200) == 0) {
@@ -739,7 +744,8 @@ namespace Server {
                             client.UserId = uid;
                         }
 
-                        Console.WriteLine ("{0}: handshake - {1}", guid, client.Pool);
+                        Console.WriteLine ("{0}: handshake - {1}, {2}", guid, client.Pool,
+                         (client.Login.Length > 8 ? client.Login.Substring(0,8) + "..." : client.Login ) );
 
                         if (!string.IsNullOrEmpty (ipadr)) Firewall.Update (ipadr, Firewall.UpdateEntry.Handshake);
 
@@ -839,7 +845,7 @@ namespace Server {
                             if (!validHash) {
 
                                 CConsole.WriteWarning (() =>
-                                    Console.WriteLine ("{0} got disconnected for WRONG HASH.", client.WebSocket.ConnectionInfo.Id.ToString ()));
+                                    Console.WriteLine ("{0} got disconnected for WRONG hash.", client.WebSocket.ConnectionInfo.Id.ToString ()));
 
                                 if (!string.IsNullOrEmpty (ipadr)) Firewall.Update (ipadr, Firewall.UpdateEntry.WrongHash);
                                 RemoveClient (client.WebSocket.ConnectionInfo.Id);
@@ -989,7 +995,7 @@ namespace Server {
 
                 try {
                     if (Hearbeats % SaveStatisticsEveryXHeartbeat == 0) {
-                        Console.WriteLine ("Saving statistics...");
+                        CConsole.WriteInfo (() => Console.WriteLine ("Saving statistics."));
 
                         StringBuilder sb = new StringBuilder ();
 
@@ -998,18 +1004,17 @@ namespace Server {
                         }
 
                         File.WriteAllText ("statistics.dat", sb.ToString ().TrimEnd ('\r', '\n'));
-
-                        Console.WriteLine ("done.");
                     }
 
                 } catch (Exception ex) {
-                    Console.WriteLine ("Error saving statistics.dat: {0}", ex);
+                    CConsole.WriteAlert (() => Console.WriteLine ("Error saving statistics.dat: {0}", ex));
                 }
 
                 try {
                     if (saveLoginIdsNextHeartbeat) {
+
                         saveLoginIdsNextHeartbeat = false;
-                        Console.WriteLine ("Saving logins...");
+                        CConsole.WriteInfo (() => Console.WriteLine ("Saving logins."));
 
                         StringBuilder sb = new StringBuilder ();
 
@@ -1018,11 +1023,9 @@ namespace Server {
                         }
 
                         File.WriteAllText ("logins.dat", sb.ToString ().TrimEnd ('\r', '\n'));
-
-                        Console.WriteLine ("done.");
                     }
                 } catch (Exception ex) {
-                    Console.WriteLine ("Error saving logins.dat: {0}", ex);
+                    CConsole.WriteAlert (() => Console.WriteLine ("Error saving logins.dat: {0}", ex));
                 }
 
                 try {
@@ -1038,8 +1041,13 @@ namespace Server {
                     }
 
                     CConsole.WriteInfo (() =>
-                        Console.WriteLine ("[{0}] heartbeat, connections: client {1}, pool {2}, jobqueue: {3}, total/dev: {4}/{5} h/s", DateTime.Now.ToString (),
-                            clients.Count, PoolConnectionFactory.Connections.Count, jobQueue.Count, totalSpeed, totalDevSpeed));
+                        Console.WriteLine ("[{0}] heartbeat; connections client/pool: {1}/{2}; jobqueue: {3} k; speed total/dev: {4}/{5} kH/s",
+                            DateTime.Now.ToString (),
+                            clients.Count,
+                            PoolConnectionFactory.Connections.Count,
+                            ((double) jobQueue.Count / 1000.0d).ToString ("F1"),
+                            ((double) totalSpeed / 1000.0d).ToString ("F2"),
+                            ((double) totalDevSpeed / 1000.0d).ToString ("F2")));
 
                     while (jobQueue.Count > JobCacheSize) {
                         string deq;
@@ -1080,7 +1088,8 @@ namespace Server {
                         // we removed ourself because we got disconnected from the pool
                         // make us alive again!
                         if (clients.Count > 0) {
-                            Console.WriteLine ("disconnected from dev pool. trying to reconnect.");
+                            CConsole.WriteWarning (() =>
+                                Console.WriteLine ("disconnected from dev pool. trying to reconnect."));
                             devJob = new Job ();
                             CreateOurself ();
                         }
@@ -1089,19 +1098,23 @@ namespace Server {
                     HashesCheckedThisHeartbeat = 0;
 
                     if (Hearbeats % ForceGCEveryXHeartbeat == 0) {
-                        Console.WriteLine ("Garbage collection. Currently using {0} MB.", Math.Round (((double) (GC.GetTotalMemory (false)) / 1024 / 1024)));
+                        CConsole.WriteInfo (() => {
 
-                        DateTime tbc = DateTime.Now;
+                            Console.WriteLine ("Garbage collection. Currently using {0} MB.", Math.Round (((double) (GC.GetTotalMemory (false)) / 1024 / 1024)));
 
-                        // trust me, I am a professional
-                        GC.Collect (GC.MaxGeneration, GCCollectionMode.Forced); // DON'T DO THIS!!!
-                        Console.WriteLine ("Garbage collected in {0} ms. Currently using {1} MB ({2} clients).", (DateTime.Now - tbc).Milliseconds,
-                            Math.Round (((double) (GC.GetTotalMemory (false)) / 1024 / 1024)), clients.Count);
+                            DateTime tbc = DateTime.Now;
+
+                            // trust me, I am a professional
+                            GC.Collect (GC.MaxGeneration, GCCollectionMode.Forced); // DON'T DO THIS!!!
+                            Console.WriteLine ("Garbage collected in {0} ms. Currently using {1} MB ({2} clients).", (DateTime.Now - tbc).Milliseconds,
+                                Math.Round (((double) (GC.GetTotalMemory (false)) / 1024 / 1024)), clients.Count);
+
+                        });
                     }
 
                 } catch (Exception ex) {
                     CConsole.WriteAlert (() =>
-                        Console.WriteLine ("{0} Exception caught in the main loop !", ex));
+                        Console.WriteLine ("Exception caught in the main loop ! {0}", ex));
                 }
 
             }
