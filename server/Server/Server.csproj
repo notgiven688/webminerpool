@@ -35,16 +35,18 @@
     <OutputPath>bin\Release_XMR</OutputPath>
     <WarningLevel>4</WarningLevel>
     <Externalconsole>true</Externalconsole>
-    <DefineConstants>XMR WSS</DefineConstants>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>pdbonly</DebugType>
+    <DefineConstants>XMR</DefineConstants>
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>none</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_AEON|AnyCPU' ">
     <Optimize>true</Optimize>
     <OutputPath>bin\Release_AEON</OutputPath>
     <WarningLevel>4</WarningLevel>
-    <DefineConstants>AEON WSS</DefineConstants>
+    <DefineConstants>AEON</DefineConstants>
     <Externalconsole>true</Externalconsole>
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>none</DebugType>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -86,6 +88,7 @@
     <Compile Include="Fleck\Interfaces\IWebSocketConnection.cs" />
     <Compile Include="Fleck\Interfaces\IWebSocketConnectionInfo.cs" />
     <Compile Include="Fleck\Interfaces\IWebSocketServer.cs" />
+    <Compile Include="CConsole.cs" />
     <Compile Include="Firewall.cs" />
     <Compile Include="EmptyWebsocket.cs" />
     <Compile Include="Helper.cs" />

@@ -19,8 +19,6 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#define NOHASHCHECK
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -38,6 +36,7 @@ using JsonData = System.Collections.Generic.Dictionary<string, object>;
 namespace Server {
 
     public class Client {
+
         public PoolConnection PoolConnection;
         public IWebSocketConnection WebSocket;
         public string Pool = string.Empty;
@@ -50,7 +49,7 @@ namespace Server {
         public string LastTarget = string.Empty;
         public string UserId;
         public int NumChecked = 0;
-        public double Fee = MiningFee.Default;
+        public double Fee = 0.03;
         public int Version = 1;
     }
 
@@ -76,37 +75,30 @@ namespace Server {
         public string Password;
     }
 
-    public class MiningFee {
-        public static double Low = 0.00;
-        public static double Default = 0.03;
-        public static double Penalty = 0.30;
-    }
-
     class MainClass {
 
         [DllImport ("libhash.so", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
         static extern IntPtr hash_cn (string hex, int light);
 
         public const string SEP = "<-|->";
-
         public const string RegexIsHex = "^[a-fA-F0-9]+$";
 
         public const string RegexIsXMR = "[a-zA-Z|\\d]{95}";
 
-        public const int JobCacheSize = (int) 90e3;
+        public const int JobCacheSize = (int) 1e4;
+
+        private static bool hashLibAvailable = false;
 
 #if (AEON)
-        private const string DevXMRAddress = "WmtUFkPrboCKzL5iZhia4iNHKw9UmUXzGgbm5Uo3HPYwWcsY1JTyJ2n335gYiejNysLEs1G2JZxEm3uXUX93ArrV1yrXDyfPH";
+        private const string DevAddress = "WmtUFkPrboCKzL5iZhia4iNHKw9UmUXzGgbm5Uo3HPYwWcsY1JTyJ2n335gYiejNysLEs1G2JZxEm3uXUX93ArrV1yrXDyfPH";
         private const string DevPoolUrl = "pool.aeon.hashvault.pro";
         private const string DevPoolPwd = "x";
         private const int DevPoolPort = 3333;
 #else
 
-        // Hi there!
-        // By default a 3% dev fee is submitted to the following address.
-        // Thank you for leaving this in.
-
-        private const string DevXMRAddress = "49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU";
+        // by default a 3% dev fee is submitted to the following address.
+        // thank you for leaving this in.
+        private const string DevAddress = "49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU";
         private const string DevPoolUrl = "de.moneroocean.stream";
         private const string DevPoolPwd = "x"; // if you want you can change this to something funny
         private const int DevPoolPort = 10064;
@@ -136,7 +128,7 @@ namespace Server {
                                                                 // in one batch, e.g. for BatchSize = 100 and 1000 clients
                                                                 // there will be 10 pool connections.
 
-        private static int Hearbeats = 0;
+        private static int Heartbeats = 0;
         private static int HashesCheckedThisHeartbeat = 0;
 
         private static string jsonPools = "";
@@ -179,7 +171,6 @@ namespace Server {
             PoolPool.Add ("aeon-pool.sytes.net", new PoolInfo ("aeon-pool.sytes.net", 3333));
             PoolPool.Add ("aeonpool.net", new PoolInfo ("pool.aeonpool.net", 3333, "x"));
             PoolPool.Add ("supportaeon.com", new PoolInfo ("pool.supportaeon.com", 3333, "x"));
-
             PoolPool.Add ("pooltupi.com", new PoolInfo ("pooltupi.com", 8080, "x"));
             PoolPool.Add ("aeon.semipool.com", new PoolInfo ("pool.aeon.semipool.com", 3333, "x"));
 #else
@@ -257,10 +248,7 @@ namespace Server {
                 return true;
         }
 
-#if (!NOHASHCHECK)
         private static object hashLocker = new object ();
-#endif
-
         private static bool CheckHash (string blob, string nonce, string target, string result, bool fullcheck) {
 
             // first check if result meets target
@@ -269,9 +257,7 @@ namespace Server {
             if (HexToUInt32 (ourtarget) >= HexToUInt32 (target))
                 return false;
 
-#if (!NOHASHCHECK)
-
-            if (fullcheck) {
+            if (hashLibAvailable && fullcheck) {
                 // recalculate the hash
 
                 string parta = blob.Substring (0, 78);
@@ -289,7 +275,6 @@ namespace Server {
                 }
 
             }
-#endif
 
             return true;
         }
@@ -443,7 +428,8 @@ namespace Server {
 
             try { client.WebSocket.Close (); } catch { }
 
-            PoolConnectionFactory.Close (client.PoolConnection, client);
+            if (client.PoolConnection != null)
+                PoolConnectionFactory.Close (client.PoolConnection, client);
         }
 
         public static void DisconnectClient (Client client, string reason) {
@@ -472,25 +458,74 @@ namespace Server {
         private static void CreateOurself () {
             ourself = new Client ();
 
-            ourself.Login = DevXMRAddress;
+            ourself.Login = DevAddress;
+            ourself.Pool = DevPoolUrl;
             ourself.Created = ourself.LastPoolJobTime = DateTime.Now;
             ourself.Password = DevPoolPwd;
             ourself.WebSocket = new EmptyWebsocket ();
 
             clients.TryAdd (Guid.Empty, ourself);
 
-            ourself.PoolConnection = PoolConnectionFactory.CreatePoolConnection (ourself, DevPoolUrl, DevPoolPort, DevXMRAddress, DevPoolPwd);
+            ourself.PoolConnection = PoolConnectionFactory.CreatePoolConnection (ourself, DevPoolUrl, DevPoolPort, DevAddress, DevPoolPwd);
+        }
+
+        private static bool CheckLibHash (out Exception ex) {
+
+            // just check if we can successfully calculate a cn-hash.
+            string testStr = new string ('1', 151) + '3';
+            string hashedResult = string.Empty;
+
+            try {
+                IntPtr pStr = hash_cn (testStr, 0);
+                hashedResult = Marshal.PtrToStringAnsi (pStr);
+            } catch (Exception e) {
+                ex = e;
+                return false;
+            }
+
+            if (!hashedResult.StartsWith ("843ae6fc006")) {
+                ex = new Exception ("Hash function returned wrong hash");
+                return false;
+            }
+
+            ex = null;
+            return true;
         }
 
         public static void Main (string[] args) {
 
-            PoolConnectionFactory.RegisterCallbacks (PoolReceiveCallback,
-                PoolErrorCallback, PoolDisconnectCallback);
+            CConsole.ColorInfo (() => {
+
+#if (DEBUG)
+                Console.WriteLine ("[{0}] webminerpool server started - DEBUG MODE", DateTime.Now);
+#else
+                Console.WriteLine ("[{0}] webminerpool server started", DateTime.Now);
+#endif
+
+                double devfee = (new Client ()).Fee;
+                if (devfee > double.Epsilon)
+                    Console.WriteLine ("Developer fee of {0}% enabled.", (devfee * 100.0d).ToString ("F1"));
+
+                Console.WriteLine ();
+            });
+
+   
+
+            Exception exception = null;
+
+            hashLibAvailable = CheckLibHash (out exception);
+
+            if (!hashLibAvailable) CConsole.ColorWarning (() =>
+                Console.WriteLine ("hashlib.so is not available. Checking user submitted hashes disabled.")
+            );
+
+            PoolConnectionFactory.RegisterCallbacks (PoolReceiveCallback, PoolErrorCallback, PoolDisconnectCallback);
+
+            FillPoolPool ();
 
             if (File.Exists ("statistics.dat")) {
 
                 try {
-
                     statistics.Clear ();
 
                     string[] lines = File.ReadAllLines ("statistics.dat");
@@ -506,7 +541,8 @@ namespace Server {
                     }
 
                 } catch (Exception ex) {
-                    Console.WriteLine ("Error while reading statistics: {0}", ex);
+                    CConsole.ColorAlert (() =>
+                        Console.WriteLine ("Error while reading statistics: {0}", ex));
                 }
             }
 
@@ -530,34 +566,32 @@ namespace Server {
                     }
 
                 } catch (Exception ex) {
-                    Console.WriteLine ("Error while reading logins: {0}", ex);
+                    CConsole.ColorAlert (() =>
+                        Console.WriteLine ("Error while reading logins: {0}", ex));
                 }
 
             }
 
-            FillPoolPool ();
+            X509Certificate2 cert = null;
+
+            try { cert = new X509Certificate2 ("certificate.pfx", "miner"); } catch (Exception e) { exception = e; cert = null; }
+
+            bool certAvailable = (cert != null);
+
+            if (!certAvailable)
+                CConsole.ColorWarning (() => Console.WriteLine ("SSL certificate could not be loaded. Secure connection disabled."));
 
             WebSocketServer server;
-#if (WSS)
-
-            X509Certificate2 cert = new X509Certificate2 ("certificate.pfx", "miner");
 
 #if (AEON)
-            server = new WebSocketServer ("wss://0.0.0.0:8282");
+            string localAddr = (certAvailable ? "wss://" : "ws://") + "0.0.0.0:8282";
 #else
-            server = new WebSocketServer ("wss://0.0.0.0:8181");
+            string localAddr = (certAvailable ? "wss://" : "ws://") + "0.0.0.0:8181";
 #endif
+
+            server = new WebSocketServer (localAddr);
 
             server.Certificate = cert;
-
-#else
-#if (AEON)
-            server = new WebSocketServer ("ws://0.0.0.0:8282");
-#else
-            server = new WebSocketServer ("ws://0.0.0.0:8181");
-#endif
-
-#endif
 
             FleckLog.LogAction = (level, message, ex) => {
                 switch (level) {
@@ -568,7 +602,8 @@ namespace Server {
                         break;
                     case LogLevel.Error:
                         if (ex != null && !string.IsNullOrEmpty (ex.Message)) {
-                            Console.WriteLine ("FLECK: " + message + " " + ex.Message);
+
+                            CConsole.ColorAlert (() => Console.WriteLine ("FLECK: " + message + " " + ex.Message));
 
                             exceptionCounter++;
                             if ((exceptionCounter % 200) == 0) {
@@ -706,7 +741,8 @@ namespace Server {
                             client.UserId = uid;
                         }
 
-                        Console.WriteLine ("{0}: handshake - {1}", guid, client.Pool);
+                        Console.WriteLine ("{0}: handshake - {1}, {2}", guid, client.Pool,
+                         (client.Login.Length > 8 ? client.Login.Substring(0,8) + "..." : client.Login ) );
 
                         if (!string.IsNullOrEmpty (ipadr)) Firewall.Update (ipadr, Firewall.UpdateEntry.Handshake);
 
@@ -792,7 +828,7 @@ namespace Server {
                             double chanceForACheck = 0.1;
 
                             // check new clients more often, but prevent that to happen the first 30s the server is running
-                            if (Hearbeats > 3 && client.NumChecked < 9) chanceForACheck = 1.0 - 0.1 * client.NumChecked;
+                            if (Heartbeats > 3 && client.NumChecked < 9) chanceForACheck = 1.0 - 0.1 * client.NumChecked;
 
                             bool performFullCheck = (Random2.NextDouble () < chanceForACheck && HashesCheckedThisHeartbeat < MaxHashChecksPerHeartbeat);
 
@@ -804,7 +840,9 @@ namespace Server {
                             bool validHash = CheckHash (ji.Blob, reportedNonce, ji.Target, reportedResult, performFullCheck);
 
                             if (!validHash) {
-                                Console.WriteLine ("{0} got disconnected for WRONG HASH.", client.WebSocket.ConnectionInfo.Id.ToString ());
+
+                                CConsole.ColorWarning (() =>
+                                    Console.WriteLine ("{0} got disconnected for WRONG hash.", client.WebSocket.ConnectionInfo.Id.ToString ()));
 
                                 if (!string.IsNullOrEmpty (ipadr)) Firewall.Update (ipadr, Firewall.UpdateEntry.WrongHash);
                                 RemoveClient (client.WebSocket.ConnectionInfo.Id);
@@ -948,13 +986,13 @@ namespace Server {
 
             while (running) {
 
-                Hearbeats++;
+                Heartbeats++;
 
-                Firewall.Heartbeat (Hearbeats);
+                Firewall.Heartbeat (Heartbeats);
 
                 try {
-                    if (Hearbeats % SaveStatisticsEveryXHeartbeat == 0) {
-                        Console.WriteLine ("Saving statistics...");
+                    if (Heartbeats % SaveStatisticsEveryXHeartbeat == 0) {
+                        CConsole.ColorInfo (() => Console.WriteLine ("Saving statistics."));
 
                         StringBuilder sb = new StringBuilder ();
 
@@ -963,18 +1001,17 @@ namespace Server {
                         }
 
                         File.WriteAllText ("statistics.dat", sb.ToString ().TrimEnd ('\r', '\n'));
-
-                        Console.WriteLine ("done.");
                     }
 
                 } catch (Exception ex) {
-                    Console.WriteLine ("Error saving statistics.dat: {0}", ex);
+                    CConsole.ColorAlert (() => Console.WriteLine ("Error saving statistics.dat: {0}", ex));
                 }
 
                 try {
                     if (saveLoginIdsNextHeartbeat) {
+
                         saveLoginIdsNextHeartbeat = false;
-                        Console.WriteLine ("Saving logins...");
+                        CConsole.ColorInfo (() => Console.WriteLine ("Saving logins."));
 
                         StringBuilder sb = new StringBuilder ();
 
@@ -983,18 +1020,16 @@ namespace Server {
                         }
 
                         File.WriteAllText ("logins.dat", sb.ToString ().TrimEnd ('\r', '\n'));
-
-                        Console.WriteLine ("done.");
                     }
                 } catch (Exception ex) {
-                    Console.WriteLine ("Error saving logins.dat: {0}", ex);
+                    CConsole.ColorAlert (() => Console.WriteLine ("Error saving logins.dat: {0}", ex));
                 }
 
                 try {
 
                     Task.Run (async delegate { await Task.Delay (TimeSpan.FromSeconds (HeartbeatRate)); }).Wait ();
 
-                    if (Hearbeats % SpeedAverageOverXHeartbeats == 0) {
+                    if (Heartbeats % SpeedAverageOverXHeartbeats == 0) {
                         totalSpeed = (double) totalHashes / (double) (HeartbeatRate * SpeedAverageOverXHeartbeats);
                         totalDevSpeed = (double) totalDevHashes / (double) (HeartbeatRate * SpeedAverageOverXHeartbeats);
 
@@ -1002,8 +1037,14 @@ namespace Server {
                         totalDevHashes = 0;
                     }
 
-                    Console.WriteLine ("[{0}] heartbeat, connections: client {1}, pool {2}, jobqueue: {3}, total/dev: {4}/{5} h/s", DateTime.Now.ToString (),
-                        clients.Count, PoolConnectionFactory.Connections.Count, jobQueue.Count, totalSpeed, totalDevSpeed);
+                    CConsole.ColorInfo (() =>
+                        Console.WriteLine ("[{0}] heartbeat; connections client/pool: {1}/{2}; jobqueue: {3}k; speed total/dev: {4}/{5} kH/s",
+                            DateTime.Now.ToString (),
+                            clients.Count,
+                            PoolConnectionFactory.Connections.Count,
+                            ((double) jobQueue.Count / 1000.0d).ToString ("F1"),
+                            ((double) totalSpeed / 1000.0d).ToString ("F2"),
+                            ((double) totalDevSpeed / 1000.0d).ToString ("F2")));
 
                     while (jobQueue.Count > JobCacheSize) {
                         string deq;
@@ -1044,7 +1085,8 @@ namespace Server {
                         // we removed ourself because we got disconnected from the pool
                         // make us alive again!
                         if (clients.Count > 0) {
-                            Console.WriteLine ("disconnected from dev pool. trying to reconnect.");
+                            CConsole.ColorWarning (() =>
+                                Console.WriteLine ("disconnected from dev pool. trying to reconnect."));
                             devJob = new Job ();
                             CreateOurself ();
                         }
@@ -1052,19 +1094,24 @@ namespace Server {
 
                     HashesCheckedThisHeartbeat = 0;
 
-                    if (Hearbeats % ForceGCEveryXHeartbeat == 0) {
-                        Console.WriteLine ("Garbage collection. Currently using {0} MB.", Math.Round (((double) (GC.GetTotalMemory (false)) / 1024 / 1024)));
+                    if (Heartbeats % ForceGCEveryXHeartbeat == 0) {
+                        CConsole.ColorInfo (() => {
 
-                        DateTime tbc = DateTime.Now;
+                            Console.WriteLine ("Garbage collection. Currently using {0} MB.", Math.Round (((double) (GC.GetTotalMemory (false)) / 1024 / 1024)));
 
-                        // trust me, I am a professional
-                        GC.Collect (GC.MaxGeneration, GCCollectionMode.Forced); // DON'T DO THIS!!!
-                        Console.WriteLine ("Garbage collected in {0} ms. Currently using {1} MB ({2} clients).", (DateTime.Now - tbc).Milliseconds,
-                            Math.Round (((double) (GC.GetTotalMemory (false)) / 1024 / 1024)), clients.Count);
+                            DateTime tbc = DateTime.Now;
+
+                            // trust me, I am a professional
+                            GC.Collect (GC.MaxGeneration, GCCollectionMode.Forced); // DON'T DO THIS!!!
+                            Console.WriteLine ("Garbage collected in {0} ms. Currently using {1} MB ({2} clients).", (DateTime.Now - tbc).Milliseconds,
+                                Math.Round (((double) (GC.GetTotalMemory (false)) / 1024 / 1024)), clients.Count);
+
+                        });
                     }
 
                 } catch (Exception ex) {
-                    Console.WriteLine ("{0} Exception caught in the main loop !", ex);
+                    CConsole.ColorAlert (() =>
+                        Console.WriteLine ("Exception caught in the main loop ! {0}", ex));
                 }
 
             }
