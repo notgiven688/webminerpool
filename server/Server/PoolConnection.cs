@@ -349,7 +349,11 @@ namespace Server {
 
 			if (mypc == null) {
 
-				Console.WriteLine ("{0}: established new pool connection.", client.WebSocket.ConnectionInfo.Id);
+				CConsole.WriteInfo( () => {
+				Console.WriteLine ("{0}: established new pool connection",client.WebSocket.ConnectionInfo.Id);
+				Console.WriteLine ("{0} {1}", client.Login, client.Pool);
+				});
+				
 
 				mypc = new PoolConnection ();
 				mypc.Credentials = credential;
