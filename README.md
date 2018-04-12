@@ -104,7 +104,7 @@ The C# server. To compile under linux using mono and msbuild use
 ```bash
 ./build
 ```
-and follow the instructions. No additional extern 3rd party libraries are needed.
+and follow the instructions. No additional 3rd party libraries are needed.
 
 ```bash
 mono server.exe
