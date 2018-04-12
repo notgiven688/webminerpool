@@ -185,7 +185,7 @@ namespace Server {
 				var lastjob = msg["job"] as JsonData;
 
 				if (!VerifyJob (lastjob)) {
-					CConsole.WriteWarning(() =>
+					CConsole.ColorWarning(() =>
 					Console.WriteLine ("Failed to verify job: {0}", msg["job"].GetString()));
 					return;
 				}
@@ -207,7 +207,7 @@ namespace Server {
 				var lastjob = msg["params"] as JsonData;
 
 				if (!VerifyJob (lastjob)) {
-					CConsole.WriteWarning(() =>
+					CConsole.ColorWarning(() =>
 						Console.WriteLine ("Failed to verify job: {0}", msg["params"].GetString()));
 					return;
 				}
@@ -230,7 +230,7 @@ namespace Server {
 					ReceiveError (mypc.LastSender, msg);
 
 				} else {
-					CConsole.WriteWarning(() =>
+					CConsole.ColorWarning(() =>
 					Console.WriteLine ("Pool is sending nonsense."));
 				}
 			}
@@ -307,7 +307,7 @@ namespace Server {
 			if ((DateTime.Now - connection.LastInteraction).TotalMinutes < 10)
 				return;
 
-			CConsole.WriteWarning(() => Console.WriteLine ("Initiating reconnect! {0}:{1}", connection.Url, connection.Login));
+			CConsole.ColorWarning(() => Console.WriteLine ("Initiating reconnect! {0}:{1}", connection.Url, connection.Login));
 
 			try {
 				var networkStream = connection.TcpClient.GetStream ();
@@ -350,7 +350,7 @@ namespace Server {
 
 			if (mypc == null) {
 
-				CConsole.WriteInfo( () => {
+				CConsole.ColorInfo( () => {
 				Console.WriteLine ("{0}: initiated new pool connection",client.WebSocket.ConnectionInfo.Id);
 				Console.WriteLine ("{0} {1} {2}", login, password, url);
 				});
