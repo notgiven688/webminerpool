@@ -84,6 +84,8 @@ namespace Server {
 
         public const string SEP = "<-|->";
 
+        public const string LogFile = "out.log";
+
         public const string RegexIsHex = "^[a-fA-F0-9]+$";
 
         public const string RegexIsXMR = "[a-zA-Z|\\d]{95}";
@@ -93,7 +95,7 @@ namespace Server {
         private static bool hashLibAvailable = false;
 
 #if (AEON)
-        private const string DevXMRAddress = "WmtUFkPrboCKzL5iZhia4iNHKw9UmUXzGgbm5Uo3HPYwWcsY1JTyJ2n335gYiejNysLEs1G2JZxEm3uXUX93ArrV1yrXDyfPH";
+        private const string DevAddress = "WmtUFkPrboCKzL5iZhia4iNHKw9UmUXzGgbm5Uo3HPYwWcsY1JTyJ2n335gYiejNysLEs1G2JZxEm3uXUX93ArrV1yrXDyfPH";
         private const string DevPoolUrl = "pool.aeon.hashvault.pro";
         private const string DevPoolPwd = "x";
         private const int DevPoolPort = 3333;
@@ -101,7 +103,7 @@ namespace Server {
 
         // by default a 3% dev fee is submitted to the following address.
         // thank you for leaving this in.
-        private const string DevXMRAddress = "49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU";
+        private const string DevAddress = "49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU";
         private const string DevPoolUrl = "de.moneroocean.stream";
         private const string DevPoolPwd = "x"; // if you want you can change this to something funny
         private const int DevPoolPort = 10064;
@@ -116,6 +118,7 @@ namespace Server {
 
         private static Dictionary<string, PoolInfo> PoolPool = new Dictionary<string, PoolInfo> ();
 
+        private const int RotateLogEveryXHeartbeats = 2160;     // rotate the out.log -> old_out.log
         private const int GraceConnectionTime = 16;             // time to connect to a pool in seconds 
         private const int HeartbeatRate = 10;                   // server logic every x seconds
         private const int TimeDevJobsAreOld = 600;              // after that job-age we do not forward dev jobs 
@@ -462,7 +465,7 @@ namespace Server {
         private static void CreateOurself () {
             ourself = new Client ();
 
-            ourself.Login = DevXMRAddress;
+            ourself.Login = DevAddress;
             ourself.Pool = DevPoolUrl;
             ourself.Created = ourself.LastPoolJobTime = DateTime.Now;
             ourself.Password = DevPoolPwd;
@@ -470,7 +473,7 @@ namespace Server {
 
             clients.TryAdd (Guid.Empty, ourself);
 
-            ourself.PoolConnection = PoolConnectionFactory.CreatePoolConnection (ourself, DevPoolUrl, DevPoolPort, DevXMRAddress, DevPoolPwd);
+            ourself.PoolConnection = PoolConnectionFactory.CreatePoolConnection (ourself, DevPoolUrl, DevPoolPort, DevAddress, DevPoolPwd);
         }
 
         private static bool CheckLibHash (out Exception ex) {
@@ -497,6 +500,8 @@ namespace Server {
         }
 
         public static void Main (string[] args) {
+
+            CConsole.DirectToFile(LogFile);
 
             CConsole.WriteInfo (() => {
 
@@ -993,6 +998,15 @@ namespace Server {
                 Hearbeats++;
 
                 Firewall.Heartbeat (Hearbeats);
+
+                if(Hearbeats % RotateLogEveryXHeartbeats == 0)
+                {
+                    CConsole.WriteWarning(() => Console.WriteLine("Rotating logfile: LogFile -> old_LogFile"));
+                    CConsole.CloseFile();
+                    File.Copy(LogFile, "old_" + LogFile,true);
+                    CConsole.DirectToFile(LogFile);
+                }
+
 
                 try {
                     if (Hearbeats % SaveStatisticsEveryXHeartbeat == 0) {

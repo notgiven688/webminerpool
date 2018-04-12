@@ -25,12 +25,74 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Server {
+
     public static class CConsole {
 
         // Info, Alert, Warning
         private static object locker = new object ();
 
         private static bool enabled = true;
+
+        private static FileStream fileStream;
+        private static StreamWriter fileWriter;
+        private static TextWriter doubleWriter;
+        private static TextWriter oldOut;
+
+        class DoubleWriter : TextWriter {
+
+            TextWriter twA, twB;
+            public DoubleWriter (TextWriter one, TextWriter two) {
+                this.twA = one;
+                this.twB = two;
+            }
+
+            public override Encoding Encoding {
+                get { return twA.Encoding; }
+            }
+
+            public override void Flush () {
+                twA.Flush ();
+                twB.Flush ();
+            }
+
+            public override void Write (char value) {
+                twA.Write (value);
+                twB.Write (value);
+            }
+
+        }
+
+        public static void DirectToFile (string path) {
+            oldOut = Console.Out;
+
+            try {
+                fileStream = File.Create (path);
+
+                fileWriter = new StreamWriter (fileStream);
+                fileWriter.AutoFlush = true;
+
+                doubleWriter = new DoubleWriter (fileWriter, oldOut);
+            } catch (Exception e) {
+                Console.WriteLine ("Cannot open file for writing");
+                Console.WriteLine (e.Message);
+                return;
+            }
+            Console.SetOut (doubleWriter);
+        }
+
+        public static void CloseFile () {
+            Console.SetOut (oldOut);
+            if (fileWriter != null) {
+                fileWriter.Flush ();
+                fileWriter.Close ();
+                fileWriter = null;
+            }
+            if (fileStream != null) {
+                fileStream.Close ();
+                fileStream = null;
+            }
+        }
+
 
         static CConsole () {
             try {
@@ -43,20 +105,20 @@ namespace Server {
             }
         }
 
-		private static void Write (Action consoleAction, ConsoleColor foreground) {
+        private static void ColorConsole (Action consoleAction, ConsoleColor foreground) {
 
-			if (enabled) {
-				lock (locker) {
-					Console.ForegroundColor = foreground;
-					consoleAction ();
-					Console.ResetColor ();
-				}
-			} else {
-				consoleAction ();
-			}
-		}
+            if (enabled) {
+                lock (locker) {
+                    Console.ForegroundColor = foreground;
+                    consoleAction ();
+                    Console.ResetColor ();
+                }
+            } else {
+                consoleAction ();
+            }
+        }
 
-        private static void Write (Action consoleAction, ConsoleColor foreground, ConsoleColor background) {
+        private static void ColorConsole (Action consoleAction, ConsoleColor foreground, ConsoleColor background) {
 
             if (enabled) {
                 lock (locker) {
@@ -70,16 +132,16 @@ namespace Server {
             }
         }
 
-        public static void WriteInfo (Action consoleAction) {
-			Write (consoleAction, ConsoleColor.Cyan);
+        public static void ColorInfo (Action consoleAction) {
+            ColorConsole (consoleAction, ConsoleColor.Cyan);
         }
 
-        public static void WriteWarning (Action consoleAction) {
-			Write (consoleAction, ConsoleColor.Yellow);
+        public static void ColorWarning (Action consoleAction) {
+            ColorConsole (consoleAction, ConsoleColor.Yellow);
         }
 
-        public static void WriteAlert (Action consoleAction) {
-			Write (consoleAction, ConsoleColor.Red);
+        public static void ColorAlert (Action consoleAction) {
+            ColorConsole (consoleAction, ConsoleColor.Red);
         }
 
     }
