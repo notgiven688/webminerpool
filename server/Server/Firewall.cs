@@ -59,7 +59,7 @@ namespace Server {
 
 		private static void AddToIpTables (Entry entry, int rule) {
 			Helper.WriteTextAsyncWrapper ("ip_list", entry.Address + Environment.NewLine);
-			Console.WriteLine ("Added {0} to iptables (rule #{1})", entry.Address, rule.ToString ());
+			CConsole.WriteWarning(() => Console.WriteLine ("Added {0} to iptables (rule #{1})", entry.Address, rule.ToString ()));
 			entries.TryRemove (entry.Address);
 		}
 

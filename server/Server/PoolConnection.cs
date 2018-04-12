@@ -185,7 +185,8 @@ namespace Server {
 				var lastjob = msg["job"] as JsonData;
 
 				if (!VerifyJob (lastjob)) {
-					Console.WriteLine ("Failed to verify job.");
+					CConsole.WriteWarning(() =>
+					Console.WriteLine ("Failed to verify job: {0}", msg["job"].GetString()));
 					return;
 				}
 
@@ -206,7 +207,8 @@ namespace Server {
 				var lastjob = msg["params"] as JsonData;
 
 				if (!VerifyJob (lastjob)) {
-					Console.WriteLine ("Failed to verify job.");
+					CConsole.WriteWarning(() =>
+						Console.WriteLine ("Failed to verify job: {0}", msg["params"].GetString()));
 					return;
 				}
 
@@ -216,7 +218,7 @@ namespace Server {
 
 				List<Client> cllist2 = new List<Client> (mypc.WebClients.Values);
 
-				Console.WriteLine ("Sending to {0} clients!", cllist2.Count);
+				Console.WriteLine ("Sending to {0} client(s)!", cllist2.Count);
 
 				foreach (Client ev in cllist2) {
 					ReceiveJob (ev, mypc.LastJob, mypc.LastSolved);
@@ -304,8 +306,7 @@ namespace Server {
 			if ((DateTime.Now - connection.LastInteraction).TotalMinutes < 10)
 				return;
 
-			Console.WriteLine ("Initiating reconnect!");
-			Console.WriteLine (connection.Credentials);
+			CConsole.WriteWarning(() => Console.WriteLine ("Initiating reconnect! {0}:{1}", connection.Url, connection.Login));
 
 			try {
 				var networkStream = connection.TcpClient.GetStream ();
@@ -348,7 +349,7 @@ namespace Server {
 
 			if (mypc == null) {
 
-				Console.WriteLine ("{0}: established new pool connection. {1} {2} {3} {4}", client.WebSocket.ConnectionInfo.Id, url, login, password,batchCounter);
+				Console.WriteLine ("{0}: established new pool connection.", client.WebSocket.ConnectionInfo.Id);
 
 				mypc = new PoolConnection ();
 				mypc.Credentials = credential;
@@ -374,7 +375,7 @@ namespace Server {
 
 
 
-				Console.WriteLine ("{0}: reusing pool connection {1}.", client.WebSocket.ConnectionInfo.Id, batchCounter);
+				Console.WriteLine ("{0}: reusing pool connection", client.WebSocket.ConnectionInfo.Id);
 
 				mypc.WebClients.TryAdd (client);
 
