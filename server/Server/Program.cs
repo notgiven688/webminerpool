@@ -463,6 +463,7 @@ namespace Server {
             ourself = new Client ();
 
             ourself.Login = DevXMRAddress;
+            ourself.Pool = DevPoolUrl;
             ourself.Created = ourself.LastPoolJobTime = DateTime.Now;
             ourself.Password = DevPoolPwd;
             ourself.WebSocket = new EmptyWebsocket ();
@@ -1041,7 +1042,7 @@ namespace Server {
                     }
 
                     CConsole.WriteInfo (() =>
-                        Console.WriteLine ("[{0}] heartbeat; connections client/pool: {1}/{2}; jobqueue: {3} k; speed total/dev: {4}/{5} kH/s",
+                        Console.WriteLine ("[{0}] heartbeat; connections client/pool: {1}/{2}; jobqueue: {3}k; speed total/dev: {4}/{5} kH/s",
                             DateTime.Now.ToString (),
                             clients.Count,
                             PoolConnectionFactory.Connections.Count,

@@ -218,7 +218,7 @@ namespace Server {
 
 				List<Client> cllist2 = new List<Client> (mypc.WebClients.Values);
 
-				Console.WriteLine ("Sending to {0} client(s)!", cllist2.Count);
+				Console.WriteLine ("Sending job to {0} client(s)!", cllist2.Count);
 
 				foreach (Client ev in cllist2) {
 					ReceiveJob (ev, mypc.LastJob, mypc.LastSolved);
@@ -230,7 +230,8 @@ namespace Server {
 					ReceiveError (mypc.LastSender, msg);
 
 				} else {
-					Console.WriteLine ("Pool is sending nonsense...");
+					CConsole.WriteWarning(() =>
+					Console.WriteLine ("Pool is sending nonsense."));
 				}
 			}
 		}
@@ -350,8 +351,8 @@ namespace Server {
 			if (mypc == null) {
 
 				CConsole.WriteInfo( () => {
-				Console.WriteLine ("{0}: established new pool connection",client.WebSocket.ConnectionInfo.Id);
-				Console.WriteLine ("{0} {1}", client.Login, client.Pool);
+				Console.WriteLine ("{0}: initiated new pool connection",client.WebSocket.ConnectionInfo.Id);
+				Console.WriteLine ("{0} {1} {2}", login, password, url);
 				});
 				
 
