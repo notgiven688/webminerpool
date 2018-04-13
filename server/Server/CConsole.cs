@@ -33,67 +33,6 @@ namespace Server {
 
         private static bool enabled = true;
 
-        private static FileStream fileStream;
-        private static StreamWriter fileWriter;
-        private static TextWriter doubleWriter;
-        private static TextWriter oldOut;
-
-        class DoubleWriter : TextWriter {
-
-            TextWriter twA, twB;
-            public DoubleWriter (TextWriter one, TextWriter two) {
-                this.twA = one;
-                this.twB = two;
-            }
-
-            public override Encoding Encoding {
-                get { return twA.Encoding; }
-            }
-
-            public override void Flush () {
-                twA.Flush ();
-                twB.Flush ();
-            }
-
-            public override void Write (char value) {
-                twA.Write (value);
-                twB.Write (value);
-            }
-
-        }
-
-        public static void DirectToFile (string path) {
-            oldOut = Console.Out;
-
-            try {
-                fileStream = File.Create (path);
-
-                fileWriter = new StreamWriter (fileStream);
-                fileWriter.AutoFlush = true;
-
-                doubleWriter = new DoubleWriter (fileWriter, oldOut);
-            } catch (Exception e) {
-                Console.WriteLine ("Cannot open file for writing");
-                Console.WriteLine (e.Message);
-                return;
-            }
-            Console.SetOut (doubleWriter);
-        }
-
-        public static void CloseFile () {
-            Console.SetOut (oldOut);
-            if (fileWriter != null) {
-                fileWriter.Flush ();
-                fileWriter.Close ();
-                fileWriter = null;
-            }
-            if (fileStream != null) {
-                fileStream.Close ();
-                fileStream = null;
-            }
-        }
-
-
         static CConsole () {
             try {
                 Console.BackgroundColor = ConsoleColor.White;
