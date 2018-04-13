@@ -516,7 +516,7 @@ namespace Server {
             hashLibAvailable = CheckLibHash (out exception);
 
             if (!hashLibAvailable) CConsole.ColorWarning (() =>
-                Console.WriteLine ("hashlib.so is not available. Checking user submitted hashes disabled.")
+                Console.WriteLine ("libhash.so is not available. Checking user submitted hashes disabled.")
             );
 
             PoolConnectionFactory.RegisterCallbacks (PoolReceiveCallback, PoolErrorCallback, PoolDisconnectCallback);
