@@ -87,7 +87,7 @@ namespace Server {
 
         public const int JobCacheSize = (int) 1e5;
 
-        private static bool hashLibAvailable = false;
+        private static bool libHashAvailable = false;
 
 #if (AEON)
         private const string DevAddress = "WmtUFkPrboCKzL5iZhia4iNHKw9UmUXzGgbm5Uo3HPYwWcsY1JTyJ2n335gYiejNysLEs1G2JZxEm3uXUX93ArrV1yrXDyfPH";
@@ -257,7 +257,7 @@ namespace Server {
             if (HexToUInt32 (ourtarget) >= HexToUInt32 (target))
                 return false;
 
-            if (hashLibAvailable && fullcheck) {
+            if (libHashAvailable && fullcheck) {
                 // recalculate the hash
 
                 string parta = blob.Substring (0, 78);
@@ -513,9 +513,9 @@ namespace Server {
 
             Exception exception = null;
 
-            hashLibAvailable = CheckLibHash (out exception);
+            libHashAvailable = CheckLibHash (out exception);
 
-            if (!hashLibAvailable) CConsole.ColorWarning (() =>
+            if (!libHashAvailable) CConsole.ColorWarning (() =>
                 Console.WriteLine ("libhash.so is not available. Checking user submitted hashes disabled.")
             );
 
