@@ -32,12 +32,38 @@ using System.Text;
 namespace TinyJson {
 
     public static class JSONParser {
-        static Stack<List<string>> splitArrayPool = new Stack<List<string>> ();
-        static StringBuilder stringBuilder = new StringBuilder ();
-        static readonly Dictionary<Type, Dictionary<string, FieldInfo>> fieldInfoCache = new Dictionary<Type, Dictionary<string, FieldInfo>> ();
-        static readonly Dictionary<Type, Dictionary<string, PropertyInfo>> propertyInfoCache = new Dictionary<Type, Dictionary<string, PropertyInfo>> ();
+
+		[ThreadStatic] 
+		static Stack<List<string>> splitArrayPool;
+
+		[ThreadStatic] 
+		static StringBuilder stringBuilder;
+
+		[ThreadStatic] 
+		static Dictionary<Type, Dictionary<string, FieldInfo>> fieldInfoCache;
+
+		[ThreadStatic] 
+		static Dictionary<Type, Dictionary<string, PropertyInfo>> propertyInfoCache;
+
+		[ThreadStatic] 
+		static bool initialized = false;
 
         public static T FromJson<T> (this string json) {
+
+			if (!initialized) {
+
+				/* Do not specify initial values for fields marked with ThreadStaticAttribute, because such initialization
+				 * occurs only once, when the class constructor executes, and therefore affects only one thread. */
+
+				splitArrayPool = new Stack<List<string>> ();
+				stringBuilder = new StringBuilder ();
+				fieldInfoCache = new Dictionary<Type, Dictionary<string, FieldInfo>> ();
+				propertyInfoCache = new Dictionary<Type, Dictionary<string, PropertyInfo>> ();
+
+				initialized = true;
+			}
+
+
             try {
                 if (string.IsNullOrEmpty (json))
                     return default (T);
