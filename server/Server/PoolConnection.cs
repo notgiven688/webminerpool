@@ -186,7 +186,7 @@ namespace Server {
 
 				if (!VerifyJob (lastjob)) {
 					CConsole.ColorWarning(() =>
-					Console.WriteLine ("Failed to verify job: {0}", msg["job"].GetString()));
+					Console.WriteLine ("Failed to verify job: {0}", json));
 					return;
 				}
 
@@ -208,7 +208,7 @@ namespace Server {
 
 				if (!VerifyJob (lastjob)) {
 					CConsole.ColorWarning(() =>
-						Console.WriteLine ("Failed to verify job: {0}", msg["params"].GetString()));
+						Console.WriteLine ("Failed to verify job: {0}", json));
 					return;
 				}
 
