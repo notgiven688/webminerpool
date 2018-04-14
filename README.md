@@ -72,7 +72,7 @@ throttleMiner = 20;
 If you set this value to 20, the cpu workload will be approx. 80% (for 1 thread / CPU). Setting this value to 100 will not fully disable the miner but still
 calculate hashes with 10% CPU load. 
 
-If you do not want to show the user your address or even the password you have to create  a "loginid". With the loginid you can start mining with
+If you do not want to show the user your address or even the password you have to create  a *loginid*. With the *loginid* you can start mining with
 
 ```javascript
 startMiningWithId(loginid)
@@ -84,7 +84,7 @@ or with optional input parameters:
 startMiningWithId(loginid, numThreads, userid)
 ```
 
-Get a loginid by opening *register.html* in SDK/xmr/other. You also find a script which enumerates all available pools and a script which shows you the amount of hashes calculated by a userid. These files are quite self-explanatory.
+Get a *loginid* by opening *register.html* in SDK/xmr/other. You also find a script which enumerates all available pools and a script which shows you the amount of hashes calculated by a *userid*. These files are quite self-explanatory.
 
 #### What are all the *.js files?
 
@@ -94,7 +94,7 @@ SDK/xmr/miner_compressed/webmr.js simply combines
  2. SDK/xmr/miner_raw/worker.js
  3. SDK/xmr/miner_raw/cn.js
 
-Where *miner.js* handles the server-client connection, worker.js are web workers calculating cryptonight hashes using *cn.js* - a emscripten generated wrapped webassembly file. The webassembly file can also be compiled by you, see "hash_cn" below.
+Where *miner.js* handles the server-client connection, *worker.js* are web workers calculating cryptonight hashes using *cn.js* - a emscripten generated wrapped webassembly file. The webassembly file can also be compiled by you, see section hash_cn below.
 
 ### Server
 
@@ -119,7 +119,7 @@ should run the server.
 
  Optionally you can compile the C-library **libhash**.so found in *hash_cn*. Place this library in the same folder as *server.exe*. If this library is present the server will make use of it and check hashes which gets submitted by the clients. If clients submit bad hashes ("low diff shares"), they get disconnected. The server occasionally writes ip-addresses to *ip_list*. These addresses should get (temporarily) banned on your server for example by adding them to [*iptables*](http://ipset.netfilter.org/iptables.man.html). The file can be deleted after the ban. See *Firewall.cs* for rules when a client is seen as malicious - submitting wrong hashes is one possibility.
 
- Without a **SSL certificate** the server will open a regular websocket (ws://0.0.0.0:8181). To use websocket secure (ws**s**://0.0.0.0:8181) you should place *certificate.pfx* (a  pkcs12 file) into the server directory. The default password which the server uses to load the certificate is "miner". To create a pkcs12 from regular certificates, e.g. from [*Let's Encrypt*](https://letsencrypt.org/), use the command
+ Without a **SSL certificate** the server will open a regular websocket (ws://0.0.0.0:8181). To use websocket secure (ws**s**://0.0.0.0:8181) you should place *certificate.pfx* (a  pkcs12 file) into the server directory. The default password which the server uses to load the certificate is "miner". To create a pkcs12 file from regular certificates, e.g. from [*Let's Encrypt*](https://letsencrypt.org/), use the command
 
 ```bash
 openssl pkcs12 -export -out certificate.pfx -inkey privkey.pem -in cert.pem -certfile chain.pem
@@ -129,7 +129,7 @@ The server should autodetect the certificate on startup and create a secure webs
 
 ### hash_cn
 
-The monero/aeon cryptonight hashing functions in C-code. With simple Makefiles for use with gcc and emcc - the emscripten webassembly compiler (use the "make" command to compile). libhash should be compiled so that the server can check hashes calculated by the user.
+The monero/aeon cryptonight hashing functions in C-code. With simple Makefiles (use the "make" command to compile) for use with gcc and emcc - the [emscripten](https://github.com/kripken/emscripten) webassembly compiler. *libhash* should be compiled so that the server can check hashes calculated by the user.
 
 # ToDo
 
