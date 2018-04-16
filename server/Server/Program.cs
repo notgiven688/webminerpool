@@ -121,7 +121,7 @@ namespace Server {
         private const int TimeDevJobsAreOld = 600;              // after that job-age we do not forward dev jobs 
         private const int PoolTimeout = 60 * 12;                // in seconds, pool is not sending new jobs 
         private const int SpeedAverageOverXHeartbeats = 10;     // for the statistics shown every heartbeat
-        private const int MaxHashChecksPerHeartbeat = 20;       // try not to kill ourselfs  
+        private const int MaxHashChecksPerHeartbeat = 40;       // try not to kill ourselfs  
         private const int ForceGCEveryXHeartbeat = 40;          // so we can keep an eye on the memory 
         private const int SaveStatisticsEveryXHeartbeat = 40;   // save statistics 
         public const int BatchSize = 200;                       // mining with the same credentials (pool, login, password)
