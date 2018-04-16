@@ -251,7 +251,7 @@ namespace Server {
                 return true;
         }
 
-        private static object hashLocker = new object ();
+        //private static object hashLocker = new object ();
         private static bool CheckHash (string blob, string nonce, string target, string result, bool fullcheck) {
 
             // first check if result meets target
@@ -266,9 +266,9 @@ namespace Server {
                 string parta = blob.Substring (0, 78);
                 string partb = blob.Substring (86, blob.Length - 86);
 
-		// hashlib should be thread safe. If you encounter problems
-		// (mono crashing with sigsev)
-		// a workaround is to uncomment the lock.
+                // hashlib should be thread safe. If you encounter problems
+                // (mono crashing with sigsev)
+                // a workaround is to uncomment the lock.
 		
                 //lock (hashLocker) {
 
