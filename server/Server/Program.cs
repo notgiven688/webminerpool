@@ -77,8 +77,11 @@ namespace Server {
 
     class MainClass {
 
-        [DllImport ("libhash.so", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
+	[DllImport ("libhash.so", CallingConvention = CallingConvention.StdCall)]
         static extern IntPtr hash_cn (string hex, int light);
+
+        [DllImport ("libhash.so", CallingConvention = CallingConvention.StdCall)]
+        static extern IntPtr hash_free (IntPtr ptr);
 
         public const string SEP = "<-|->";
         public const string RegexIsHex = "^[a-fA-F0-9]+$";
@@ -263,16 +266,23 @@ namespace Server {
                 string parta = blob.Substring (0, 78);
                 string partb = blob.Substring (86, blob.Length - 86);
 
-                lock (hashLocker) {
+		// hashlib should be thread safe. If you encounter problems
+		// (mono crashing with sigsev)
+		// a workaround is to uncomment the lock.
+		
+                //lock (hashLocker) {
 
 #if (AEON)
                     IntPtr pStr = hash_cn (parta + nonce + partb, 1);
 #else
                     IntPtr pStr = hash_cn (parta + nonce + partb, 0);
 #endif
+
                     string ourresult = Marshal.PtrToStringAnsi (pStr);
+		    hash_free(pStr);
+
                     if (ourresult != result) return false;
-                }
+                //}
 
             }
 
@@ -478,6 +488,7 @@ namespace Server {
             try {
                 IntPtr pStr = hash_cn (testStr, 0);
                 hashedResult = Marshal.PtrToStringAnsi (pStr);
+                hash_free(pStr);
             } catch (Exception e) {
                 ex = e;
                 return false;
@@ -492,7 +503,23 @@ namespace Server {
             return true;
         }
 
+        private static void ExcessiveHashTest()
+        {
+            Parallel.For(0,10000, (i) =>
+            {
+                string testStr = new string ('1', 151) + '3';
+                
+                IntPtr ptr = hash_cn (testStr, 0);
+                string str = Marshal.PtrToStringAnsi (ptr);
+                hash_free(ptr);
+ 
+                Console.WriteLine(i.ToString() + " " + str);
+            });
+        }
+
         public static void Main (string[] args) {
+
+            //ExcessiveHashTest(); return;
 
             CConsole.ColorInfo (() => {
 
