@@ -117,7 +117,7 @@ namespace Fleck
         {
             var ipLocal = new IPEndPoint(_locationIP, Port);
             ListenerSocket.Bind(ipLocal);
-            ListenerSocket.Listen(1000); // changed from 100 by wmp
+            ListenerSocket.Listen(100);
             Port = ((IPEndPoint)ListenerSocket.LocalEndPoint).Port;
             FleckLog.Info(string.Format("Server started at {0} (actual port {1})", Location, Port));
             if (_scheme == "wss")
