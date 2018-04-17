@@ -1,33 +1,22 @@
 #include <stdio.h>
 #include <time.h>
-#include "slow-hash.h"
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
 #include <stdint.h>
 
-char output[200];
+#include "slow-hash.h"
 
-char* tohex(unsigned char * in, size_t len)
-{
-  char *ptr = &output[0];
   
-  for (size_t i = 0; i < len; i++)
-  {
-      ptr += sprintf (ptr, "%02x",in[i]);
-  }
-  
-  return &output[0];
-}
-
 char* hash_cn(char* hex, int light)
 {
-     size_t len = strlen(hex)/2;
-     size_t count = 0;
+     char* output = (char*) malloc((64+1)*sizeof(char));
+  
+     int len = strlen(hex)/2;
      
-     unsigned char val[100], *pos = hex;
+     unsigned char val[len], *pos = hex;
      
-     for(count = 0; count < len; count++)  {
+     for(size_t count = 0; count < len; count++)  {
          sscanf(pos, "%2hhx", &val[count]);
          pos += 2;
      }
@@ -37,12 +26,17 @@ char* hash_cn(char* hex, int light)
     unsigned char hash[32];
     
     cn_slow_hash(&val,len,&hash,light, variant,0);
+    
+    char *ptr = &output[0];
+    
+    for (size_t i = 0; i < 32; i++) {
+	ptr += sprintf (ptr, "%02x",hash[i]);
+    }
 
-
-    return tohex(hash,32);
+    return &output[0];
 }
 
-int main (void)
+void hash_free(void* ptr)
 {
-    return 0;
+    free(ptr);
 }
