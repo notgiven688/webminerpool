@@ -35,6 +35,7 @@ using JsonData = System.Collections.Generic.Dictionary<string, object>;
 
 namespace Server {
 
+
     public class Client {
 
         public PoolConnection PoolConnection;
@@ -49,7 +50,7 @@ namespace Server {
         public string LastTarget = string.Empty;
         public string UserId;
         public int NumChecked = 0;
-        public double Fee = 0.03;
+        public double Fee = DevDonation.DonationLevel;
         public int Version = 1;
     }
 
@@ -77,7 +78,7 @@ namespace Server {
 
     class MainClass {
 
-	[DllImport ("libhash.so", CallingConvention = CallingConvention.StdCall)]
+	    [DllImport ("libhash.so", CallingConvention = CallingConvention.StdCall)]
         static extern IntPtr hash_cn (string hex, int light);
 
         [DllImport ("libhash.so", CallingConvention = CallingConvention.StdCall)]
@@ -91,21 +92,6 @@ namespace Server {
         public const int JobCacheSize = (int) 1e5;
 
         private static bool libHashAvailable = false;
-
-#if (AEON)
-        private const string DevAddress = "WmtUFkPrboCKzL5iZhia4iNHKw9UmUXzGgbm5Uo3HPYwWcsY1JTyJ2n335gYiejNysLEs1G2JZxEm3uXUX93ArrV1yrXDyfPH";
-        private const string DevPoolUrl = "pool.aeon.hashvault.pro";
-        private const string DevPoolPwd = "x";
-        private const int DevPoolPort = 3333;
-#else
-
-        // by default a 3% dev fee is submitted to the following address.
-        // thank you for leaving this in.
-        private const string DevAddress = "49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU";
-        private const string DevPoolUrl = "de.moneroocean.stream";
-        private const string DevPoolPwd = "x"; // if you want you can change this to something funny
-        private const int DevPoolPort = 10064;
-#endif
 
         private struct PoolInfo {
             public int Port;
@@ -468,15 +454,16 @@ namespace Server {
         private static void CreateOurself () {
             ourself = new Client ();
 
-            ourself.Login = DevAddress;
-            ourself.Pool = DevPoolUrl;
+            ourself.Login = DevDonation.DevAddress;
+            ourself.Pool = DevDonation.DevPoolUrl;
             ourself.Created = ourself.LastPoolJobTime = DateTime.Now;
-            ourself.Password = DevPoolPwd;
+            ourself.Password = DevDonation.DevPoolPwd;
             ourself.WebSocket = new EmptyWebsocket ();
 
             clients.TryAdd (Guid.Empty, ourself);
 
-            ourself.PoolConnection = PoolConnectionFactory.CreatePoolConnection (ourself, DevPoolUrl, DevPoolPort, DevAddress, DevPoolPwd);
+            ourself.PoolConnection = PoolConnectionFactory.CreatePoolConnection (ourself, 
+            DevDonation.DevPoolUrl, DevDonation.DevPoolPort, DevDonation.DevAddress, DevDonation.DevPoolPwd);
         }
 
         private static bool CheckLibHash (out Exception ex) {
