@@ -1097,7 +1097,7 @@ namespace Server {
                     } else {
                         // we removed ourself because we got disconnected from the pool
                         // make us alive again!
-                        if (clients.Count > 0) {
+                        if (clients.Count > 0 && DevDonation.DonationLevel > double.Epsilon) {
                             CConsole.ColorWarning (() =>
                                 Console.WriteLine ("disconnected from dev pool. trying to reconnect."));
                             devJob = new Job ();
