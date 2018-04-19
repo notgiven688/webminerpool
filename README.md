@@ -128,6 +128,11 @@ openssl pkcs12 -export -out certificate.pfx -inkey privkey.pem -in cert.pem -cer
 
 The server should autodetect the certificate on startup and create a secure websocket.
 
+**Attention:** Most linux based systems have a (low) fixed limit of
+available file-descriptors configured ("ulimit"). This can cause an
+unwanted upper limit for the users who can connect (typical 1000). You
+should change this limit if you want to have more connections.
+
 ### hash_cn
 
 The monero/aeon cryptonight hashing functions in C-code. With simple Makefiles (use the "make" command to compile) for use with gcc and emcc - the [emscripten](https://github.com/kripken/emscripten) webassembly compiler. *libhash* should be compiled so that the server can check hashes calculated by the user.
@@ -141,8 +146,10 @@ Refactoring. Documentation.
 webminerpool@protonmail.com
 
 # Developer Donations
-If you find the content of this repository helpful consider a one time donation, the addresses are as follows:
+
+By default a server-side 3% dev-donation is configured. Leaving this fee at the current level is highly appreciated. If you want
+to turn it off or just find the content of this repository helpful consider a one time donation, the addresses are as follows:
 - BTC - 175jHD6ErDhZHoW4u54q5mr98L9KSgm56D
--   XMR - 49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU
--   AEON - WmtUFkPrboCKzL5iZhia4iNHKw9UmUXzGgbm5Uo3HPYwWcsY1JTyJ2n335gYiejNysLEs1G2JZxEm3uXUX93ArrV1yrXDyfPH
+- XMR - 49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU
+- AEON - WmtUFkPrboCKzL5iZhia4iNHKw9UmUXzGgbm5Uo3HPYwWcsY1JTyJ2n335gYiejNysLEs1G2JZxEm3uXUX93ArrV1yrXDyfPH
 
