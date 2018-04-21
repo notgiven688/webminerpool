@@ -58,8 +58,8 @@ namespace Server {
         public string InnerId;
         public string Blob;
         public string Target;
-        public string Variant;
-        public string Algorithm;
+        public int Variant;
+
         public CcHashset<string> Solved;
         public bool DevJob;
     }
@@ -67,8 +67,7 @@ namespace Server {
     public class Job {
         public string Blob;
         public string Target;
-        public string Variant;
-        public string Algorithm;
+        public int Variant;
         public string JobId;
         public DateTime Age = DateTime.MinValue;
     }
@@ -82,7 +81,7 @@ namespace Server {
     class MainClass {
 
         [DllImport ("libhash.so", CallingConvention = CallingConvention.StdCall)]
-        static extern IntPtr hash_cn (string hex, int light);
+        static extern IntPtr hash_cn (string hex, int light, int variant);
 
         [DllImport ("libhash.so", CallingConvention = CallingConvention.StdCall)]
         static extern IntPtr hash_free (IntPtr ptr);
@@ -241,7 +240,7 @@ namespace Server {
         }
 
         //private static object hashLocker = new object ();
-        private static bool CheckHash (string blob, string nonce, string target, string result, bool fullcheck) {
+        private static bool CheckHash (string blob, int variant, string nonce, string target, string result, bool fullcheck) {
 
             // first check if result meets target
             string ourtarget = result.Substring (56, 8);
@@ -262,9 +261,9 @@ namespace Server {
                 //lock (hashLocker) {
 
 #if (AEON)
-                IntPtr pStr = hash_cn (parta + nonce + partb, 1);
+                IntPtr pStr = hash_cn (parta + nonce + partb, 1, variant);
 #else
-                IntPtr pStr = hash_cn (parta + nonce + partb, 0);
+                IntPtr pStr = hash_cn (parta + nonce + partb, 0, variant);
 #endif
 
                 string ourresult = Marshal.PtrToStringAnsi (pStr);
@@ -320,21 +319,21 @@ namespace Server {
             ji.Blob = msg["blob"].GetString ();
             ji.Target = msg["target"].GetString ();
             ji.InnerId = msg["job_id"].GetString ();
-            ji.Algorithm = msg["algo"].GetString ();
-            ji.Variant = msg["variant"].GetString ();
             ji.Solved = hashset;
             ji.DevJob = (client == ourself);
 
-            jobInfos.TryAdd (jobId, ji); // Todo: We can combine these two
-            jobQueue.Enqueue (jobId); //       datastructures
+            if(!int.TryParse(msg["variant"].GetString (),out ji.Variant))
+            { ji.Variant = -1; }
+
+            jobInfos.TryAdd (jobId, ji);    // Todo: We can combine these two
+            jobQueue.Enqueue (jobId);       //       datastructures
 
             if (client == ourself) {
-                devJob.Blob = msg["blob"].GetString ();
+                devJob.Blob = ji.Blob;
                 devJob.JobId = jobId;
                 devJob.Age = DateTime.Now;
-                devJob.Target = msg["target"].GetString ();
-                devJob.Algorithm = msg["algo"].GetString ();
-                devJob.Variant = msg["variant"].GetString ();
+                devJob.Target = ji.Target;
+                devJob.Variant = ji.Variant;
 
                 List<Client> slavelist = new List<Client> (slaves.Values);
 
@@ -362,8 +361,7 @@ namespace Server {
                     } else {
                         forward = "{\"identifier\":\"" + "job" +
                             "\",\"job_id\":\"" + devJob.JobId +
-                            "\",\"algo\":\"" + devJob.Algorithm +
-                            "\",\"variant\":\"" + devJob.Variant +
+                            "\",\"variant\":\"" + devJob.Variant.ToString() +
                             "\",\"blob\":\"" + devJob.Blob +
                             "\",\"target\":\"" + newtarget + "\"}\n";
                     }
@@ -408,8 +406,7 @@ namespace Server {
                         } else {
                             forward = "{\"identifier\":\"" + "job" +
                                 "\",\"job_id\":\"" + devJob.JobId +
-                                "\",\"algo\":\"" + devJob.Algorithm +
-                                "\",\"variant\":\"" + devJob.Variant +
+                                "\",\"variant\":\"" + devJob.Variant.ToString() +
                                 "\",\"blob\":\"" + devJob.Blob +
                                 "\",\"target\":\"" + newtarget + "\"}\n";
                         }
@@ -428,7 +425,6 @@ namespace Server {
                     } else {
                         forward = "{\"identifier\":\"" + "job" +
                             "\",\"job_id\":\"" + jobId +
-                            "\",\"algo\":\"" +  msg["algo"].GetString() +
                             "\",\"variant\":\"" + msg["variant"].GetString()  +
                             "\",\"blob\":\"" + msg["blob"].GetString () +
                             "\",\"target\":\"" + msg["target"].GetString () + "\"}\n";
@@ -513,7 +509,7 @@ namespace Server {
             string hashedResult = string.Empty;
 
             try {
-                IntPtr pStr = hash_cn (testStr, 0);
+                IntPtr pStr = hash_cn (testStr, 0, 1);
                 hashedResult = Marshal.PtrToStringAnsi (pStr);
                 hash_free (pStr);
             } catch (Exception e) {
@@ -534,7 +530,7 @@ namespace Server {
             Parallel.For (0, 10000, (i) => {
                 string testStr = new string ('1', 151) + '3';
 
-                IntPtr ptr = hash_cn (testStr, 0);
+                IntPtr ptr = hash_cn (testStr, 0, 1);
                 string str = Marshal.PtrToStringAnsi (ptr);
                 hash_free (ptr);
 
@@ -556,7 +552,7 @@ namespace Server {
 
                 double devfee = (new Client ()).Fee;
                 if (devfee > double.Epsilon)
-                    Console.WriteLine ("Developer fee of {0}% enabled.", (devfee * 100.0d).ToString ("F1"));
+                    Console.WriteLine ("Developer fee of {0}% enabled. Thank You.", (devfee * 100.0d).ToString ("F1"));
 
                 Console.WriteLine ();
             });
@@ -887,7 +883,7 @@ namespace Server {
                                 HashesCheckedThisHeartbeat++;
                             }
 
-                            bool validHash = CheckHash (ji.Blob, reportedNonce, ji.Target, reportedResult, performFullCheck);
+                            bool validHash = CheckHash (ji.Blob, ji.Variant, reportedNonce, ji.Target, reportedResult, performFullCheck);
 
                             if (!validHash) {
 

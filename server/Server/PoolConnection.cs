@@ -191,7 +191,7 @@ namespace Server {
 				}
 
 				// extended stratum 
-				if(!lastjob.ContainsKey("algo")) lastjob.Add("algo","");
+				// extended stratum - we do not support "algo" yet
 				if(!lastjob.ContainsKey("variant")) lastjob.Add("variant","-1");
 
 				mypc.LastJob = lastjob;
@@ -216,8 +216,8 @@ namespace Server {
 					return;
 				}
 
-				// extended stratum 
-				if(!lastjob.ContainsKey("algo")) lastjob.Add("algo","");
+				// extended stratum - we do not support "algo" yet
+				// if(!lastjob.ContainsKey("algo")) lastjob.Add("algo","");
 				if(!lastjob.ContainsKey("variant")) lastjob.Add("variant","-1");
 
 				mypc.LastJob = lastjob;
