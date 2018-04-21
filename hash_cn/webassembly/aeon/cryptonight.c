@@ -361,7 +361,7 @@ void SubAndShiftAndMixAddRoundInPlace(uint32_t *temp, uint32_t *AesEncKey)
     temp[3] = TestTable2[saved[3]] ^ TestTable3[saved[4]] ^ TestTable4[saved[5]] ^ TestTable1[state[12]] ^ AesEncKey[3];
 }
 
-void cryptonight_hash_ctx(void *output, const void *input, struct cryptonight_ctx *ctx)
+void cryptonight_hash_ctx(void *output, const void *input, struct cryptonight_ctx *ctx, int variant)
 {
     ctx->aes_ctx = (oaes_ctx *)oaes_alloc();
     size_t i, j;
@@ -369,7 +369,7 @@ void cryptonight_hash_ctx(void *output, const void *input, struct cryptonight_ct
     keccak((const uint8_t *)input, 76, ctx->state.hs.b, 200);
     memcpy(ctx->text, ctx->state.init, INIT_SIZE_BYTE);
 
-    int variant = ((const uint8_t *)input)[0] >= 7 ? ((const uint8_t *)input)[0] - 6 : 0;
+    //int variant = ((const uint8_t *)input)[0] >= 7 ? ((const uint8_t *)input)[0] - 6 : 0;
     //int variant = 1;
 
     VARIANT1_INIT();
