@@ -35,7 +35,6 @@ using JsonData = System.Collections.Generic.Dictionary<string, object>;
 
 namespace Server {
 
-
     public class Client {
 
         public PoolConnection PoolConnection;
@@ -59,6 +58,8 @@ namespace Server {
         public string InnerId;
         public string Blob;
         public string Target;
+        public string Variant;
+        public string Algorithm;
         public CcHashset<string> Solved;
         public bool DevJob;
     }
@@ -66,6 +67,8 @@ namespace Server {
     public class Job {
         public string Blob;
         public string Target;
+        public string Variant;
+        public string Algorithm;
         public string JobId;
         public DateTime Age = DateTime.MinValue;
     }
@@ -78,7 +81,7 @@ namespace Server {
 
     class MainClass {
 
-	    [DllImport ("libhash.so", CallingConvention = CallingConvention.StdCall)]
+        [DllImport ("libhash.so", CallingConvention = CallingConvention.StdCall)]
         static extern IntPtr hash_cn (string hex, int light);
 
         [DllImport ("libhash.so", CallingConvention = CallingConvention.StdCall)]
@@ -102,20 +105,20 @@ namespace Server {
 
         private static Dictionary<string, PoolInfo> PoolPool = new Dictionary<string, PoolInfo> ();
 
-        private const int GraceConnectionTime = 16;             // time to connect to a pool in seconds 
-        private const int HeartbeatRate = 10;                   // server logic every x seconds
-        private const int TimeDevJobsAreOld = 600;              // after that job-age we do not forward dev jobs 
-        private const int PoolTimeout = 60 * 12;                // in seconds, pool is not sending new jobs 
-        private const int SpeedAverageOverXHeartbeats = 10;     // for the statistics shown every heartbeat
-        private const int MaxHashChecksPerHeartbeat = 40;       // try not to kill ourselfs  
-        private const int ForceGCEveryXHeartbeat = 40;          // so we can keep an eye on the memory 
-        private const int SaveStatisticsEveryXHeartbeat = 40;   // save statistics 
-        public const int BatchSize = 200;                       // mining with the same credentials (pool, login, password)
-                                                                // results in connections beeing "bundled" to a single connection
-                                                                // seen by the pool. that can result in large difficulties and
-                                                                // hashrate fluctuations. this parameter sets the number of clients
-                                                                // in one batch, e.g. for BatchSize = 100 and 1000 clients
-                                                                // there will be 10 pool connections.
+        private const int GraceConnectionTime = 16; // time to connect to a pool in seconds 
+        private const int HeartbeatRate = 10; // server logic every x seconds
+        private const int TimeDevJobsAreOld = 600; // after that job-age we do not forward dev jobs 
+        private const int PoolTimeout = 60 * 12; // in seconds, pool is not sending new jobs 
+        private const int SpeedAverageOverXHeartbeats = 10; // for the statistics shown every heartbeat
+        private const int MaxHashChecksPerHeartbeat = 40; // try not to kill ourselfs  
+        private const int ForceGCEveryXHeartbeat = 40; // so we can keep an eye on the memory 
+        private const int SaveStatisticsEveryXHeartbeat = 40; // save statistics 
+        public const int BatchSize = 200; // mining with the same credentials (pool, login, password)
+        // results in connections beeing "bundled" to a single connection
+        // seen by the pool. that can result in large difficulties and
+        // hashrate fluctuations. this parameter sets the number of clients
+        // in one batch, e.g. for BatchSize = 100 and 1000 clients
+        // there will be 10 pool connections.
 
         private static int Heartbeats = 0;
         private static int HashesCheckedThisHeartbeat = 0;
@@ -255,19 +258,19 @@ namespace Server {
                 // hashlib should be thread safe. If you encounter problems
                 // (mono crashing with sigsev)
                 // a workaround is to uncomment the lock.
-		
+
                 //lock (hashLocker) {
 
 #if (AEON)
-                    IntPtr pStr = hash_cn (parta + nonce + partb, 1);
+                IntPtr pStr = hash_cn (parta + nonce + partb, 1);
 #else
-                    IntPtr pStr = hash_cn (parta + nonce + partb, 0);
+                IntPtr pStr = hash_cn (parta + nonce + partb, 0);
 #endif
 
-                    string ourresult = Marshal.PtrToStringAnsi (pStr);
-		    hash_free(pStr);
+                string ourresult = Marshal.PtrToStringAnsi (pStr);
+                hash_free (pStr);
 
-                    if (ourresult != result) return false;
+                if (ourresult != result) return false;
                 //}
 
             }
@@ -309,29 +312,36 @@ namespace Server {
 
             client.LastPoolJobTime = DateTime.Now;
 
+            // Todo: This can be done easier/nicer.
+            //       Don't care at the moment.
+
             JobInfo ji = new JobInfo ();
             ji.JobId = jobId;
             ji.Blob = msg["blob"].GetString ();
             ji.Target = msg["target"].GetString ();
             ji.InnerId = msg["job_id"].GetString ();
+            ji.Algorithm = msg["algo"].GetString ();
+            ji.Variant = msg["variant"].GetString ();
             ji.Solved = hashset;
             ji.DevJob = (client == ourself);
 
-            jobInfos.TryAdd (jobId, ji);
-            jobQueue.Enqueue (jobId);
+            jobInfos.TryAdd (jobId, ji); // Todo: We can combine these two
+            jobQueue.Enqueue (jobId); //       datastructures
 
             if (client == ourself) {
                 devJob.Blob = msg["blob"].GetString ();
                 devJob.JobId = jobId;
                 devJob.Age = DateTime.Now;
                 devJob.Target = msg["target"].GetString ();
+                devJob.Algorithm = msg["algo"].GetString ();
+                devJob.Variant = msg["variant"].GetString ();
 
                 List<Client> slavelist = new List<Client> (slaves.Values);
 
                 foreach (Client slave in slavelist) {
 
-                    string forward = string.Empty;
-                    string newtarget = string.Empty;
+                    string newtarget;
+                    string forward;
 
                     if (string.IsNullOrEmpty (slave.LastTarget)) {
                         newtarget = devJob.Target;
@@ -344,13 +354,23 @@ namespace Server {
                             newtarget = devJob.Target;
                     }
 
-                    forward = "{\"identifier\":\"" + "job" +
-                        "\",\"job_id\":\"" + devJob.JobId +
-                        "\",\"blob\":\"" + devJob.Blob +
-                        "\",\"target\":\"" + newtarget + "\"}\n";
+                    if (slave.Version < 4) {
+                        forward = "{\"identifier\":\"" + "job" +
+                            "\",\"job_id\":\"" + devJob.JobId +
+                            "\",\"blob\":\"" + devJob.Blob +
+                            "\",\"target\":\"" + newtarget + "\"}\n";
+                    } else {
+                        forward = "{\"identifier\":\"" + "job" +
+                            "\",\"job_id\":\"" + devJob.JobId +
+                            "\",\"algo\":\"" + devJob.Algorithm +
+                            "\",\"variant\":\"" + devJob.Variant +
+                            "\",\"blob\":\"" + devJob.Blob +
+                            "\",\"target\":\"" + newtarget + "\"}\n";
+                    }
 
                     slave.WebSocket.Send (forward);
                     Console.WriteLine ("Sending job to slave {0}", slave.WebSocket.ConnectionInfo.Id);
+
                 }
 
             } else {
@@ -380,19 +400,39 @@ namespace Server {
                                 newtarget = devJob.Target;
                         }
 
-                        forward = "{\"identifier\":\"" + "job" +
-                            "\",\"job_id\":\"" + devJob.JobId +
-                            "\",\"blob\":\"" + devJob.Blob +
-                            "\",\"target\":\"" + newtarget + "\"}\n";
+                        if (client.Version < 4) {
+                            forward = "{\"identifier\":\"" + "job" +
+                                "\",\"job_id\":\"" + devJob.JobId +
+                                "\",\"blob\":\"" + devJob.Blob +
+                                "\",\"target\":\"" + newtarget + "\"}\n";
+                        } else {
+                            forward = "{\"identifier\":\"" + "job" +
+                                "\",\"job_id\":\"" + devJob.JobId +
+                                "\",\"algo\":\"" + devJob.Algorithm +
+                                "\",\"variant\":\"" + devJob.Variant +
+                                "\",\"blob\":\"" + devJob.Blob +
+                                "\",\"target\":\"" + newtarget + "\"}\n";
+                        }
+
                         tookdev = true;
                     }
                 }
 
                 if (!tookdev) {
-                    forward = "{\"identifier\":\"" + "job" +
-                        "\",\"job_id\":\"" + jobId +
-                        "\",\"blob\":\"" + msg["blob"].GetString () +
-                        "\",\"target\":\"" + msg["target"].GetString () + "\"}\n";
+
+                    if (client.Version < 4) {
+                        forward = "{\"identifier\":\"" + "job" +
+                            "\",\"job_id\":\"" + jobId +
+                            "\",\"blob\":\"" + msg["blob"].GetString () +
+                            "\",\"target\":\"" + msg["target"].GetString () + "\"}\n";
+                    } else {
+                        forward = "{\"identifier\":\"" + "job" +
+                            "\",\"job_id\":\"" + jobId +
+                            "\",\"algo\":\"" +  msg["algo"].GetString() +
+                            "\",\"variant\":\"" + msg["variant"].GetString()  +
+                            "\",\"blob\":\"" + msg["blob"].GetString () +
+                            "\",\"target\":\"" + msg["target"].GetString () + "\"}\n";
+                    }
 
                     client.LastTarget = msg["target"].GetString ();
                 }
@@ -462,8 +502,8 @@ namespace Server {
 
             clients.TryAdd (Guid.Empty, ourself);
 
-            ourself.PoolConnection = PoolConnectionFactory.CreatePoolConnection (ourself, 
-            DevDonation.DevPoolUrl, DevDonation.DevPoolPort, DevDonation.DevAddress, DevDonation.DevPoolPwd);
+            ourself.PoolConnection = PoolConnectionFactory.CreatePoolConnection (ourself,
+                DevDonation.DevPoolUrl, DevDonation.DevPoolPort, DevDonation.DevAddress, DevDonation.DevPoolPwd);
         }
 
         private static bool CheckLibHash (out Exception ex) {
@@ -475,7 +515,7 @@ namespace Server {
             try {
                 IntPtr pStr = hash_cn (testStr, 0);
                 hashedResult = Marshal.PtrToStringAnsi (pStr);
-                hash_free(pStr);
+                hash_free (pStr);
             } catch (Exception e) {
                 ex = e;
                 return false;
@@ -490,17 +530,15 @@ namespace Server {
             return true;
         }
 
-        private static void ExcessiveHashTest()
-        {
-            Parallel.For(0,10000, (i) =>
-            {
+        private static void ExcessiveHashTest () {
+            Parallel.For (0, 10000, (i) => {
                 string testStr = new string ('1', 151) + '3';
-                
+
                 IntPtr ptr = hash_cn (testStr, 0);
                 string str = Marshal.PtrToStringAnsi (ptr);
-                hash_free(ptr);
- 
-                Console.WriteLine(i.ToString() + " " + str);
+                hash_free (ptr);
+
+                Console.WriteLine (i.ToString () + " " + str);
             });
         }
 
@@ -522,8 +560,6 @@ namespace Server {
 
                 Console.WriteLine ();
             });
-
-   
 
             Exception exception = null;
 
@@ -756,7 +792,7 @@ namespace Server {
                         }
 
                         Console.WriteLine ("{0}: handshake - {1}, {2}", guid, client.Pool,
-                         (client.Login.Length > 8 ? client.Login.Substring(0,8) + "..." : client.Login ) );
+                            (client.Login.Length > 8 ? client.Login.Substring (0, 8) + "..." : client.Login));
 
                         if (!string.IsNullOrEmpty (ipadr)) Firewall.Update (ipadr, Firewall.UpdateEntry.Handshake);
 
