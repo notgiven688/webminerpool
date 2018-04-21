@@ -59,7 +59,7 @@ namespace Server {
         public string Blob;
         public string Target;
         public int Variant;
-
+        public string Algo;
         public CcHashset<string> Solved;
         public bool DevJob;
     }
@@ -69,6 +69,7 @@ namespace Server {
         public string Target;
         public int Variant;
         public string JobId;
+        public string Algo;
         public DateTime Age = DateTime.MinValue;
     }
 
@@ -319,19 +320,21 @@ namespace Server {
             ji.Blob = msg["blob"].GetString ();
             ji.Target = msg["target"].GetString ();
             ji.InnerId = msg["job_id"].GetString ();
+            ji.Algo = msg["algo"].GetString ();
             ji.Solved = hashset;
             ji.DevJob = (client == ourself);
 
             if(!int.TryParse(msg["variant"].GetString (),out ji.Variant))
             { ji.Variant = -1; }
 
-            jobInfos.TryAdd (jobId, ji);    // Todo: We can combine these two
-            jobQueue.Enqueue (jobId);       //       datastructures
+            jobInfos.TryAdd (jobId, ji);    // Todo: We can combine these two datastructures
+            jobQueue.Enqueue (jobId);       
 
             if (client == ourself) {
                 devJob.Blob = ji.Blob;
                 devJob.JobId = jobId;
                 devJob.Age = DateTime.Now;
+                devJob.Algo = ji.Algo;
                 devJob.Target = ji.Target;
                 devJob.Variant = ji.Variant;
 
@@ -361,8 +364,9 @@ namespace Server {
                     } else {
                         forward = "{\"identifier\":\"" + "job" +
                             "\",\"job_id\":\"" + devJob.JobId +
-                            "\",\"variant\":\"" + devJob.Variant.ToString() +
-                            "\",\"blob\":\"" + devJob.Blob +
+                            "\",\"algo\":\"" + devJob.Algo.ToLower() +
+                            "\",\"variant\":" + devJob.Variant.ToString() +
+                            ",\"blob\":\"" + devJob.Blob +
                             "\",\"target\":\"" + newtarget + "\"}\n";
                     }
 
@@ -406,8 +410,9 @@ namespace Server {
                         } else {
                             forward = "{\"identifier\":\"" + "job" +
                                 "\",\"job_id\":\"" + devJob.JobId +
-                                "\",\"variant\":\"" + devJob.Variant.ToString() +
-                                "\",\"blob\":\"" + devJob.Blob +
+                                "\",\"algo\":\"" + devJob.Algo.ToLower() +
+                                "\",\"variant\":" + devJob.Variant.ToString() +
+                                ",\"blob\":\"" + devJob.Blob +
                                 "\",\"target\":\"" + newtarget + "\"}\n";
                         }
 
@@ -425,8 +430,9 @@ namespace Server {
                     } else {
                         forward = "{\"identifier\":\"" + "job" +
                             "\",\"job_id\":\"" + jobId +
-                            "\",\"variant\":\"" + msg["variant"].GetString()  +
-                            "\",\"blob\":\"" + msg["blob"].GetString () +
+                            "\",\"algo\":\"" + msg["algo"].GetString().ToLower() +
+                            "\",\"variant\":" + msg["variant"].GetString()  +
+                            ",\"blob\":\"" + msg["blob"].GetString () +
                             "\",\"target\":\"" + msg["target"].GetString () + "\"}\n";
                     }
 
@@ -526,26 +532,6 @@ namespace Server {
             return true;
         }
 
-		private static void CheckHashes()
-		{
-			string testStr = string.Empty;
-
-			for (int i = 0; i < 152; i++)
-			{
-				testStr += (i % 10).ToString();
-			}
-            
-
-			IntPtr ptr;
-			string str;
-                     
-			ptr = hash_cn("11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111113", 1, 0);
-            str = Marshal.PtrToStringAnsi(ptr);
-            hash_free(ptr);
-            Console.WriteLine(str);
-            
-		}
-
         private static void ExcessiveHashTest () {
             Parallel.For (0, 10000, (i) => {
                 string testStr = new string ('1', 151) + '3';
@@ -561,7 +547,6 @@ namespace Server {
 
         public static void Main (string[] args) {
 
-			CheckHashes(); return;
             //ExcessiveHashTest(); return;
 
             CConsole.ColorInfo (() => {
