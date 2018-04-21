@@ -55,6 +55,10 @@ namespace Server {
 		public DateTime LastInteraction = DateTime.Now;
 		public CcHashset<string> LastSolved;
 
+		public string DefaultAlgorithm = "cn";
+		public int DefaultVariant = -1;
+
+
 		public CcHashset<Client> WebClients = new CcHashset<Client> ();
 
 		public void Send (Client client, string msg) {
@@ -191,8 +195,18 @@ namespace Server {
 				}
 
 				// extended stratum 
-				if(!lastjob.ContainsKey("variant")) lastjob.Add("variant","-1");
-				if(!lastjob.ContainsKey("algo")) lastjob.Add("algo","cn");
+				if(!lastjob.ContainsKey("variant")) lastjob.Add("variant",mypc.DefaultVariant);
+				if(!lastjob.ContainsKey("algo")) lastjob.Add("algo",mypc.DefaultAlgorithm);
+
+				string algo = lastjob["algo"].ToString().ToLower();
+
+				if(algo != "cn" && algo != "cn-lite")
+				{
+					CConsole.ColorAlert(() => {
+						Console.WriteLine("Pool requests unknown algorithm: " + algo);
+						Console.WriteLine("Job not forwarded!");
+					});
+				}
 
 				mypc.LastJob = lastjob;
 				mypc.LastInteraction = DateTime.Now;
@@ -218,8 +232,8 @@ namespace Server {
 
 				// extended stratum - we do not support "algo" yet
 				// if(!lastjob.ContainsKey("algo")) lastjob.Add("algo","");
-				if(!lastjob.ContainsKey("variant")) lastjob.Add("variant","-1");
-				if(!lastjob.ContainsKey("algo")) lastjob.Add("algo","cn");
+				if(!lastjob.ContainsKey("variant")) lastjob.Add("variant",mypc.DefaultVariant);
+				if(!lastjob.ContainsKey("algo")) lastjob.Add("algo",mypc.DefaultAlgorithm);
 
 				mypc.LastJob = lastjob;
 				mypc.LastInteraction = DateTime.Now;
