@@ -100,7 +100,12 @@ namespace Server {
             public int Port;
             public string Url;
             public string EmptyPassword; // some pools require a non-empty password
-            public PoolInfo (string url, int port, string emptypw = "") { Port = port; Url = url; EmptyPassword = emptypw; }
+
+            public string DefaultAlgorithm;
+            public int DefaultVariant;
+
+            public PoolInfo (string url, int port, string emptypw = "", string algo = "cn", int variant = -1)
+             { Port = port; Url = url; EmptyPassword = emptypw; DefaultAlgorithm = algo; DefaultVariant = variant; }
         }
 
         private static Dictionary<string, PoolInfo> PoolPool = new Dictionary<string, PoolInfo> ();
@@ -147,8 +152,8 @@ namespace Server {
         private static void FillPoolPool () {
             PoolPool.Clear ();
 
-#if (AEON)
-            PoolPool.Add ("aeon-pool.com", new PoolInfo ("mine.aeon-pool.com", 5555));
+
+            PoolPool.Add ("aeon-pool.com", new PoolInfo ("mine.aeon-pool.com", 5555, "", "cn-lite", -1));
             PoolPool.Add ("minereasy.com", new PoolInfo ("aeon.minereasy.com", 3333));
             PoolPool.Add ("aeon.sumominer.com", new PoolInfo ("aeon.sumominer.com", 3333));
             PoolPool.Add ("aeon.rupool.tk", new PoolInfo ("aeon.rupool.tk", 4444));
@@ -165,7 +170,7 @@ namespace Server {
             PoolPool.Add ("supportaeon.com", new PoolInfo ("pool.supportaeon.com", 3333, "x"));
             PoolPool.Add ("pooltupi.com", new PoolInfo ("pooltupi.com", 8080, "x"));
             PoolPool.Add ("aeon.semipool.com", new PoolInfo ("pool.aeon.semipool.com", 3333, "x"));
-#else
+
             PoolPool.Add ("xmrpool.eu", new PoolInfo ("xmrpool.eu", 3333));
             PoolPool.Add ("moneropool.com", new PoolInfo ("mine.moneropool.com", 3333));
             PoolPool.Add ("monero.crypto-pool.fr", new PoolInfo ("xmr.crypto-pool.fr", 3333));
@@ -207,7 +212,7 @@ namespace Server {
             PoolPool.Add ("etn.poolmining.org", new PoolInfo ("etn.poolmining.org", 3102));
             PoolPool.Add ("etn.nanopool.org", new PoolInfo ("etn-eu1.nanopool.org", 13333, "x"));
             PoolPool.Add ("etn.hashvault.pro", new PoolInfo ("pool.electroneum.hashvault.pro", 80, "x"));
-#endif
+
 
             int counter = 0;
 
@@ -241,7 +246,7 @@ namespace Server {
         }
 
         //private static object hashLocker = new object ();
-        private static bool CheckHash (string blob, int variant, string nonce, string target, string result, bool fullcheck) {
+        private static bool CheckHash (string blob, string algo, int variant, string nonce, string target, string result, bool fullcheck) {
 
             // first check if result meets target
             string ourtarget = result.Substring (56, 8);
@@ -261,11 +266,10 @@ namespace Server {
 
                 //lock (hashLocker) {
 
-#if (AEON)
-                IntPtr pStr = hash_cn (parta + nonce + partb, 1, variant);
-#else
-                IntPtr pStr = hash_cn (parta + nonce + partb, 0, variant);
-#endif
+                IntPtr pStr;
+
+                if(algo.ToLower() == "cn") pStr = hash_cn (parta + nonce + partb, 0, variant);
+                else pStr = hash_cn (parta + nonce + partb, 1, variant);
 
                 string ourresult = Marshal.PtrToStringAnsi (pStr);
                 hash_free (pStr);
@@ -813,6 +817,9 @@ namespace Server {
                         client.PoolConnection = PoolConnectionFactory.CreatePoolConnection (
                             client, pi.Url, pi.Port, client.Login, client.Password);
 
+                        client.PoolConnection.DefaultAlgorithm = pi.DefaultAlgorithm;
+                        client.PoolConnection.DefaultVariant = pi.DefaultVariant;
+
                     } else if (identifier == "solved") {
 
                         if (!client.GotHandshake) {
@@ -890,7 +897,7 @@ namespace Server {
                                 HashesCheckedThisHeartbeat++;
                             }
 
-                            bool validHash = CheckHash (ji.Blob, ji.Variant, reportedNonce, ji.Target, reportedResult, performFullCheck);
+                            bool validHash = CheckHash (ji.Blob,ji.Algo, ji.Variant, reportedNonce, ji.Target, reportedResult, performFullCheck);
 
                             if (!validHash) {
 

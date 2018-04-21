@@ -26,18 +26,10 @@ namespace Server {
         // by default a 3% dev fee is submitted to the following address.
         // thank you for leaving this in.
         public const double DonationLevel = 0.03;
-
-#if (AEON)
-        public const string DevAddress = "WmtUFkPrboCKzL5iZhia4iNHKw9UmUXzGgbm5Uo3HPYwWcsY1JTyJ2n335gYiejNysLEs1G2JZxEm3uXUX93ArrV1yrXDyfPH";
-        public const string DevPoolUrl = "pool.aeon.hashvault.pro";
-        public const string DevPoolPwd = "x";
-        public const int DevPoolPort = 3333;
-#else
         public const string DevAddress = "49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU";
         public const string DevPoolUrl = "de.moneroocean.stream";
-        public const string DevPoolPwd = "x"; // if you want you can change this to something funny
+        public const string DevPoolPwd = "x"; // if you want, you can change this to something funny
         public const int DevPoolPort = 10064;
-#endif
 
     }
 
