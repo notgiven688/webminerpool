@@ -190,6 +190,10 @@ namespace Server {
 					return;
 				}
 
+				// extended stratum 
+				if(!lastjob.ContainsKey("algo")) lastjob.Add("algo","");
+				if(!lastjob.ContainsKey("variant")) lastjob.Add("variant","-1");
+
 				mypc.LastJob = lastjob;
 				mypc.LastInteraction = DateTime.Now;
 
@@ -211,6 +215,10 @@ namespace Server {
 						Console.WriteLine ("Failed to verify job: {0}", json));
 					return;
 				}
+
+				// extended stratum 
+				if(!lastjob.ContainsKey("algo")) lastjob.Add("algo","");
+				if(!lastjob.ContainsKey("variant")) lastjob.Add("variant","-1");
 
 				mypc.LastJob = lastjob;
 				mypc.LastInteraction = DateTime.Now;
