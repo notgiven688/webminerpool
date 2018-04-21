@@ -206,6 +206,8 @@ namespace Server {
 						Console.WriteLine("Pool requests unknown algorithm: " + algo);
 						Console.WriteLine("Job not forwarded!");
 					});
+
+					return;
 				}
 
 				mypc.LastJob = lastjob;
