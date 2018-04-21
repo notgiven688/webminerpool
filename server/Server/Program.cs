@@ -81,7 +81,7 @@ namespace Server {
     class MainClass {
 
         [DllImport ("libhash.so", CallingConvention = CallingConvention.StdCall)]
-        static extern IntPtr hash_cn (string hex, int light, int variant);
+        static extern IntPtr hash_cn (string hex, int lite, int variant);
 
         [DllImport ("libhash.so", CallingConvention = CallingConvention.StdCall)]
         static extern IntPtr hash_free (IntPtr ptr);
@@ -526,6 +526,26 @@ namespace Server {
             return true;
         }
 
+		private static void CheckHashes()
+		{
+			string testStr = string.Empty;
+
+			for (int i = 0; i < 152; i++)
+			{
+				testStr += (i % 10).ToString();
+			}
+            
+
+			IntPtr ptr;
+			string str;
+                     
+			ptr = hash_cn("11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111113", 1, 0);
+            str = Marshal.PtrToStringAnsi(ptr);
+            hash_free(ptr);
+            Console.WriteLine(str);
+            
+		}
+
         private static void ExcessiveHashTest () {
             Parallel.For (0, 10000, (i) => {
                 string testStr = new string ('1', 151) + '3';
@@ -538,8 +558,10 @@ namespace Server {
             });
         }
 
+
         public static void Main (string[] args) {
 
+			CheckHashes(); return;
             //ExcessiveHashTest(); return;
 
             CConsole.ColorInfo (() => {

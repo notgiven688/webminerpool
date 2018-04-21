@@ -7,7 +7,7 @@
 
 #include "slow-hash.h"
 
-char *hash_cn(char *hex, int light, int variant)
+char *hash_cn(char *hex, int lite, int variant)
 {
     char *output = (char *)malloc((64 + 1) * sizeof(char));
 
@@ -26,7 +26,7 @@ char *hash_cn(char *hex, int light, int variant)
 
     unsigned char hash[32];
 
-    cn_slow_hash(&val, len, &hash, light, variant, 0);
+    cn_slow_hash(&val, len, &hash, lite, variant, 0);
 
     char *ptr = &output[0];
 
