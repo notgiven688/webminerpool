@@ -510,6 +510,9 @@ namespace Server {
 
             ourself.PoolConnection = PoolConnectionFactory.CreatePoolConnection (ourself,
                 DevDonation.DevPoolUrl, DevDonation.DevPoolPort, DevDonation.DevAddress, DevDonation.DevPoolPwd);
+
+            ourself.PoolConnection.DefaultAlgorithm = "cn";
+            ourself.PoolConnection.DefaultVariant = -1;
         }
 
         private static bool CheckLibHash (out Exception ex) {
