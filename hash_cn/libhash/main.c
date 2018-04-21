@@ -8,7 +8,7 @@
 #include "slow-hash.h"
 
   
-char* hash_cn(char* hex, int light)
+char* hash_cn(char* hex, int light, int variant)
 {
      char* output = (char*) malloc((64+1)*sizeof(char));
   
@@ -21,12 +21,12 @@ char* hash_cn(char* hex, int light)
          pos += 2;
      }
      
-    int variant = ((const uint8_t*)val)[0] >= 7 ? ((const uint8_t*)val)[0] - 6 : 0;
+    //int variant = ((const uint8_t*)val)[0] >= 7 ? ((const uint8_t*)val)[0] - 6 : 0;
 
     unsigned char hash[32];
-    
-    cn_slow_hash(&val,len,&hash,light, variant,0);
-    
+
+    cn_slow_hash(&val, len, &hash, light, variant, 0);
+
     char *ptr = &output[0];
     
     for (size_t i = 0; i < 32; i++) {
