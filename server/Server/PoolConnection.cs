@@ -191,8 +191,8 @@ namespace Server {
 				}
 
 				// extended stratum 
-				// extended stratum - we do not support "algo" yet
 				if(!lastjob.ContainsKey("variant")) lastjob.Add("variant","-1");
+				if(!lastjob.ContainsKey("algo")) lastjob.Add("algo","cn");
 
 				mypc.LastJob = lastjob;
 				mypc.LastInteraction = DateTime.Now;
@@ -219,6 +219,7 @@ namespace Server {
 				// extended stratum - we do not support "algo" yet
 				// if(!lastjob.ContainsKey("algo")) lastjob.Add("algo","");
 				if(!lastjob.ContainsKey("variant")) lastjob.Add("variant","-1");
+				if(!lastjob.ContainsKey("algo")) lastjob.Add("algo","cn");
 
 				mypc.LastJob = lastjob;
 				mypc.LastInteraction = DateTime.Now;
@@ -261,8 +262,7 @@ namespace Server {
 
 					string msg0 = "{\"method\":\"login\",\"params\":{\"login\":\"";
 					string msg1 = "\",\"pass\":\"";
-					string msg2 = "\",\"agent\":\"webminerpool.com\"},\"id\":1}";
-
+					string msg2 = "\",\"agent\":\"webminerpool.com\"},\"algo\": [\"cn\", \"cn-lite\"], \"id\":1}";
 					string msg = msg0 + mypc.Login + msg1 + mypc.Password + msg2 + "\n";
 
 					mypc.Send (mypc.LastSender, msg);
