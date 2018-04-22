@@ -2,9 +2,8 @@
 
 **Complete sources** for a monero (aeon) webminer. **Hard fork (v7) ready**.  Try it here:
 
-#### [Monero example](https://webminerpool.com/)
+#### [Monero/Aeon/Turtlecoin/Electroneum example](https://webminerpool.com/)
 
-#### [Aeon example](https://webminerpool.com/aeon)
 
 ###
 _The server_ is written in **C#**, **optionally calling C**-routines to check hashes calculated by the clients. It acts as a proxy server for common pools. By default the server has a configured dev-donation of 3%.
@@ -13,7 +12,11 @@ _The server_ is written in **C#**, **optionally calling C**-routines to check ha
 _The client_ runs in the browser using javascript and webassembly. 
 **websockets** are used for the connection between the client and the server, **webassembly** to perform hash calculations, **web workers** for threads.
 
-The project exists since September 2017 and is now fully open sourced, i.e. the server and the client (including the webassembly miner) can be build from the codebase.
+# What is new? (Please Update!)
+
+- **April 22, 2017** 
+	- All cryptonight and cryptonight-light based coins are supported in a single miner. [Stratum extension](https://github.com/xmrig/xmrig-proxy/blob/dev/doc/STRATUM_EXT.md#mining-algorithm-negotiation) were implemented: The server now takes pool suggestions (algorithm and variant) into account. Defaults can be specified for each pool - that makes it possible to mine coins like Stellite, Turtlecoin,..
+	- Client reconnect time gets larger with failed attempts.
 
 # Repository Content
 

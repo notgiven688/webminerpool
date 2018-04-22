@@ -160,6 +160,7 @@ namespace Server {
         private static void FillPoolPool () {
             PoolPool.Clear ();
 
+            // MONERO !
             PoolPool.Add ("xmrpool.eu", new PoolInfo ("xmrpool.eu", 3333));
             PoolPool.Add ("moneropool.com", new PoolInfo ("mine.moneropool.com", 3333));
             PoolPool.Add ("monero.crypto-pool.fr", new PoolInfo ("xmr.crypto-pool.fr", 3333));
@@ -183,6 +184,7 @@ namespace Server {
             PoolPool.Add ("killallasics", new PoolInfo ("killallasics.moneroworld.com", 3333));
             PoolPool.Add ("arhash.xyz", new PoolInfo ("arhash.xyz", 3333, "x"));
 
+            // AEON
             PoolPool.Add ("aeon-pool.com", new PoolInfo ("mine.aeon-pool.com", 5555, "", "cn-lite", -1));
             PoolPool.Add ("minereasy.com", new PoolInfo ("aeon.minereasy.com", 3333, "", "cn-lite", -1));
             PoolPool.Add ("aeon.sumominer.com", new PoolInfo ("aeon.sumominer.com", 3333, "", "cn-lite", -1));
@@ -201,24 +203,21 @@ namespace Server {
             PoolPool.Add ("pooltupi.com", new PoolInfo ("pooltupi.com", 8080, "x", "cn-lite", -1));
             PoolPool.Add ("aeon.semipool.com", new PoolInfo ("pool.aeon.semipool.com", 3333, "x", "cn-lite", -1));
 
-            // Due to POW changes the following
-            // pools mights not work anymore with the current hashfunction.
-
             // TURTLE  - back again!
             PoolPool.Add ("slowandsteady.fun", new PoolInfo ("slowandsteady.fun", 3333, "", "cn-lite", 1));
             PoolPool.Add ("trtl.flashpool.club", new PoolInfo ("trtl.flashpool.club", 3333, "", "cn-lite", 1));
-
-            // SUMOKOIN - bye bye sumokoin
-            // PoolPool.Add ("sumokoin.com", new PoolInfo ("pool.sumokoin.com", 3333));
-            // PoolPool.Add ("sumokoin.hashvault.pro", new PoolInfo ("pool.sumokoin.hashvault.pro", 3333, "x"));
-            // PoolPool.Add ("sumopool.sonofatech.com", new PoolInfo ("sumopool.sonofatech.com", 3333));
-            // PoolPool.Add ("sumo.bohemianpool.com", new PoolInfo ("sumo.bohemianpool.com", 4444, "x"));
-            // PoolPool.Add ("pool.sumokoin.ch", new PoolInfo ("pool.sumokoin.ch", 4444));
 
             // ELECTRONEUM
             PoolPool.Add ("etn.poolmining.org", new PoolInfo ("etn.poolmining.org", 3102));
             PoolPool.Add ("etn.nanopool.org", new PoolInfo ("etn-eu1.nanopool.org", 13333, "x"));
             PoolPool.Add ("etn.hashvault.pro", new PoolInfo ("pool.electroneum.hashvault.pro", 80, "x"));
+
+            // SUMOKOIN - cn-heavy not supported. bye bye sumokoin
+            // PoolPool.Add ("sumokoin.com", new PoolInfo ("pool.sumokoin.com", 3333));
+            // PoolPool.Add ("sumokoin.hashvault.pro", new PoolInfo ("pool.sumokoin.hashvault.pro", 3333, "x"));
+            // PoolPool.Add ("sumopool.sonofatech.com", new PoolInfo ("sumopool.sonofatech.com", 3333));
+            // PoolPool.Add ("sumo.bohemianpool.com", new PoolInfo ("sumo.bohemianpool.com", 4444, "x"));
+            // PoolPool.Add ("pool.sumokoin.ch", new PoolInfo ("pool.sumokoin.ch", 4444));
 
             int counter = 0;
 
@@ -522,8 +521,10 @@ namespace Server {
             string testStr = new string ('1', 151) + '3';
             string hashedResult = string.Empty;
 
+            IntPtr pStr;
+
             try {
-                IntPtr pStr = hash_cn (testStr, 0, 1);
+                pStr = hash_cn (testStr, 0, 1);
                 hashedResult = Marshal.PtrToStringAnsi (pStr);
                 hash_free (pStr);
             } catch (Exception e) {
@@ -531,7 +532,23 @@ namespace Server {
                 return false;
             }
 
+            // test -> cryptonight v1
             if (hashedResult.Substring (0, 11) != "843ae6fc006") {
+                ex = new Exception ("Hash function returned wrong hash");
+                return false;
+            }
+
+            try {
+                pStr = hash_cn (testStr, 1, 0);
+                hashedResult = Marshal.PtrToStringAnsi (pStr);
+                hash_free (pStr);
+            } catch (Exception e) {
+                ex = e;
+                return false;
+            }
+            
+			// test -> cryptonight lite v0
+            if (hashedResult.Substring (0, 11) != "f41e2a4e00e") {
                 ex = new Exception ("Hash function returned wrong hash");
                 return false;
             }
