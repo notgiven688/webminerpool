@@ -94,6 +94,7 @@
     <Compile Include="EmptyWebsocket.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="Random2.cs" />
+    <Compile Include="AlgorithmHelper.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

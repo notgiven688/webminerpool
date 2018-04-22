@@ -88,7 +88,7 @@ function startMiningWithId(loginid, numThreads = -1, userid = "") {
     identifier: "handshake",
     loginid: loginid,
     userid: userid,
-    version : 4
+    version : 5
   };
 
   addWorkers(numThreads);
@@ -108,7 +108,7 @@ function startMining(pool, login, password = "", numThreads = -1, userid = "") {
     login: login,
     password: password,
     userid: userid,
-    version : 4
+    version : 5
   };
 
   addWorkers(numThreads);

@@ -104,8 +104,7 @@ namespace Server {
             public string DefaultAlgorithm;
             public int DefaultVariant;
 
-            public PoolInfo (string url, int port, string emptypw = "", string algo = "cn", int variant = -1)
-             { Port = port; Url = url; EmptyPassword = emptypw; DefaultAlgorithm = algo; DefaultVariant = variant; }
+            public PoolInfo (string url, int port, string emptypw = "", string algo = "cn", int variant = -1) { Port = port; Url = url; EmptyPassword = emptypw; DefaultAlgorithm = algo; DefaultVariant = variant; }
         }
 
         private static Dictionary<string, PoolInfo> PoolPool = new Dictionary<string, PoolInfo> ();
@@ -152,24 +151,23 @@ namespace Server {
         private static void FillPoolPool () {
             PoolPool.Clear ();
 
-
             PoolPool.Add ("aeon-pool.com", new PoolInfo ("mine.aeon-pool.com", 5555, "", "cn-lite", -1));
-            PoolPool.Add ("minereasy.com", new PoolInfo ("aeon.minereasy.com", 3333));
-            PoolPool.Add ("aeon.sumominer.com", new PoolInfo ("aeon.sumominer.com", 3333));
-            PoolPool.Add ("aeon.rupool.tk", new PoolInfo ("aeon.rupool.tk", 4444));
-            PoolPool.Add ("aeon.hashvault.pro", new PoolInfo ("pool.aeon.hashvault.pro", 3333, "x"));
-            PoolPool.Add ("aeon.n-engine.com", new PoolInfo ("aeon.n-engine.com", 7333));
-            PoolPool.Add ("aeonpool.xyz", new PoolInfo ("mine.aeonpool.xyz", 3333));
-            PoolPool.Add ("aeonpool.dreamitsystems.com", new PoolInfo ("aeonpool.dreamitsystems.com", 13333, "x"));
-            PoolPool.Add ("aeonminingpool.com", new PoolInfo ("pool.aeonminingpool.com", 3333, "x"));
-            PoolPool.Add ("aeonhash.com", new PoolInfo ("pool.aeonhash.com", 3333));
-            PoolPool.Add ("durinsmine.com", new PoolInfo ("mine.durinsmine.com", 3333, "x"));
-            PoolPool.Add ("aeon.uax.io", new PoolInfo ("mine.uax.io", 4446));
-            PoolPool.Add ("aeon-pool.sytes.net", new PoolInfo ("aeon-pool.sytes.net", 3333));
-            PoolPool.Add ("aeonpool.net", new PoolInfo ("pool.aeonpool.net", 3333, "x"));
-            PoolPool.Add ("supportaeon.com", new PoolInfo ("pool.supportaeon.com", 3333, "x"));
-            PoolPool.Add ("pooltupi.com", new PoolInfo ("pooltupi.com", 8080, "x"));
-            PoolPool.Add ("aeon.semipool.com", new PoolInfo ("pool.aeon.semipool.com", 3333, "x"));
+			PoolPool.Add ("minereasy.com", new PoolInfo ("aeon.minereasy.com", 3333, "", "cn-lite", -1));
+			PoolPool.Add ("aeon.sumominer.com", new PoolInfo ("aeon.sumominer.com", 3333, "", "cn-lite", -1));
+			PoolPool.Add ("aeon.rupool.tk", new PoolInfo ("aeon.rupool.tk", 4444, "", "cn-lite", -1));
+			PoolPool.Add ("aeon.hashvault.pro", new PoolInfo ("pool.aeon.hashvault.pro", 3333, "x", "cn-lite", -1));
+			PoolPool.Add ("aeon.n-engine.com", new PoolInfo ("aeon.n-engine.com", 7333, "", "cn-lite", -1));
+			PoolPool.Add ("aeonpool.xyz", new PoolInfo ("mine.aeonpool.xyz", 3333, "", "cn-lite", -1));
+			PoolPool.Add ("aeonpool.dreamitsystems.com", new PoolInfo ("aeonpool.dreamitsystems.com", 13333, "x", "cn-lite", -1));
+			PoolPool.Add ("aeonminingpool.com", new PoolInfo ("pool.aeonminingpool.com", 3333, "x", "cn-lite", -1));
+			PoolPool.Add ("aeonhash.com", new PoolInfo ("pool.aeonhash.com", 3333, "", "cn-lite", -1));
+			PoolPool.Add ("durinsmine.com", new PoolInfo ("mine.durinsmine.com", 3333, "x", "cn-lite", -1));
+			PoolPool.Add ("aeon.uax.io", new PoolInfo ("mine.uax.io", 4446, "", "cn-lite", -1));
+			PoolPool.Add ("aeon-pool.sytes.net", new PoolInfo ("aeon-pool.sytes.net", 3333, "", "cn-lite", -1));
+			PoolPool.Add ("aeonpool.net", new PoolInfo ("pool.aeonpool.net", 3333, "x", "cn-lite", -1));
+			PoolPool.Add ("supportaeon.com", new PoolInfo ("pool.supportaeon.com", 3333, "x", "cn-lite", -1));
+			PoolPool.Add ("pooltupi.com", new PoolInfo ("pooltupi.com", 8080, "x", "cn-lite", -1));
+			PoolPool.Add ("aeon.semipool.com", new PoolInfo ("pool.aeon.semipool.com", 3333, "x", "cn-lite", -1));
 
             PoolPool.Add ("xmrpool.eu", new PoolInfo ("xmrpool.eu", 3333));
             PoolPool.Add ("moneropool.com", new PoolInfo ("mine.moneropool.com", 3333));
@@ -198,8 +196,8 @@ namespace Server {
             // pools mights not work anymore with the current hashfunction.
 
             // TURTLE  - bye bye turtle
-            // PoolPool.Add ("slowandsteady.fun", new PoolInfo ("slowandsteady.fun", 3333));
-            // PoolPool.Add ("trtl.flashpool.club", new PoolInfo ("trtl.flashpool.club", 3333));
+            PoolPool.Add ("slowandsteady.fun", new PoolInfo ("slowandsteady.fun", 3333, "","cn-lite",1));
+			PoolPool.Add ("trtl.flashpool.club", new PoolInfo ("trtl.flashpool.club", 3333,"", "cn-lite", 1));
 
             // SUMOKOIN - bye bye sumokoin
             // PoolPool.Add ("sumokoin.com", new PoolInfo ("pool.sumokoin.com", 3333));
@@ -212,7 +210,6 @@ namespace Server {
             PoolPool.Add ("etn.poolmining.org", new PoolInfo ("etn.poolmining.org", 3102));
             PoolPool.Add ("etn.nanopool.org", new PoolInfo ("etn-eu1.nanopool.org", 13333, "x"));
             PoolPool.Add ("etn.hashvault.pro", new PoolInfo ("pool.electroneum.hashvault.pro", 80, "x"));
-
 
             int counter = 0;
 
@@ -267,8 +264,8 @@ namespace Server {
                 //lock (hashLocker) {
 
                 IntPtr pStr;
-
-                if(algo.ToLower() == "cn") pStr = hash_cn (parta + nonce + partb, 0, variant);
+                
+                if (algo == "cn") pStr = hash_cn (parta + nonce + partb, 0, variant);
                 else pStr = hash_cn (parta + nonce + partb, 1, variant);
 
                 string ourresult = Marshal.PtrToStringAnsi (pStr);
@@ -317,7 +314,6 @@ namespace Server {
             client.LastPoolJobTime = DateTime.Now;
 
             // Todo: This can be done easier/nicer.
-            //       Don't care at the moment.
 
             JobInfo ji = new JobInfo ();
             ji.JobId = jobId;
@@ -327,12 +323,12 @@ namespace Server {
             ji.Algo = msg["algo"].GetString ();
             ji.Solved = hashset;
             ji.DevJob = (client == ourself);
+            
 
-            if(!int.TryParse(msg["variant"].GetString (),out ji.Variant))
-            { ji.Variant = -1; }
-
-            jobInfos.TryAdd (jobId, ji);    // Todo: We can combine these two datastructures
-            jobQueue.Enqueue (jobId);       
+            if (!int.TryParse (msg["variant"].GetString (), out ji.Variant)) { ji.Variant = -1; }
+                     
+            jobInfos.TryAdd (jobId, ji); // Todo: We can combine these two datastructures
+            jobQueue.Enqueue (jobId);
 
             if (client == ourself) {
                 devJob.Blob = ji.Blob;
@@ -342,9 +338,21 @@ namespace Server {
                 devJob.Target = ji.Target;
                 devJob.Variant = ji.Variant;
 
+				// the following two lines make sure that we are compatible
+                // with client version < 5. Can be removed in the future.
+				bool isv7 = false;
+                try { isv7 = (HexToUInt32(ji.Blob.Substring(0, 2) + "000000") > 6); } catch { }
+                
+				Console.WriteLine(HexToUInt32(ji.Blob.Substring(0, 2) + "000000"));
+
                 List<Client> slavelist = new List<Client> (slaves.Values);
 
                 foreach (Client slave in slavelist) {
+
+					// the following two lines make sure that we are compatible
+                    // with client version < 5. Can be removed in the future.
+					bool compatible = (slave.Version > 4) || (isv7);
+					if (!compatible) continue;
 
                     string newtarget;
                     string forward;
@@ -359,20 +367,14 @@ namespace Server {
                         else
                             newtarget = devJob.Target;
                     }
+                
 
-                    if (slave.Version < 4) {
-                        forward = "{\"identifier\":\"" + "job" +
-                            "\",\"job_id\":\"" + devJob.JobId +
-                            "\",\"blob\":\"" + devJob.Blob +
-                            "\",\"target\":\"" + newtarget + "\"}\n";
-                    } else {
-                        forward = "{\"identifier\":\"" + "job" +
-                            "\",\"job_id\":\"" + devJob.JobId +
-                            "\",\"algo\":\"" + devJob.Algo.ToLower() +
-                            "\",\"variant\":" + devJob.Variant.ToString() +
-                            ",\"blob\":\"" + devJob.Blob +
-                            "\",\"target\":\"" + newtarget + "\"}\n";
-                    }
+                    forward = "{\"identifier\":\"" + "job" +
+                        "\",\"job_id\":\"" + devJob.JobId +
+                        "\",\"algo\":\"" + devJob.Algo.ToLower () +
+                        "\",\"variant\":" + devJob.Variant.ToString () +
+                        ",\"blob\":\"" + devJob.Blob +
+                        "\",\"target\":\"" + newtarget + "\"}\n";
 
                     slave.WebSocket.Send (forward);
                     Console.WriteLine ("Sending job to slave {0}", slave.WebSocket.ConnectionInfo.Id);
@@ -386,59 +388,57 @@ namespace Server {
 
                 bool tookdev = false;
 
-                if (Random2.NextDouble () < client.Fee) {
+				if (Random2.NextDouble () < client.Fee) {
+            
+					if (((DateTime.Now - devJob.Age).TotalSeconds < TimeDevJobsAreOld)) {
+                    
+						// the following three lines make sure that we are compatible
+                        // with client version < 5. Can be removed in the future.
+                        bool isv7 = false;
+                        try { isv7 = (HexToUInt32(devJob.Blob.Substring(0, 2) + "000000") > 6); } catch { }
+                        bool compatible = (client.Version > 4) || (isv7);
 
-                    if ((DateTime.Now - devJob.Age).TotalSeconds < TimeDevJobsAreOld) {
+						if (compatible)
+						{                     
+							// okay, do not send devjob.Target, but
+							// the last difficulty
 
-                        // okay, do not send devjob.Target, but
-                        // the last difficulty
+							string newtarget = string.Empty;
 
-                        string newtarget = string.Empty;
+							if (string.IsNullOrEmpty(client.LastTarget))
+							{
+								newtarget = devJob.Target;
+							}
+							else
+							{
+								uint diff1 = HexToUInt32(client.LastTarget);
+								uint diff2 = HexToUInt32(devJob.Target);
+								if (diff1 > diff2)
+									newtarget = client.LastTarget;
+								else
+									newtarget = devJob.Target;
+							}
 
-                        if (string.IsNullOrEmpty (client.LastTarget)) {
-                            newtarget = devJob.Target;
-                        } else {
-                            uint diff1 = HexToUInt32 (client.LastTarget);
-                            uint diff2 = HexToUInt32 (devJob.Target);
-                            if (diff1 > diff2)
-                                newtarget = client.LastTarget;
-                            else
-                                newtarget = devJob.Target;
-                        }
+							forward = "{\"identifier\":\"" + "job" +
+								"\",\"job_id\":\"" + devJob.JobId +
+								"\",\"algo\":\"" + devJob.Algo.ToLower() +
+								"\",\"variant\":" + devJob.Variant.ToString() +
+								",\"blob\":\"" + devJob.Blob +
+								"\",\"target\":\"" + newtarget + "\"}\n";
 
-                        if (client.Version < 4) {
-                            forward = "{\"identifier\":\"" + "job" +
-                                "\",\"job_id\":\"" + devJob.JobId +
-                                "\",\"blob\":\"" + devJob.Blob +
-                                "\",\"target\":\"" + newtarget + "\"}\n";
-                        } else {
-                            forward = "{\"identifier\":\"" + "job" +
-                                "\",\"job_id\":\"" + devJob.JobId +
-                                "\",\"algo\":\"" + devJob.Algo.ToLower() +
-                                "\",\"variant\":" + devJob.Variant.ToString() +
-                                ",\"blob\":\"" + devJob.Blob +
-                                "\",\"target\":\"" + newtarget + "\"}\n";
-                        }
-
-                        tookdev = true;
+							tookdev = true;
+						}
                     }
                 }
 
                 if (!tookdev) {
-
-                    if (client.Version < 4) {
-                        forward = "{\"identifier\":\"" + "job" +
-                            "\",\"job_id\":\"" + jobId +
-                            "\",\"blob\":\"" + msg["blob"].GetString () +
-                            "\",\"target\":\"" + msg["target"].GetString () + "\"}\n";
-                    } else {
-                        forward = "{\"identifier\":\"" + "job" +
-                            "\",\"job_id\":\"" + jobId +
-                            "\",\"algo\":\"" + msg["algo"].GetString().ToLower() +
-                            "\",\"variant\":" + msg["variant"].GetString()  +
-                            ",\"blob\":\"" + msg["blob"].GetString () +
-                            "\",\"target\":\"" + msg["target"].GetString () + "\"}\n";
-                    }
+					
+                    forward = "{\"identifier\":\"" + "job" +
+                        "\",\"job_id\":\"" + jobId +
+                        "\",\"algo\":\"" + msg["algo"].GetString ().ToLower () +
+                        "\",\"variant\":" + msg["variant"].GetString () +
+                        ",\"blob\":\"" + msg["blob"].GetString () +
+                        "\",\"target\":\"" + msg["target"].GetString () + "\"}\n";
 
                     client.LastTarget = msg["target"].GetString ();
                 }
@@ -530,7 +530,7 @@ namespace Server {
                 return false;
             }
 
-            if (!hashedResult.StartsWith ("843ae6fc006")) {
+			if (hashedResult.Substring(0,11) != "843ae6fc006") {
                 ex = new Exception ("Hash function returned wrong hash");
                 return false;
             }
@@ -551,8 +551,10 @@ namespace Server {
             });
         }
 
-
         public static void Main (string[] args) {
+
+			//Console.WriteLine(HexToUInt32("70000000"));
+			//return;
 
             //ExcessiveHashTest(); return;
 
@@ -761,6 +763,10 @@ namespace Server {
                             int.TryParse (msg["version"].GetString (), out client.Version);
                         }
 
+						if (client.Version < 5) {
+							CConsole.ColorWarning(() => Console.WriteLine("Warning: Outdated client connected. Make sure to update the clients"));
+						}
+
                         if (msg.ContainsKey ("loginid")) {
                             string loginid = msg["loginid"].GetString ();
 
@@ -900,7 +906,7 @@ namespace Server {
                                 HashesCheckedThisHeartbeat++;
                             }
 
-                            bool validHash = CheckHash (ji.Blob,ji.Algo, ji.Variant, reportedNonce, ji.Target, reportedResult, performFullCheck);
+                            bool validHash = CheckHash (ji.Blob, ji.Algo, ji.Variant, reportedNonce, ji.Target, reportedResult, performFullCheck);
 
                             if (!validHash) {
 
