@@ -52,7 +52,7 @@ In this example the webminerpool.com server is used. A dynamic fee (about 4%) is
 	startMining("minexmr.com","49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU"); 
 </script>
 ```
-webmr.js can be found under SDK/xmr/miner_compressed (or for Aeon SDK/aeon/miner_compressed).
+webmr.js can be found under SDK/miner_compressed.
 
 The startMining function can take additional arguments
 
@@ -88,15 +88,15 @@ or with optional input parameters:
 startMiningWithId(loginid, numThreads, userid)
 ```
 
-Get a *loginid* by opening *register.html* in SDK/xmr/other. You also find a script which enumerates all available pools and a script which shows you the amount of hashes calculated by a *userid*. These files are quite self-explanatory.
+Get a *loginid* by opening *register.html* in SDK/other. You also find a script which enumerates all available pools and a script which shows you the amount of hashes calculated by a *userid*. These files are quite self-explanatory.
 
 #### What are all the *.js files?
 
-SDK/xmr/miner_compressed/webmr.js simply combines 
+SDK/miner_compressed/webmr.js simply combines 
 
- 1. SDK/xmr/miner_raw/miner.js
- 2. SDK/xmr/miner_raw/worker.js
- 3. SDK/xmr/miner_raw/cn.js
+ 1. SDK/miner_raw/miner.js
+ 2. SDK/miner_raw/worker.js
+ 3. SDK/miner_raw/cn.js
 
 Where *miner.js* handles the server-client connection, *worker.js* are web workers calculating cryptonight hashes using *cn.js* - a emscripten generated wrapped webassembly file. The webassembly file can also be compiled by you, see section hash_cn below.
 
