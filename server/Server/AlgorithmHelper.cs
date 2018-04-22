@@ -20,36 +20,26 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
-namespace Server
-{
+namespace Server {
 
-	public class AlgorithmHelper
-	{
-    
-        // we could create a lookup table but keep it simple stupid for now,
-        // since we only support cn and cn_lite.
+	public class AlgorithmHelper {
 
-		public static bool Normalize(string algo, out string normalized)
-		{
-			algo = algo.ToLower();
-			if (algo == "cn" || algo == "cryptonight")
-			{
+		// we could create a lookup table but keep it simple stupid for now,
+		// since we only support cn and cn_lite.
+
+		public static bool Normalize (string algo, out string normalized) {
+			algo = algo.ToLower ();
+			if (algo == "cn" || algo == "cryptonight") {
 				normalized = "cn";
 				return true;
-			}
-			else if (algo == "cn-lite" || algo == "cryptonight-lite")
-			{
+			} else if (algo == "cn-lite" || algo == "cryptonight-lite") {
 				normalized = "cn-lite";
 				return true;
-			}
-			else
-			{
+			} else {
 				normalized = string.Empty;
 				return false;
 			}
 		}
-  
 
-
-    }
+	}
 }
