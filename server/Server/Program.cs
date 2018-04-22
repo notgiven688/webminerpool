@@ -570,14 +570,6 @@ namespace Server {
         }
 
         public static void Main (string[] args) {
-
-			string mmsg0 = "{\"method\":\"login\",\"params\":{\"login\":\"";
-            string mmsg1 = "\",\"pass\":\"";
-            string mmsg2 = "\",\"agent\":\"webminerpool.com\"},\"algo\": [\"cn\", \"cn-lite\"], \"id\":1}";
-            string mmsg = mmsg0 + "supportsomething" + mmsg1 + "secretpassword" + mmsg2 + "\n";
-
-			Console.WriteLine(mmsg);
-			return;
          
             //ExcessiveHashTest(); return;
 
