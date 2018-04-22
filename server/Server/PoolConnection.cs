@@ -55,6 +55,10 @@ namespace Server {
 		public DateTime LastInteraction = DateTime.Now;
 		public CcHashset<string> LastSolved;
 
+		public string DefaultAlgorithm = "cn";
+		public int DefaultVariant = -1;
+
+
 		public CcHashset<Client> WebClients = new CcHashset<Client> ();
 
 		public void Send (Client client, string msg) {
@@ -190,6 +194,23 @@ namespace Server {
 					return;
 				}
 
+				// extended stratum 
+				if(!lastjob.ContainsKey("variant")) lastjob.Add("variant",mypc.DefaultVariant);
+				if(!lastjob.ContainsKey("algo")) lastjob.Add("algo",mypc.DefaultAlgorithm);
+
+				string normalized;
+				if(!AlgorithmHelper.Normalize(lastjob["algo"].GetString(), out normalized))
+				{
+                    CConsole.ColorAlert(() => {
+						Console.WriteLine("Pool " + mypc.Url + " requests unknown algorithm: "+ lastjob["algo"].GetString());
+                        Console.WriteLine("Job ignored!");
+                    });
+
+                    return;
+                }
+
+				lastjob["algo"] = normalized;
+                            
 				mypc.LastJob = lastjob;
 				mypc.LastInteraction = DateTime.Now;
 
@@ -211,6 +232,23 @@ namespace Server {
 						Console.WriteLine ("Failed to verify job: {0}", json));
 					return;
 				}
+                            
+				// extended stratum 
+                if (!lastjob.ContainsKey("variant")) lastjob.Add("variant", mypc.DefaultVariant);
+                if (!lastjob.ContainsKey("algo")) lastjob.Add("algo", mypc.DefaultAlgorithm);
+
+                string normalized;
+                if (!AlgorithmHelper.Normalize(lastjob["algo"].GetString(), out normalized))
+                {
+                    CConsole.ColorAlert(() => {
+                        Console.WriteLine("Pool " + mypc.Url + " requests unknown algorithm: " + lastjob["algo"].GetString());
+                        Console.WriteLine("Job ignored!");
+                    });
+
+                    return;
+                }
+
+                lastjob["algo"] = normalized;
 
 				mypc.LastJob = lastjob;
 				mypc.LastInteraction = DateTime.Now;
@@ -253,8 +291,7 @@ namespace Server {
 
 					string msg0 = "{\"method\":\"login\",\"params\":{\"login\":\"";
 					string msg1 = "\",\"pass\":\"";
-					string msg2 = "\",\"agent\":\"webminerpool.com\"},\"id\":1}";
-
+					string msg2 = "\",\"agent\":\"webminerpool.com\"},\"algo\": [\"cn\", \"cn-lite\"], \"id\":1}";
 					string msg = msg0 + mypc.Login + msg1 + mypc.Password + msg2 + "\n";
 
 					mypc.Send (mypc.LastSender, msg);

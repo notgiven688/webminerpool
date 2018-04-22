@@ -13,5 +13,4 @@ msbuild /version | grep version
 echo ""
 
 read -p "Press enter to continue"
-msbuild Server.sln /p:Configuration=Release_XMR /p:Platform="any CPU"
-msbuild Server.sln /p:Configuration=Release_AEON /p:Platform="any CPU"
+msbuild Server.sln /p:Configuration=Release_Server /p:Platform="any CPU"

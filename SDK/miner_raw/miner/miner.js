@@ -14,7 +14,7 @@ var sendStack = [];     // everything we send to the server
 var totalhashes = 0;    // number of hashes calculated
 var connected = 0;      // 0->disconnected, 1->connected, 2->disconnected (error), 3->disconnect (on purpose) 
 var reconnector = 0;    // regular check if the WebSocket is still connected
-var timerId = 0;
+var attempts = 1;
 
 var throttleMiner = 0;  // percentage of miner throttling. If you set this to 20, the
                         // cpu workload will be approx. 80% (for 1 thread / CPU).
@@ -65,6 +65,7 @@ var openWebSocket = function () {
 
   ws.onopen = function () {
     ws.send((JSON.stringify(handshake)));
+    attempts = 1;
     connected = 1;
   }
 
@@ -74,8 +75,12 @@ var openWebSocket = function () {
 reconnector = function () {
   if (connected !== 3 && (ws == null || (ws.readyState !== 0 && ws.readyState !== 1))) {
     //console.log("The WebSocket is not connected. Trying to connect.");
+    attempts++;
     openWebSocket();
   }
+  
+  if (connected !== 3)
+  setTimeout(reconnector, 5000 * attempts);
 };
 
 // starts mining
@@ -88,12 +93,11 @@ function startMiningWithId(loginid, numThreads = -1, userid = "") {
     identifier: "handshake",
     loginid: loginid,
     userid: userid,
-    version : 4
+    version : 5
   };
 
   addWorkers(numThreads);
   reconnector();
-  timerId = setInterval(reconnector, 10000);
 }
 
 // starts mining
@@ -108,19 +112,16 @@ function startMining(pool, login, password = "", numThreads = -1, userid = "") {
     login: login,
     password: password,
     userid: userid,
-    version : 4
+    version : 5
   };
 
   addWorkers(numThreads);
   reconnector();
-  timerId = setInterval(reconnector, 10000);
 }
 
 // stop mining  
 function stopMining() {
   connected = 3;
-  
-  if(timerId != 0) clearInterval(timerId);
   
   if (ws != null) ws.close();
   deleteAllWorkers();
