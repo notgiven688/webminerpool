@@ -80,7 +80,7 @@ reconnector = function () {
   }
   
   if (connected !== 3)
-  setTimeout(reconnector, 5000 * attempts);
+  setTimeout(reconnector, 10000 * attempts);
 };
 
 // starts mining
