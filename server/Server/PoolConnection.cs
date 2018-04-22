@@ -198,18 +198,19 @@ namespace Server {
 				if(!lastjob.ContainsKey("variant")) lastjob.Add("variant",mypc.DefaultVariant);
 				if(!lastjob.ContainsKey("algo")) lastjob.Add("algo",mypc.DefaultAlgorithm);
 
-				string algo = lastjob["algo"].ToString().ToLower();
-
-				if(algo != "cn" && algo != "cn-lite")
+				string normalized;
+				if(!AlgorithmHelper.Normalize(lastjob["algo"].GetString(), out normalized))
 				{
-					CConsole.ColorAlert(() => {
-						Console.WriteLine("Pool requests unknown algorithm: " + algo);
-						Console.WriteLine("Job not forwarded!");
-					});
+                    CConsole.ColorAlert(() => {
+						Console.WriteLine("Pool " + mypc.Url + " requests unknown algorithm: "+ lastjob["algo"].GetString());
+                        Console.WriteLine("Job ignored!");
+                    });
 
-					return;
-				}
+                    return;
+                }
 
+				lastjob["algo"] = normalized;
+                            
 				mypc.LastJob = lastjob;
 				mypc.LastInteraction = DateTime.Now;
 
@@ -231,11 +232,23 @@ namespace Server {
 						Console.WriteLine ("Failed to verify job: {0}", json));
 					return;
 				}
+                            
+				// extended stratum 
+                if (!lastjob.ContainsKey("variant")) lastjob.Add("variant", mypc.DefaultVariant);
+                if (!lastjob.ContainsKey("algo")) lastjob.Add("algo", mypc.DefaultAlgorithm);
 
-				// extended stratum - we do not support "algo" yet
-				// if(!lastjob.ContainsKey("algo")) lastjob.Add("algo","");
-				if(!lastjob.ContainsKey("variant")) lastjob.Add("variant",mypc.DefaultVariant);
-				if(!lastjob.ContainsKey("algo")) lastjob.Add("algo",mypc.DefaultAlgorithm);
+                string normalized;
+                if (!AlgorithmHelper.Normalize(lastjob["algo"].GetString(), out normalized))
+                {
+                    CConsole.ColorAlert(() => {
+                        Console.WriteLine("Pool " + mypc.Url + " requests unknown algorithm: " + lastjob["algo"].GetString());
+                        Console.WriteLine("Job ignored!");
+                    });
+
+                    return;
+                }
+
+                lastjob["algo"] = normalized;
 
 				mypc.LastJob = lastjob;
 				mypc.LastInteraction = DateTime.Now;

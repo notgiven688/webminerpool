@@ -1,8 +1,6 @@
-// https://github.com/statianzo/Fleck
+﻿// The MIT License (MIT)
 
-// The MIT License
-
-// Copyright (c) 2010-2016 Jason Staten
+// Copyright (c) 2018 - the webminerpool developer
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy of
 // this software and associated documentation files (the "Software"), to deal in
@@ -21,22 +19,37 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System.Collections.Generic;
 using System;
-
-namespace Fleck
+namespace Server
 {
-    public interface IWebSocketConnectionInfo
-    {
-        string SubProtocol { get; }
-        string Origin { get; }
-        string Host { get; }
-        string Path { get; }
-        string ClientIpAddress { get; }
-        int    ClientPort { get; }
-        IDictionary<string, string> Cookies { get; }
-        IDictionary<string, string> Headers { get; }
-        Guid Id { get; }
-        string NegotiatedSubProtocol { get; }
+
+	public class AlgorithmHelper
+	{
+    
+        // we could create a lookup table but keep it simple stupid for now,
+        // since we only support cn and cn_lite.
+
+		public static bool Normalize(string algo, out string normalized)
+		{
+			algo = algo.ToLower();
+			if (algo == "cn" || algo == "cryptonight")
+			{
+				normalized = "cn";
+				return true;
+			}
+			else if (algo == "cn-lite" || algo == "cryptonight-lite")
+			{
+				normalized = "cn-lite";
+				return true;
+			}
+			else
+			{
+				normalized = string.Empty;
+				return false;
+			}
+		}
+  
+
+
     }
 }
