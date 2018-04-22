@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-void cryptonight(void *output, const void *input, size_t len);
+void cryptonight(void *output, const void *input, size_t len, int lite, int variant);
 struct cryptonight_ctx;
 
 #ifdef __cplusplus

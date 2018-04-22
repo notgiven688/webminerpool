@@ -97,6 +97,17 @@ struct cryptonight_ctx
     oaes_ctx *aes_ctx;
 };
 
+struct cryptonight_ctx_lite
+{
+    uint8_t long_state[MEMORY/2] __attribute((aligned(16)));
+    union cn_slow_hash_state state;
+    uint8_t text[INIT_SIZE_BYTE] __attribute((aligned(16)));
+    uint8_t a[AES_BLOCK_SIZE] __attribute__((aligned(16)));
+    uint8_t b[AES_BLOCK_SIZE] __attribute__((aligned(16)));
+    uint8_t c[AES_BLOCK_SIZE] __attribute__((aligned(16)));
+    oaes_ctx *aes_ctx;
+};
+
 const uint32_t TestTable1[256] __attribute((aligned(16))) = {
     0xA56363C6, 0x847C7CF8, 0x997777EE, 0x8D7B7BF6, 0x0DF2F2FF, 0xBD6B6BD6, 0xB16F6FDE, 0x54C5C591,
     0x50303060, 0x03010102, 0xA96767CE, 0x7D2B2B56, 0x19FEFEE7, 0x62D7D7B5, 0xE6ABAB4D, 0x9A7676EC,
@@ -361,7 +372,7 @@ void SubAndShiftAndMixAddRoundInPlace(uint32_t *temp, uint32_t *AesEncKey)
     temp[3] = TestTable2[saved[3]] ^ TestTable3[saved[4]] ^ TestTable4[saved[5]] ^ TestTable1[state[12]] ^ AesEncKey[3];
 }
 
-void cryptonight_hash_ctx(void *output, const void *input, struct cryptonight_ctx *ctx)
+void cryptonight_hash_ctx(void *output, const void *input, struct cryptonight_ctx *ctx, int variant)
 {
     ctx->aes_ctx = (oaes_ctx *)oaes_alloc();
     size_t i, j;
@@ -369,7 +380,7 @@ void cryptonight_hash_ctx(void *output, const void *input, struct cryptonight_ct
     keccak((const uint8_t *)input, 76, ctx->state.hs.b, 200);
     memcpy(ctx->text, ctx->state.init, INIT_SIZE_BYTE);
 
-    int variant = ((const uint8_t *)input)[0] >= 7 ? ((const uint8_t *)input)[0] - 6 : 0;
+    //int variant = ((const uint8_t *)input)[0] >= 7 ? ((const uint8_t *)input)[0] - 6 : 0;
     //int variant = 1;
 
     VARIANT1_INIT();
@@ -480,10 +491,135 @@ void cryptonight_hash_ctx(void *output, const void *input, struct cryptonight_ct
     oaes_free((OAES_CTX **)&ctx->aes_ctx);
 }
 
-void cryptonight(void *output, const void *input, size_t len)
+void cryptonight_hash_ctx_lite(void *output, const void *input, struct cryptonight_ctx_lite *ctx, int variant)
 {
-    struct cryptonight_ctx *ctx = (struct cryptonight_ctx *)malloc(sizeof(struct cryptonight_ctx));
-    cryptonight_hash_ctx(output, input, ctx);
+    ctx->aes_ctx = (oaes_ctx *)oaes_alloc();
+    size_t i, j;
+    //hash_process(&ctx->state.hs, (const uint8_t*) input, 76);
+    keccak((const uint8_t *)input, 76, ctx->state.hs.b, 200);
+    memcpy(ctx->text, ctx->state.init, INIT_SIZE_BYTE);
 
-    free(ctx);
+    VARIANT1_INIT();
+
+    oaes_key_import_data(ctx->aes_ctx, ctx->state.hs.b, AES_KEY_SIZE);
+
+    for (i = 0; likely(i < MEMORY/2); i += INIT_SIZE_BYTE)
+    {
+        for (j = 0; j < 10; j++)
+        {
+            uint32_t *ptr = (uint32_t *)&ctx->aes_ctx->key->exp_data[j << 4];
+
+            SubAndShiftAndMixAddRoundInPlace((uint32_t *)&ctx->text[0], ptr);
+            SubAndShiftAndMixAddRoundInPlace((uint32_t *)&ctx->text[0x10], ptr);
+            SubAndShiftAndMixAddRoundInPlace((uint32_t *)&ctx->text[0x20], ptr);
+            SubAndShiftAndMixAddRoundInPlace((uint32_t *)&ctx->text[0x30], ptr);
+            SubAndShiftAndMixAddRoundInPlace((uint32_t *)&ctx->text[0x40], ptr);
+            SubAndShiftAndMixAddRoundInPlace((uint32_t *)&ctx->text[0x50], ptr);
+            SubAndShiftAndMixAddRoundInPlace((uint32_t *)&ctx->text[0x60], ptr);
+            SubAndShiftAndMixAddRoundInPlace((uint32_t *)&ctx->text[0x70], ptr);
+        }
+        memcpy(&ctx->long_state[i], ctx->text, INIT_SIZE_BYTE);
+    }
+
+    for (i = 0; i < 2; i++)
+    {
+        ((uint64_t *)(ctx->a))[i] = ((uint64_t *)ctx->state.k)[i] ^ ((uint64_t *)ctx->state.k)[i + 4];
+        ((uint64_t *)(ctx->b))[i] = ((uint64_t *)ctx->state.k)[i + 2] ^ ((uint64_t *)ctx->state.k)[i + 6];
+    }
+
+    //xor_blocks_dst(&ctx->state.k[0], &ctx->state.k[32], ctx->a);
+    //xor_blocks_dst(&ctx->state.k[16], &ctx->state.k[48], ctx->b);
+
+    for (i = 0; likely(i < ITER / 8); ++i)
+    {
+        // Dependency chain: address -> read value ------+
+        // written value <-+ hard function (AES or MUL) <+
+        // next address  <-+
+        //
+        // Iteration 1
+        j = ((uint32_t *)(ctx->a))[0] & 0x0FFFF0;
+
+        //SubAndShiftAndMixAddRound((uint32_t *)ctx->c, (uint32_t *)&ctx->long_state[j], (uint32_t *)ctx->a);
+        SubAndShiftAndMixAddRound((uint32_t *)ctx->c, &ctx->long_state[j], (uint32_t *)ctx->a);
+        xor_blocks_dst(ctx->c, ctx->b, &ctx->long_state[j]);
+        VARIANT1_1(&ctx->long_state[j]);
+
+        // Iteration 2
+        mul_sum_xor_dst(ctx->c, ctx->a, &ctx->long_state[((uint32_t *)(ctx->c))[0] & 0x0FFFF0]);
+
+        VARIANT1_2(&ctx->long_state[(((uint32_t *)(ctx->c))[0] & 0x0FFFF0)]);
+
+        // Iteration 3
+
+        j = ((uint32_t *)(ctx->a))[0] & 0x0FFFF0;
+
+        SubAndShiftAndMixAddRound((uint32_t *)ctx->b, &ctx->long_state[j], (uint32_t *)ctx->a);
+        //SubAndShiftAndMixAddRound((uint32_t *)ctx->b, (uint32_t *)&ctx->long_state[j], (uint32_t *)ctx->a);
+        xor_blocks_dst(ctx->b, ctx->c, &ctx->long_state[j]);
+
+        VARIANT1_1(&ctx->long_state[j]);
+
+        // Iteration 4
+        mul_sum_xor_dst(ctx->b, ctx->a, &ctx->long_state[((uint32_t *)(ctx->b))[0] & 0x0FFFF0]);
+
+        VARIANT1_2(&ctx->long_state[(((uint32_t *)(ctx->b))[0] & 0x0FFFF0)]);
+    }
+
+    memcpy(ctx->text, ctx->state.init, INIT_SIZE_BYTE);
+
+    oaes_free((OAES_CTX **)&ctx->aes_ctx);
+    ctx->aes_ctx = (oaes_ctx *)oaes_alloc();
+
+    oaes_key_import_data(ctx->aes_ctx, &ctx->state.hs.b[32], AES_KEY_SIZE);
+
+    for (i = 0; likely(i < MEMORY/2); i += INIT_SIZE_BYTE)
+    {
+
+        xor_blocks(&ctx->text[0x00], &ctx->long_state[i + 0x00]);
+        xor_blocks(&ctx->text[0x10], &ctx->long_state[i + 0x10]);
+        xor_blocks(&ctx->text[0x20], &ctx->long_state[i + 0x20]);
+        xor_blocks(&ctx->text[0x30], &ctx->long_state[i + 0x30]);
+        xor_blocks(&ctx->text[0x40], &ctx->long_state[i + 0x40]);
+        xor_blocks(&ctx->text[0x50], &ctx->long_state[i + 0x50]);
+        xor_blocks(&ctx->text[0x60], &ctx->long_state[i + 0x60]);
+        xor_blocks(&ctx->text[0x70], &ctx->long_state[i + 0x70]);
+
+        for (j = 0; j < 10; j++)
+        {
+            uint32_t *ptr = (uint32_t *)&ctx->aes_ctx->key->exp_data[j << 4];
+
+            SubAndShiftAndMixAddRoundInPlace((uint32_t *)&ctx->text[0], ptr);
+            SubAndShiftAndMixAddRoundInPlace((uint32_t *)&ctx->text[0x10], ptr);
+            SubAndShiftAndMixAddRoundInPlace((uint32_t *)&ctx->text[0x20], ptr);
+            SubAndShiftAndMixAddRoundInPlace((uint32_t *)&ctx->text[0x30], ptr);
+            SubAndShiftAndMixAddRoundInPlace((uint32_t *)&ctx->text[0x40], ptr);
+            SubAndShiftAndMixAddRoundInPlace((uint32_t *)&ctx->text[0x50], ptr);
+            SubAndShiftAndMixAddRoundInPlace((uint32_t *)&ctx->text[0x60], ptr);
+            SubAndShiftAndMixAddRoundInPlace((uint32_t *)&ctx->text[0x70], ptr);
+        }
+    }
+
+    memcpy(ctx->state.init, ctx->text, INIT_SIZE_BYTE);
+    //hash_permutation(&ctx->state.hs);
+    keccakf((uint64_t *)ctx->state.hs.b, 24);
+    /*memcpy(hash, &state, 32);*/
+    extra_hashes[ctx->state.hs.b[0] & 3](&ctx->state, 200, output);
+    oaes_free((OAES_CTX **)&ctx->aes_ctx);
+}
+
+void cryptonight(void *output, const void *input, size_t len, int lite, int variant)
+{
+    if(lite)
+    {
+        struct cryptonight_ctx_lite *ctx = (struct cryptonight_ctx_lite *)malloc(sizeof(struct cryptonight_ctx_lite));
+        cryptonight_hash_ctx_lite(output, input, ctx, variant);
+        free(ctx);
+    }
+    else
+    {
+        struct cryptonight_ctx *ctx = (struct cryptonight_ctx *)malloc(sizeof(struct cryptonight_ctx));
+        cryptonight_hash_ctx(output, input, ctx, variant);
+        free(ctx);
+    }
+
 }

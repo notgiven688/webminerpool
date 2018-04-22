@@ -30,20 +30,10 @@
     <Externalconsole>true</Externalconsole>
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_XMR|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_Server|AnyCPU' ">
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release_XMR</OutputPath>
+    <OutputPath>bin\Release_Server</OutputPath>
     <WarningLevel>4</WarningLevel>
-    <Externalconsole>true</Externalconsole>
-    <DefineConstants>XMR</DefineConstants>
-    <DebugSymbols>false</DebugSymbols>
-    <DebugType>none</DebugType>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_AEON|AnyCPU' ">
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release_AEON</OutputPath>
-    <WarningLevel>4</WarningLevel>
-    <DefineConstants>AEON</DefineConstants>
     <Externalconsole>true</Externalconsole>
     <DebugSymbols>false</DebugSymbols>
     <DebugType>none</DebugType>
@@ -94,6 +84,7 @@
     <Compile Include="EmptyWebsocket.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="Random2.cs" />
+    <Compile Include="AlgorithmHelper.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
