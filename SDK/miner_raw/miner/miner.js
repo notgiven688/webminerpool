@@ -169,6 +169,8 @@ function on_servermsg(e) {
   receiveStack.push(obj);
 
   if (obj.identifier == "job") job = obj;
+  
+  console.log(e.data);
 }
 
 function on_workermsg(e) {
