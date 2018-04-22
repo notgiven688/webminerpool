@@ -6,7 +6,7 @@
 
 
 ###
-_The server_ is written in **C#**, **optionally calling C**-routines to check hashes calculated by the clients. It acts as a proxy server for common pools. By default the server has a configured dev-donation of 3%.
+_The server_ is written in **C#**, **optionally calling C**-routines to check hashes calculated by the clients. It acts as a proxy server for common pools.
 
 
 _The client_ runs in the browser using javascript and webassembly. 
