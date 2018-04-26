@@ -1,6 +1,6 @@
 # webminerpool 
 
-**Complete sources** for a monero (aeon) webminer. **Hard fork (v7) ready**.  Try it here:
+**Complete sources** for a Monero (cryptonight/cryptonight-lite)  webminer. **Hard fork ready**.  Try it here:
 
 #### [Monero/Aeon/Turtlecoin/Electroneum example](https://webminerpool.com/)
 
@@ -14,9 +14,13 @@ _The client_ runs in the browser using javascript and webassembly.
 
 # What is new? (Please Update!)
 
+- **April 26, 2017** 
+	- A further improvement to fully support the [extended stratum protocol](https://github.com/xmrig/xmrig-proxy/blob/dev/doc/STRATUM_EXT.md#mining-algorithm-negotiation)  (**server-side**).
+	- A simple json config-file holding all available pools (**server-side**).
+
 - **April 22, 2017** 
-	- All cryptonight and cryptonight-light based coins are supported in a single miner. [Stratum extension](https://github.com/xmrig/xmrig-proxy/blob/dev/doc/STRATUM_EXT.md#mining-algorithm-negotiation) were implemented: The server now takes pool suggestions (algorithm and variant) into account. Defaults can be specified for each pool - that makes it possible to mine coins like Stellite, Turtlecoin,..
-	- Client reconnect time gets larger with failed attempts.
+	- All cryptonight and cryptonight-light based coins are supported in a single miner. [Stratum extension](https://github.com/xmrig/xmrig-proxy/blob/dev/doc/STRATUM_EXT.md#mining-algorithm-negotiation) were implemented: The server now takes pool suggestions (algorithm and variant) into account. Defaults can be specified for each pool - that makes it possible to mine coins like Stellite, Turtlecoin,.. (**client/server-side**)
+	- Client reconnect time gets larger with failed attempts. (**client-side**)
 
 # Repository Content
 
