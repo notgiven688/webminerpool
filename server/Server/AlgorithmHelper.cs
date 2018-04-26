@@ -18,27 +18,51 @@
 // COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
 using System;
+using System.Collections.Generic;
+
+using JsonData = System.Collections.Generic.Dictionary<string, object>;
+
+
 namespace Server {
 
 	public class AlgorithmHelper {
 
-		// we could create a lookup table but keep it simple stupid for now,
-		// since we only support cn and cn_lite.
+		// quite a mess
+		// https://github.com/xmrig/xmrig-proxy/blob/dev/doc/STRATUM_EXT.md#mining-algorithm-negotiation
 
-		public static bool Normalize (string algo, out string normalized) {
-			algo = algo.ToLower ();
-			if (algo == "cn" || algo == "cryptonight") {
-				normalized = "cn";
-				return true;
-			} else if (algo == "cn-lite" || algo == "cryptonight-lite") {
-				normalized = "cn-lite";
-				return true;
-			} else {
-				normalized = string.Empty;
-				return false;
+		private static Dictionary<string, Tuple<string, int>> lookup = new Dictionary<string, Tuple<string, int>>
+        {
+            { "cryptonight/0", new Tuple<string, int>("cn", 0) },
+            { "cryptonight/1", new Tuple<string, int>("cn", 1) },
+            { "cryptonight-lite/0", new Tuple<string, int>("cn-lite", 0) },
+            { "cryptonight-lite/1", new Tuple<string, int>("cn-lite", 1) },
+			{ "cn/0", new Tuple<string, int>("cn", 0) },
+            { "cn/1", new Tuple<string, int>("cn", 1) },
+            { "cn-lite/0", new Tuple<string, int>("cn-lite", 0) },
+            { "cn-lite/1", new Tuple<string, int>("cn-lite", 1) }
+        };
+              
+		public static bool NormalizeAlgorithmAndVariant (JsonData job) {
+
+			string algo = job["algo"].GetString().ToLower();
+
+			if (lookup.ContainsKey(algo))
+			{
+				var tuple = lookup[algo];
+				job["algo"] = tuple.Item1;
+				job["variant"] = tuple.Item2;
 			}
+			else
+			{
+				if (algo == "cn" || algo == "cryptonight")
+					job["algo"] = "cn";
+				else if (algo == "cn-lite" || algo == "cryptonight-lite")
+					job["algo"] = "cn-lite";
+				else return false;
+			}
+
+			return true;
 		}
 
 	}
