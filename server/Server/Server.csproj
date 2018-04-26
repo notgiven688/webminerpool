@@ -49,6 +49,7 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="DevDonation.cs" />
     <Compile Include="PoolConnection.cs" />
+    <Compile Include="PoolList.cs" />
     <Compile Include="DataStructures.cs" />
     <Compile Include="Fleck\BufferPool.cs" />
     <Compile Include="Fleck\ConnectionNotAvailableException.cs" />
