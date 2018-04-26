@@ -87,5 +87,10 @@
     <Compile Include="Random2.cs" />
     <Compile Include="AlgorithmHelper.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="pools.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

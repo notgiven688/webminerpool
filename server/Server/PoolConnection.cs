@@ -196,20 +196,8 @@ namespace Server {
 
 				// extended stratum 
 				if(!lastjob.ContainsKey("variant")) lastjob.Add("variant",mypc.DefaultVariant);
-				if(!lastjob.ContainsKey("algo")) lastjob.Add("algo",mypc.DefaultAlgorithm);
-
-				string normalized;
-				if(!AlgorithmHelper.Normalize(lastjob["algo"].GetString(), out normalized))
-				{
-                    CConsole.ColorAlert(() => {
-						Console.WriteLine("Pool " + mypc.Url + " requests unknown algorithm: "+ lastjob["algo"].GetString());
-                        Console.WriteLine("Job ignored!");
-                    });
-
-                    return;
-                }
-
-				lastjob["algo"] = normalized;
+				if(!lastjob.ContainsKey("algo")) lastjob.Add("algo",mypc.DefaultAlgorithm);            
+				AlgorithmHelper.NormalizeAlgorithmAndVariant(lastjob);
                             
 				mypc.LastJob = lastjob;
 				mypc.LastInteraction = DateTime.Now;
@@ -229,26 +217,14 @@ namespace Server {
 
 				if (!VerifyJob (lastjob)) {
 					CConsole.ColorWarning(() =>
-						Console.WriteLine ("Failed to verify job: {0}", json));
+					Console.WriteLine ("Failed to verify job: {0}", json));
 					return;
 				}
                             
 				// extended stratum 
                 if (!lastjob.ContainsKey("variant")) lastjob.Add("variant", mypc.DefaultVariant);
                 if (!lastjob.ContainsKey("algo")) lastjob.Add("algo", mypc.DefaultAlgorithm);
-
-                string normalized;
-                if (!AlgorithmHelper.Normalize(lastjob["algo"].GetString(), out normalized))
-                {
-                    CConsole.ColorAlert(() => {
-                        Console.WriteLine("Pool " + mypc.Url + " requests unknown algorithm: " + lastjob["algo"].GetString());
-                        Console.WriteLine("Job ignored!");
-                    });
-
-                    return;
-                }
-
-                lastjob["algo"] = normalized;
+				AlgorithmHelper.NormalizeAlgorithmAndVariant(lastjob);
 
 				mypc.LastJob = lastjob;
 				mypc.LastInteraction = DateTime.Now;
