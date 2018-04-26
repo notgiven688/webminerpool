@@ -1047,12 +1047,12 @@ namespace Server {
                     }
 
                     CConsole.ColorInfo (() =>
-                        Console.WriteLine ("[{0}] heartbeat; connections client/pool: {1}/{2}; jobqueue: {3}k; speed total: {4}kH/s",
+                        Console.WriteLine ("[{0}] heartbeat; connections client/pool: {1}/{2}; jobqueue: {3}k; speed: {4}kH/s",
                             DateTime.Now.ToString (),
                             clients.Count,
                             PoolConnectionFactory.Connections.Count,
                             ((double) jobQueue.Count / 1000.0d).ToString ("F1"),
-                            ((double) totalSpeed / 1000.0d).ToString ("F2")));
+                            ((double) totalSpeed / 1000.0d).ToString ("F1")));
 
                     while (jobQueue.Count > JobCacheSize) {
                         string deq;
