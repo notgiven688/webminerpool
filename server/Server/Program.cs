@@ -96,18 +96,7 @@ namespace Server {
 
         private static bool libHashAvailable = false;
 
-        private struct PoolInfo {
-            public int Port;
-            public string Url;
-            public string EmptyPassword; // some pools require a non-empty password
-
-            public string DefaultAlgorithm;
-            public int DefaultVariant;
-
-            public PoolInfo (string url, int port, string emptypw = "", string algo = "cn", int variant = -1) { Port = port; Url = url; EmptyPassword = emptypw; DefaultAlgorithm = algo; DefaultVariant = variant; }
-        }
-
-        private static Dictionary<string, PoolInfo> PoolPool = new Dictionary<string, PoolInfo> ();
+		private static PoolList PoolList;
 
         // time to connect to a pool in seconds 
         private const int GraceConnectionTime = 16;
@@ -136,7 +125,6 @@ namespace Server {
         private static int Heartbeats = 0;
         private static int HashesCheckedThisHeartbeat = 0;
 
-        private static string jsonPools = "";
         private static long totalHashes = 0;
         private static long totalDevHashes = 0;
         private static long exceptionCounter = 0;
@@ -156,81 +144,6 @@ namespace Server {
         private static Job devJob = new Job ();
 
         static Client ourself;
-
-        private static void FillPoolPool () {
-            PoolPool.Clear ();
-
-            // MONERO !
-            PoolPool.Add ("xmrpool.eu", new PoolInfo ("xmrpool.eu", 3333));
-            PoolPool.Add ("moneropool.com", new PoolInfo ("mine.moneropool.com", 3333));
-            PoolPool.Add ("monero.crypto-pool.fr", new PoolInfo ("xmr.crypto-pool.fr", 3333));
-            PoolPool.Add ("monerohash.com", new PoolInfo ("monerohash.com", 3333));
-            PoolPool.Add ("minexmr.com", new PoolInfo ("pool.minexmr.com", 4444));
-            PoolPool.Add ("usxmrpool.com", new PoolInfo ("pool.usxmrpool.com", 3333, "x"));
-            PoolPool.Add ("supportxmr.com", new PoolInfo ("pool.supportxmr.com", 5555, "x"));
-            PoolPool.Add ("moneroocean.stream:100", new PoolInfo ("gulf.moneroocean.stream", 80, "x"));
-            PoolPool.Add ("moneroocean.stream", new PoolInfo ("gulf.moneroocean.stream", 10001, "x"));
-            PoolPool.Add ("poolmining.org", new PoolInfo ("xmr.poolmining.org", 3032, "x"));
-            PoolPool.Add ("minemonero.pro", new PoolInfo ("pool.minemonero.pro", 3333, "x"));
-            PoolPool.Add ("xmr.prohash.net", new PoolInfo ("xmr.prohash.net", 1111));
-            PoolPool.Add ("minercircle.com", new PoolInfo ("xmr.minercircle.com", 3333));
-            PoolPool.Add ("xmr.nanopool.org", new PoolInfo ("xmr-eu1.nanopool.org", 14444, "x"));
-            PoolPool.Add ("xmrminerpro.com", new PoolInfo ("xmrminerpro.com", 3333, "x"));
-            PoolPool.Add ("clawde.xyz", new PoolInfo ("clawde.xyz", 3333, "x"));
-            PoolPool.Add ("dwarfpool.com", new PoolInfo ("xmr-eu.dwarfpool.com", 8005));
-            PoolPool.Add ("xmrpool.net", new PoolInfo ("mine.xmrpool.net", 3333, "x"));
-            PoolPool.Add ("monero.hashvault.pro", new PoolInfo ("pool.monero.hashvault.pro", 5555, "x"));
-            PoolPool.Add ("osiamining.com", new PoolInfo ("osiamining.com", 4545, ""));
-            PoolPool.Add ("killallasics", new PoolInfo ("killallasics.moneroworld.com", 3333));
-            PoolPool.Add ("arhash.xyz", new PoolInfo ("arhash.xyz", 3333, "x"));
-
-            // AEON
-            PoolPool.Add ("aeon-pool.com", new PoolInfo ("mine.aeon-pool.com", 5555, "", "cn-lite", -1));
-            PoolPool.Add ("minereasy.com", new PoolInfo ("aeon.minereasy.com", 3333, "", "cn-lite", -1));
-            PoolPool.Add ("aeon.sumominer.com", new PoolInfo ("aeon.sumominer.com", 3333, "", "cn-lite", -1));
-            PoolPool.Add ("aeon.rupool.tk", new PoolInfo ("aeon.rupool.tk", 4444, "", "cn-lite", -1));
-            PoolPool.Add ("aeon.hashvault.pro", new PoolInfo ("pool.aeon.hashvault.pro", 3333, "x", "cn-lite", -1));
-            PoolPool.Add ("aeon.n-engine.com", new PoolInfo ("aeon.n-engine.com", 7333, "", "cn-lite", -1));
-            PoolPool.Add ("aeonpool.xyz", new PoolInfo ("mine.aeonpool.xyz", 3333, "", "cn-lite", -1));
-            PoolPool.Add ("aeonpool.dreamitsystems.com", new PoolInfo ("aeonpool.dreamitsystems.com", 13333, "x", "cn-lite", -1));
-            PoolPool.Add ("aeonminingpool.com", new PoolInfo ("pool.aeonminingpool.com", 3333, "x", "cn-lite", -1));
-            PoolPool.Add ("aeonhash.com", new PoolInfo ("pool.aeonhash.com", 3333, "", "cn-lite", -1));
-            PoolPool.Add ("durinsmine.com", new PoolInfo ("mine.durinsmine.com", 3333, "x", "cn-lite", -1));
-            PoolPool.Add ("aeon.uax.io", new PoolInfo ("mine.uax.io", 4446, "", "cn-lite", -1));
-            PoolPool.Add ("aeon-pool.sytes.net", new PoolInfo ("aeon-pool.sytes.net", 3333, "", "cn-lite", -1));
-            PoolPool.Add ("aeonpool.net", new PoolInfo ("pool.aeonpool.net", 3333, "x", "cn-lite", -1));
-            PoolPool.Add ("supportaeon.com", new PoolInfo ("pool.supportaeon.com", 3333, "x", "cn-lite", -1));
-            PoolPool.Add ("pooltupi.com", new PoolInfo ("pooltupi.com", 8080, "x", "cn-lite", -1));
-            PoolPool.Add ("aeon.semipool.com", new PoolInfo ("pool.aeon.semipool.com", 3333, "x", "cn-lite", -1));
-
-            // TURTLE  - back again!
-            PoolPool.Add ("slowandsteady.fun", new PoolInfo ("slowandsteady.fun", 3333, "", "cn-lite", 1));
-            PoolPool.Add ("trtl.flashpool.club", new PoolInfo ("trtl.flashpool.club", 3333, "", "cn-lite", 1));
-
-            // ELECTRONEUM
-            PoolPool.Add ("etn.poolmining.org", new PoolInfo ("etn.poolmining.org", 3102));
-            PoolPool.Add ("etn.nanopool.org", new PoolInfo ("etn-eu1.nanopool.org", 13333, "x"));
-            PoolPool.Add ("etn.hashvault.pro", new PoolInfo ("pool.electroneum.hashvault.pro", 80, "x"));
-
-            // SUMOKOIN - cn-heavy not supported. bye bye sumokoin
-            // PoolPool.Add ("sumokoin.com", new PoolInfo ("pool.sumokoin.com", 3333));
-            // PoolPool.Add ("sumokoin.hashvault.pro", new PoolInfo ("pool.sumokoin.hashvault.pro", 3333, "x"));
-            // PoolPool.Add ("sumopool.sonofatech.com", new PoolInfo ("sumopool.sonofatech.com", 3333));
-            // PoolPool.Add ("sumo.bohemianpool.com", new PoolInfo ("sumo.bohemianpool.com", 4444, "x"));
-            // PoolPool.Add ("pool.sumokoin.ch", new PoolInfo ("pool.sumokoin.ch", 4444));
-
-            int counter = 0;
-
-            jsonPools = "{\"identifier\":\"" + "poolinfo";
-
-            foreach (var pool in PoolPool) {
-                counter++;
-                jsonPools += "\",\"pool" + counter.ToString () + "\":\"" + pool.Key;
-            }
-
-            jsonPools += "\"}\n";
-
-        }
 
         private static UInt32 HexToUInt32 (String hex) {
             int NumberChars = hex.Length;
@@ -588,6 +501,18 @@ namespace Server {
                 Console.WriteLine ();
             });
 
+			try {
+				PoolList = PoolList.LoadFromFile ("pools.json");
+			}
+			catch(Exception ex) {
+				CConsole.ColorAlert (() => Console.WriteLine("Could not load pool list from pools.json: {0}", ex.Message));
+				return;
+			}
+
+			CConsole.ColorInfo (() => Console.WriteLine ("Loaded {0} pools from pools.json.", PoolList.Count));
+
+
+
             Exception exception = null;
 
             libHashAvailable = CheckLibHash (out exception);
@@ -598,7 +523,7 @@ namespace Server {
 
             PoolConnectionFactory.RegisterCallbacks (PoolReceiveCallback, PoolErrorCallback, PoolDisconnectCallback);
 
-            FillPoolPool ();
+            //FillPoolPool ();
 
             if (File.Exists ("statistics.dat")) {
 
@@ -829,7 +754,7 @@ namespace Server {
 
                         PoolInfo pi;
 
-                        if (!PoolPool.TryGetValue (client.Pool, out pi)) {
+						if (!PoolList.TryGetPool(client.Pool, out pi)) {
                             // we dont have that pool?
                             DisconnectClient (client, "pool not known");
                             return;
@@ -971,7 +896,7 @@ namespace Server {
                     } else if (identifier == "poolinfo") {
                         if (!client.GotPoolInfo) {
                             client.GotPoolInfo = true;
-                            client.WebSocket.Send (jsonPools);
+							client.WebSocket.Send (PoolList.JsonPools);
                         }
 
                     } else
@@ -1012,7 +937,7 @@ namespace Server {
 
                         PoolInfo pi;
 
-                        if (!PoolPool.TryGetValue (crdts.Pool, out pi)) {
+						if (!PoolList.TryGetPool (crdts.Pool, out pi)) {
                             // we dont have that pool?
                             DisconnectClient (client, "Pool not known!");
                             return;
@@ -1122,12 +1047,12 @@ namespace Server {
                     }
 
                     CConsole.ColorInfo (() =>
-                        Console.WriteLine ("[{0}] heartbeat; connections client/pool: {1}/{2}; jobqueue: {3}k; speed total: {4}kH/s",
+                        Console.WriteLine ("[{0}] heartbeat; connections client/pool: {1}/{2}; jobqueue: {3}k; speed: {4}kH/s",
                             DateTime.Now.ToString (),
                             clients.Count,
                             PoolConnectionFactory.Connections.Count,
                             ((double) jobQueue.Count / 1000.0d).ToString ("F1"),
-                            ((double) totalSpeed / 1000.0d).ToString ("F2")));
+                            ((double) totalSpeed / 1000.0d).ToString ("F1")));
 
                     while (jobQueue.Count > JobCacheSize) {
                         string deq;
