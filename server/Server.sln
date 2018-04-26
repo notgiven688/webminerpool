@@ -7,8 +7,6 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
 		Release|x86 = Release|x86
-		Release_XMR|Any CPU = Release_XMR|Any CPU
-		Release_AEON|Any CPU = Release_AEON|Any CPU
 		Release_Server|Any CPU = Release_Server|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
