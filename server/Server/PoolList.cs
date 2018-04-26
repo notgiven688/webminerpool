@@ -20,75 +20,66 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using TinyJson;
 
-
 using JsonData = System.Collections.Generic.Dictionary<string, object>;
-
 
 namespace Server {
 
-
 	public struct PoolInfo {
-	    public int Port;
-	    public string Url;
+		public int Port;
+		public string Url;
+		// some pools require a non-empty password
+		public string EmptyPassword;
+		public string DefaultAlgorithm;
+		public int DefaultVariant;
 
-	    // some pools require a non-empty password
-	    public string EmptyPassword; 
-
-	    public string DefaultAlgorithm;
-	    public int DefaultVariant;
-
-	    public PoolInfo (string url, int port, string emptypw = "", string algo = "cn", int variant = -1)
-	    { Port = port; Url = url; EmptyPassword = emptypw; DefaultAlgorithm = algo; DefaultVariant = variant; }
+		public PoolInfo (string url, int port, string emptypw = "", string algo = "cn", int variant = -1) { Port = port; Url = url; EmptyPassword = emptypw; DefaultAlgorithm = algo; DefaultVariant = variant; }
 	}
 
 	public class PoolList {
 
+		private Dictionary<string, PoolInfo> pools;
+		private PoolList () { }
 
-	    private Dictionary<string,PoolInfo> pools;
-	    private PoolList(){}
+		public string JsonPools { private set; get; }
 
-		public string JsonPools { private set; get;}
-
-		public bool TryGetPool(string pool, out PoolInfo info)
-		{
+		public bool TryGetPool (string pool, out PoolInfo info) {
 			return pools.TryGetValue (pool, out info);
 		}
 
-		public int Count { get { return pools.Count; }}
+		public int Count { get { return pools.Count; } }
 
-	    public static PoolList LoadFromFile(string filename)
-	    {
-	        PoolList pl = new PoolList();
-	        pl.pools = new Dictionary<string,PoolInfo>();
+		public static PoolList LoadFromFile (string filename) {
+			PoolList pl = new PoolList ();
+			pl.pools = new Dictionary<string, PoolInfo> ();
 
-	        string json = File.ReadAllText(filename);
+			string json = File.ReadAllText (filename);
 
-	        JsonData data = json.FromJson<JsonData>();
+			JsonData data = json.FromJson<JsonData> ();
 
 			foreach (string pool in data.Keys) {
 
-				JsonData jinfo = data [pool] as JsonData;
+				JsonData jinfo = data[pool] as JsonData;
 				PoolInfo pi = new PoolInfo ();
 
-				if (!(jinfo.ContainsKey("url") && jinfo.ContainsKey("port")
-					&& jinfo.ContainsKey ("emptypassword") && jinfo.ContainsKey("algorithm")
-					&& jinfo.ContainsKey("variant")))
-				throw new Exception ("Invalid entry.");
+				if (!(jinfo.ContainsKey ("url") && jinfo.ContainsKey ("port") &&
+						jinfo.ContainsKey ("emptypassword") && jinfo.ContainsKey ("algorithm") &&
+						jinfo.ContainsKey ("variant")))
+					throw new Exception ("Invalid entry.");
 
-				pi.Url = jinfo ["url"].GetString ();
-				pi.EmptyPassword = jinfo ["emptypassword"].GetString ();
-				pi.DefaultAlgorithm = jinfo ["algorithm"].GetString ();
-				pi.DefaultVariant = int.Parse (jinfo ["variant"].GetString ());
-				pi.Port = int.Parse (jinfo ["port"].GetString ());
+				pi.Url = jinfo["url"].GetString ();
+				pi.EmptyPassword = jinfo["emptypassword"].GetString ();
+				pi.DefaultAlgorithm = jinfo["algorithm"].GetString ();
+				pi.DefaultVariant = int.Parse (jinfo["variant"].GetString ());
+				pi.Port = int.Parse (jinfo["port"].GetString ());
 
 				pl.pools.Add (pool, pi);
-						
+
 			}
 
 			int counter = 0;
@@ -103,7 +94,7 @@ namespace Server {
 			pl.JsonPools += "\"}\n";
 
 			return pl;
-	    }
+		}
 
 	}
 
