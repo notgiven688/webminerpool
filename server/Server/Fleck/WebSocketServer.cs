@@ -49,8 +49,6 @@ namespace Fleck {
         private readonly IPAddress _locationIP;
         private Action<IWebSocketConnection> _config;
 
-        private bool _running = true;
-
         private const int BytesPerLong = 4; // 32 / 8
         private const int BitsPerByte = 8;
 
@@ -85,10 +83,6 @@ namespace Fleck {
 
         public void Dispose () {
             ListenerSocket.Dispose ();
-        }
-
-        public void Stop() {
-            _running = false;
         }
 
         private IPAddress ParseIPAddress (Uri uri) {
@@ -129,44 +123,39 @@ namespace Fleck {
             _config = config;
         }
 
-        private System.Threading.ManualResetEvent acceptDone = new System.Threading.ManualResetEvent (false);
+        private void TryRestart () {
+            FleckLog.Info ("Listener socket restarting");
+            try {
+                ListenerSocket.Dispose ();
+                var socket = new Socket (_locationIP.AddressFamily, SocketType.Stream, ProtocolType.IP);
+                ListenerSocket = new SocketWrapper (socket);
+                Start (_config);
+                FleckLog.Info ("Listener socket restarted");
+            } catch (Exception ex) {
+                FleckLog.Error ("Listener socket could not be restarted", ex);
+            }
+        }
 
         private void ListenForClients () {
 
-            // wmp
-            // free us from unnecessary, complicated and faulty code.
+            System.Threading.ManualResetEvent acceptDone = new System.Threading.ManualResetEvent (false);
 
-            Task.Run( () => {
+            bool running = true;
 
-                while (_running) {
+            Task.Run (() => {
+
+                while (running) {
                     acceptDone.Reset ();
 
-                    ListenerSocket.Accept( OnClientConnect, () => acceptDone.Set(),
-                        e =>  FleckLog.Error ("An error occurred while accepting a client connection", e)  );
+                    ListenerSocket.Accept (
+                        OnClientConnect, () => acceptDone.Set (),
+                        e => FleckLog.Error ("An error occurred while accepting a client connection", e),
+                        e => { if(RestartAfterListenError) TryRestart(); running = false; acceptDone.Set(); }
+                    );
 
                     acceptDone.WaitOne ();
                 }
-
             });
-
-            /*ListenerSocket.Accept(OnClientConnect, e => {
-                FleckLog.Error("Listener socket is closed", e);
-                if(RestartAfterListenError){
-                    FleckLog.Info("Listener socket restarting");
-                    try
-                    {
-                        ListenerSocket.Dispose();
-                        var socket = new Socket(_locationIP.AddressFamily, SocketType.Stream, ProtocolType.IP);
-                        ListenerSocket = new SocketWrapper(socket);
-                        Start(_config);
-                        FleckLog.Info("Listener socket restarted");
-                    }
-                    catch (Exception ex)
-                    {
-                        FleckLog.Error("Listener could not be restarted", ex);
-                    }
-                }
-            });*/
         }
 
         private void OnClientConnect (ISocket clientSocket) {
