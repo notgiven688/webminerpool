@@ -36,7 +36,6 @@ The SDK directory contains all client side mining scripts which allow mining in 
 <body>
 
 <script src="https://webminerpool.com/webmr.js"></script>
-<!-- for aeon use: https://webminerpool.com/aeon/webmr.js -->
 
 <script>
 	startMining("minexmr.com","49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU"); 
@@ -142,7 +141,7 @@ should change this limit if you want to have more connections.
 
 ### hash_cn
 
-The monero/aeon cryptonight hashing functions in C-code. With simple Makefiles (use the "make" command to compile) for use with gcc and emcc - the [emscripten](https://github.com/kripken/emscripten) webassembly compiler. *libhash* should be compiled so that the server can check hashes calculated by the user.
+The cryptonight hashing functions in C-code. With simple Makefiles (use the "make" command to compile) for use with gcc and emcc - the [emscripten](https://github.com/kripken/emscripten) webassembly compiler. *libhash* should be compiled so that the server can check hashes calculated by the user.
 
 # ToDo
 
