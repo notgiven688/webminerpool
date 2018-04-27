@@ -150,7 +150,12 @@ namespace Fleck {
                     ListenerSocket.Accept (
                         OnClientConnect, () => acceptDone.Set (),
                         e => FleckLog.Error ("An error occurred while accepting a client connection", e),
-                        e => { if(RestartAfterListenError) TryRestart(); running = false; acceptDone.Set(); }
+                        e =>
+                        { 
+                            FleckLog.Error ("Error while listening for new clients", e);
+                            if(RestartAfterListenError) TryRestart(); 
+                            running = false; acceptDone.Set(); 
+                        }
                     );
 
                     acceptDone.WaitOne ();
