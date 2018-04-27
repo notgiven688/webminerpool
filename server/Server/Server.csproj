@@ -88,7 +88,8 @@
     <Compile Include="AlgorithmHelper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="pools.json">
+    <None Include="..\pools.json">
+      <Link>pools.json</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
