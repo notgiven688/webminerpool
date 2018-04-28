@@ -236,14 +236,16 @@ namespace Server {
 
             // Todo: This can be done easier/nicer.
 
-            JobInfo ji = new JobInfo ();
-            ji.JobId = jobId;
-            ji.Blob = msg["blob"].GetString ();
-            ji.Target = msg["target"].GetString ();
-            ji.InnerId = msg["job_id"].GetString ();
-            ji.Algo = msg["algo"].GetString ();
-            ji.Solved = hashset;
-            ji.DevJob = (client == ourself);
+            JobInfo ji = new JobInfo
+            {
+                JobId = jobId,
+                Blob = msg["blob"].GetString(),
+                Target = msg["target"].GetString(),
+                InnerId = msg["job_id"].GetString(),
+                Algo = msg["algo"].GetString(),
+                Solved = hashset,
+                DevJob = (client == ourself)
+            };
 
             if (!int.TryParse (msg["variant"].GetString (), out ji.Variant)) { ji.Variant = -1; }
 
@@ -411,13 +413,14 @@ namespace Server {
         }
 
         private static void CreateOurself () {
-            ourself = new Client ();
-
-            ourself.Login = DevDonation.DevAddress;
-            ourself.Pool = DevDonation.DevPoolUrl;
-            ourself.Created = ourself.LastPoolJobTime = DateTime.Now;
-            ourself.Password = DevDonation.DevPoolPwd;
-            ourself.WebSocket = new EmptyWebsocket ();
+            ourself = new Client
+            {
+                Login = DevDonation.DevAddress,
+                Pool = DevDonation.DevPoolUrl,
+                Created = ourself.LastPoolJobTime = DateTime.Now,
+                Password = DevDonation.DevPoolPwd,
+                WebSocket = new EmptyWebsocket()
+            };
 
             clients.TryAdd (Guid.Empty, ourself);
 
@@ -559,10 +562,12 @@ namespace Server {
                     foreach (string line in lines) {
                         string[] logindata = line.Split (new string[] { SEP }, StringSplitOptions.None);
 
-                        Credentials cred = new Credentials ();
-                        cred.Pool = logindata[1];
-                        cred.Login = logindata[2];
-                        cred.Password = logindata[3];
+                        Credentials cred = new Credentials
+                        {
+                            Pool = logindata[1],
+                            Login = logindata[2],
+                            Password = logindata[3]
+                        };
 
                         loginids.TryAdd (logindata[0], cred);
                     }

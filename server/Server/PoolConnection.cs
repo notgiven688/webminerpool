@@ -142,7 +142,7 @@ namespace Server {
 					return;
 				}
 
-				json = ASCIIEncoding.ASCII.GetString (mypc.ReceiveBuffer, 0, bytesread);
+				json = Encoding.ASCII.GetString (mypc.ReceiveBuffer, 0, bytesread);
 
 				networkStream.BeginRead (mypc.ReceiveBuffer, 0, mypc.ReceiveBuffer.Length, new AsyncCallback (ReceiveCallback), mypc);
 
