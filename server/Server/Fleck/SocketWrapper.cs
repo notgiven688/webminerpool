@@ -175,8 +175,8 @@ namespace Fleck
                 return null;
             }
         }
-        
-		public Task Accept(Action<ISocket> callback, Action<Exception> error)
+
+        public Task Accept(Action<ISocket> callback, Action<Exception> error)
         {
             Func<IAsyncResult, ISocket> end = r => _tokenSource.Token.IsCancellationRequested ? null : new SocketWrapper(_socket.EndAccept(r));
             var task = _taskFactory.FromAsync(_socket.BeginAccept, end, null);
