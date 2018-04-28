@@ -40,6 +40,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Fleck.Helpers;
 
@@ -123,42 +124,52 @@ namespace Fleck {
             _config = config;
         }
 
-        private void TryRestart () {
-            FleckLog.Info ("Listener socket restarting");
-            try {
-                ListenerSocket.Dispose ();
-                var socket = new Socket (_locationIP.AddressFamily, SocketType.Stream, ProtocolType.IP);
-                ListenerSocket = new SocketWrapper (socket);
-                Start (_config);
-                FleckLog.Info ("Listener socket restarted");
-            } catch (Exception ex) {
-                FleckLog.Error ("Listener socket could not be restarted", ex);
+		private void TryRestart()
+        {
+            FleckLog.Info("Listener socket restarting");
+            try
+            {
+                ListenerSocket.Dispose();
+                var socket = new Socket(_locationIP.AddressFamily, SocketType.Stream, ProtocolType.IP);
+                ListenerSocket = new SocketWrapper(socket);
+                Start(_config);
+                FleckLog.Info("Listener socket restarted");
+            }
+            catch (Exception ex)
+            {
+                FleckLog.Error("Listener socket could not be restarted", ex);
             }
         }
 
-        private void ListenForClients () {
-
-            System.Threading.ManualResetEvent acceptDone = new System.Threading.ManualResetEvent (false);
-
+        private void ListenForClients()
+        {
+            ManualResetEvent acceptDone = new ManualResetEvent(false);
             bool running = true;
 
-            Task.Run (() => {
+            Task.Run(() => {
 
-                while (running) {
-                    acceptDone.Reset ();
+                while (running)
+                {
 
-                    ListenerSocket.Accept (
-                        OnClientConnect, () => acceptDone.Set (),
-                        e => FleckLog.Error ("An error occurred while accepting a client connection", e),
-                        e =>
-                        { 
-                            FleckLog.Error ("Error while listening for new clients", e);
-                            if(RestartAfterListenError) TryRestart(); 
-                            running = false; acceptDone.Set(); 
-                        }
-                    );
+                    acceptDone.Reset();
 
-                    acceptDone.WaitOne ();
+                    var task = ListenerSocket.Accept(
+                      s => {
+                          running = (s != null);
+                          acceptDone.Set();
+                          OnClientConnect(s);
+                      },
+                      e => {
+                          FleckLog.Error("Error while listening for new clients", e);
+                          if (RestartAfterListenError) TryRestart();
+                          running = false; acceptDone.Set();
+                      }
+                      );
+
+                    task.ContinueWith((t) => FleckLog.Warn("Error during client connect", t.Exception),
+                                       TaskContinuationOptions.OnlyOnFaulted);
+
+                    acceptDone.WaitOne();
                 }
             });
         }
