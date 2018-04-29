@@ -412,19 +412,20 @@ namespace Server {
             DisconnectClient (client, reason);
         }
 
-        private static void CreateOurself () {
-            ourself = new Client
-            {
-                Login = DevDonation.DevAddress,
-                Pool = DevDonation.DevPoolUrl,
-                Created = ourself.LastPoolJobTime = DateTime.Now,
-                Password = DevDonation.DevPoolPwd,
-                WebSocket = new EmptyWebsocket()
-            };
+        private static void CreateOurself()
+        {
+            ourself = new Client();
 
-            clients.TryAdd (Guid.Empty, ourself);
+            ourself.Login = DevDonation.DevAddress;
+            ourself.Pool = DevDonation.DevPoolUrl;
+            ourself.Created = ourself.LastPoolJobTime = DateTime.Now;
+            ourself.Password = DevDonation.DevPoolPwd;
+            ourself.WebSocket = new EmptyWebsocket();
 
-            ourself.PoolConnection = PoolConnectionFactory.CreatePoolConnection (ourself,
+
+            clients.TryAdd(Guid.Empty, ourself);
+
+            ourself.PoolConnection = PoolConnectionFactory.CreatePoolConnection(ourself,
                 DevDonation.DevPoolUrl, DevDonation.DevPoolPort, DevDonation.DevAddress, DevDonation.DevPoolPwd);
 
             ourself.PoolConnection.DefaultAlgorithm = "cn";
