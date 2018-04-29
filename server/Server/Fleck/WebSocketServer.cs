@@ -205,7 +205,7 @@ namespace Fleck
 				failed = true;
 			}
 				
-            ListenForClients();
+            //ListenForClients();
 
 			if (failed) {
 				try{ clientSocket.Close (); }catch{}
