@@ -35,7 +35,6 @@
     <OutputPath>bin\Release_Server</OutputPath>
     <WarningLevel>4</WarningLevel>
     <Externalconsole>true</Externalconsole>
-    <DebugSymbols>false</DebugSymbols>
     <DebugType>none</DebugType>
   </PropertyGroup>
   <ItemGroup>
