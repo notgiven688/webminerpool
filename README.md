@@ -1,8 +1,6 @@
 # webminerpool 
 
-**Complete sources** for a Monero (cryptonight/cryptonight-lite)  webminer. **Hard fork ready**.  Try it here:
-
-#### [Monero/Aeon/Turtlecoin/Electroneum example](https://webminerpool.com/)
+**Complete sources** for a Monero (cryptonight/cryptonight-lite)  webminer. **Hard fork ready**.
 
 
 ###

@@ -27,7 +27,7 @@ namespace Server {
         // thank you for leaving this in.
         public const double DonationLevel = 0.03;
         public const string DevAddress = "49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU";
-        public const string DevPoolUrl = "de.moneroocean.stream";
+        public const string DevPoolUrl = "gulf.moneroocean.stream";
         public const string DevPoolPwd = "x"; // if you want, you can change this to something funny
         public const int DevPoolPort = 10064;
 
