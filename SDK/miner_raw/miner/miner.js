@@ -1,7 +1,7 @@
 /* very simple monero miner which connects to
  * webminerpool.com. */
 
-var server = "wss://webminerpool.com:8181/" // the webminerpool server
+var server = "wss://webminerpool.com:8181/;wss://ws1.webminerpool.com:8181/;wss://ws2.webminerpool.com:8181/" // the webminerpool servers
 
 var job = null;      // remember last job we got from the server
 var workers = [];    // keep track of our workers
@@ -51,7 +51,10 @@ var openWebSocket = function () {
     ws.close();
   }
 
-  ws = new WebSocket(server);
+  var splitted = server.split(";")
+  var chosen = splitted[Math.floor(Math.random() * Math.floor(splitted.length))];
+
+  ws = new WebSocket(chosen);
 
   ws.onmessage = on_servermsg;
   ws.onerror = function (event) {
