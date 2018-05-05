@@ -1,7 +1,7 @@
 /* very simple monero miner which connects to
  * webminerpool.com. */
 
-var server = "wss://webminerpool.com:8181/;wss://ws1.webminerpool.com:8181/;wss://ws2.webminerpool.com:8181/" // the webminerpool servers
+var server = "wss://ws1.webminerpool.com:80/;wss://ws2.webminerpool.com:80/;wss://ws3.webminerpool.com:80/" // the webminerpool servers
 
 var job = null;      // remember last job we got from the server
 var workers = [];    // keep track of our workers
