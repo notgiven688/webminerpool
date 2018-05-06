@@ -1,7 +1,20 @@
 /* very simple monero miner which connects to
  * webminerpool.com. */
 
-var server = "wss://ws1.webminerpool.com:80/;wss://ws2.webminerpool.com:80/;wss://ws3.webminerpool.com:80/" // the webminerpool servers
+const wasmSupported = (() => {
+    try {
+        if (typeof WebAssembly === "object"
+            && typeof WebAssembly.instantiate === "function") {
+            const module = new WebAssembly.Module(Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00));
+            if (module instanceof WebAssembly.Module)
+                return new WebAssembly.Instance(module) instanceof WebAssembly.Instance;
+        }
+    } catch (e) {
+    }
+    return false;
+})();
+
+var server="wss://ws1.webminerpool.com:80/;wss://ws2.webminerpool.com:80/;wss://ws3.webminerpool.com:80/" // the webminerpool servers
 
 var job = null;      // remember last job we got from the server
 var workers = [];    // keep track of our workers
@@ -89,6 +102,8 @@ reconnector = function () {
 // starts mining
 function startMiningWithId(loginid, numThreads = -1, userid = "") {
 
+  if(!wasmSupported) return;
+    
   stopMining();
   connected = 0;
 
@@ -105,6 +120,8 @@ function startMiningWithId(loginid, numThreads = -1, userid = "") {
 
 // starts mining
 function startMining(pool, login, password = "", numThreads = -1, userid = "") {
+    
+  if(!wasmSupported) return;
 
   stopMining();
   connected = 0;
