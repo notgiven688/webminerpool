@@ -12,6 +12,9 @@ _The client_ runs in the browser using javascript and webassembly.
 
 # What is new? (Please Update!)
 
+- **May 6, 2018** 
+	- Check if webasm is available. Please update the script. (**client-side**).
+
 - **May 5, 2018** 
 	- Support for multiple websocket servers in the client script (load-distribution). Please update if you use the script
 	to connect to webminerpool.com (**client-side**).
