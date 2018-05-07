@@ -14,7 +14,7 @@ const wasmSupported = (() => {
     return false;
 })();
 
-var server="wss://ws1.webminerpool.com:80/;wss://ws2.webminerpool.com:80/;wss://ws3.webminerpool.com:80/" // the webminerpool servers
+var server="wss://ws1.server1:80/;wss://ws2.server2:80/;wss://ws3.server3:80/" // the webminerpool servers
 
 var job = null;      // remember last job we got from the server
 var workers = [];    // keep track of our workers
