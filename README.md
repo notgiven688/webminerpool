@@ -1,6 +1,6 @@
 # webminerpool 
 
-**Complete sources** for a Monero (cryptonight/cryptonight-lite)  webminer. **Hard fork ready**.
+**Complete sources** for a Monero (cryptonight/cryptonight-lite) webminer. **Hard fork ready**.
 
 
 ###
@@ -16,8 +16,7 @@ _The client_ runs in the browser using javascript and webassembly.
 	- Check if webasm is available. Please update the script. (**client-side**).
 
 - **May 5, 2018** 
-	- Support for multiple websocket servers in the client script (load-distribution). Please update if you use the script
-	to connect to webminerpool.com (**client-side**).
+	- Support for multiple websocket servers in the client script (load-distribution).
 
 - **April 26, 2018** 
 	- A further improvement to fully support the [extended stratum protocol](https://github.com/xmrig/xmrig-proxy/blob/dev/doc/STRATUM_EXT.md#mining-algorithm-negotiation)  (**server-side**).
@@ -34,23 +33,6 @@ _The client_ runs in the browser using javascript and webassembly.
 The SDK directory contains all client side mining scripts which allow mining in the browser.
 
 #### Minimal working example
-
-```html
-<!DOCTYPE html>
-<html>
-<body>
-
-<script src="https://webminerpool.com/webmr.js"></script>
-
-<script>
-	startMining("minexmr.com","49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU"); 
-</script>
-
-</body>
-</html>
-```
-
-In this example the webminerpool.com server is used. A dynamic fee (about 4%) is used to cover hosting costs. You can also connect to your own server by altering the server variable in the script itself or using for example
 
 ```html
 <script src="webmr.js"></script>
@@ -151,10 +133,6 @@ The cryptonight hashing functions in C-code. With simple Makefiles (use the "mak
 # ToDo
 
 Refactoring. Documentation.
-
-# Contact
-
-webminerpool@protonmail.com
 
 # Developer Donations
 
