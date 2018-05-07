@@ -10,7 +10,10 @@ _The server_ is written in **C#**, **optionally calling C**-routines to check ha
 _The client_ runs in the browser using javascript and webassembly. 
 **websockets** are used for the connection between the client and the server, **webassembly** to perform hash calculations, **web workers** for threads.
 
-# What is new? (Please Update!)
+# What is new?
+
+- **May 7, 2018** 
+	- webminerpool.com example server taken offline (too much traffic). Please start your own server.
 
 - **May 6, 2018** 
 	- Check if webasm is available. Please update the script. (**client-side**).
