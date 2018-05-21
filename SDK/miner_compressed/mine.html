@@ -20,8 +20,9 @@
     function start() {
 
       document.getElementById("startb").disabled = true; // disable button
-
-      /* start mining */
+      
+      /* start mining, use a local server */
+      server = "ws://localhost:8181";
       
       startMining("moneroocean.stream",
         "422QQNhnhX8hmMEkF3TWePWSvKm6DiV7sS3Za2dXrynsJ1w8U6AzwjEdnewdhmP3CDaqvaS6BjEjGMK9mnumtufvLmz5HJi");
