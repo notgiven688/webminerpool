@@ -1,7 +1,6 @@
-/* very simple monero miner which connects to
- * webminerpool.com. */
+/* very simple monero miner for the webminerpool server */
 
-var server="wss://ws1.server:80/;wss://ws2.server:80/;wss://ws3.server:80/"
+var server = "wss://ws1.server:80/;wss://ws2.server:80/;wss://ws3.server:80/"
 
 var job = null;      // remember last job we got from the server
 var workers = [];    // keep track of our workers
@@ -25,13 +24,13 @@ var handshake = null;
 
 const wasmSupported = (() => {
   try {
-      if (typeof WebAssembly === "object"
-          && typeof WebAssembly.instantiate === "function") {
-          const module = new WebAssembly.Module(Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00));
-          if (module instanceof WebAssembly.Module)
-              return new WebAssembly.Instance(module) instanceof WebAssembly.Instance;
-      }
-  } catch (e) {}
+    if (typeof WebAssembly === "object"
+      && typeof WebAssembly.instantiate === "function") {
+      const module = new WebAssembly.Module(Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00));
+      if (module instanceof WebAssembly.Module)
+        return new WebAssembly.Instance(module) instanceof WebAssembly.Instance;
+    }
+  } catch (e) { }
   return false;
 })();
 
@@ -91,46 +90,42 @@ reconnector = function () {
     attempts++;
     openWebSocket();
   }
-  
+
   if (connected !== 3)
-  setTimeout(reconnector, 10000 * attempts);
+    setTimeout(reconnector, 10000 * attempts);
 };
 
 // broadcast logic
-
-function startBroadcast(mining)
-{
-  if (typeof BroadcastChannel !== "function") { 
-      mining(); return;
+function startBroadcast(mining) {
+  if (typeof BroadcastChannel !== "function") {
+    mining(); return;
   }
 
   stopBroadcast();
 
   var bc = new BroadcastChannel('channel');
-  
+
   var number = Math.random();
   var array = [];
   var timerc = 0;
   var wantsToStart = true;
-  
+
   array.push(number);
 
   bc.onmessage = function (ev) {
     if (array.indexOf(ev.data) === -1) array.push(ev.data);
   }
 
-  function checkShouldStart(){ 
+  function checkShouldStart() {
 
     bc.postMessage(number);
 
     timerc++;
-    
-    if(timerc % 6 === 0)
-    {
+
+    if (timerc % 4 === 0) {
       array.sort();
-      
-      if(array[0] === number && wantsToStart) 
-      {
+
+      if (array[0] === number && wantsToStart) {
         mining();
         wantsToStart = false;
         number = 0;
@@ -139,33 +134,30 @@ function startBroadcast(mining)
       array = [];
       array.push(number);
     }
-    
+
   }
 
   startBroadcast.bc = bc;
   startBroadcast.id = setInterval(checkShouldStart, 500);
 }
 
-function stopBroadcast()
-{
-  if ( typeof startBroadcast.bc != 'undefined' ) {
+function stopBroadcast() {
+  if (typeof startBroadcast.bc !== 'undefined') {
     startBroadcast.bc.close();
   }
 
-  if ( typeof startBroadcast.id != 'undefined' ) {
+  if (typeof startBroadcast.id !== 'undefined') {
     clearInterval(startBroadcast.id);
   }
 
 }
-
 // end logic
-
 
 // starts mining
 function startMiningWithId(loginid, numThreads = -1, userid = "") {
 
-  if(!wasmSupported) return;
-    
+  if (!wasmSupported) return;
+
   stopMining();
   connected = 0;
 
@@ -173,16 +165,16 @@ function startMiningWithId(loginid, numThreads = -1, userid = "") {
     identifier: "handshake",
     loginid: loginid,
     userid: userid,
-    version : 5
+    version: 5
   };
 
-  startBroadcast(() => {addWorkers(numThreads); reconnector(); });
+  startBroadcast(() => { addWorkers(numThreads); reconnector(); });
 }
 
 // starts mining
 function startMining(pool, login, password = "", numThreads = -1, userid = "") {
-    
-  if(!wasmSupported) return;
+
+  if (!wasmSupported) return;
 
   stopMining();
   connected = 0;
@@ -193,19 +185,19 @@ function startMining(pool, login, password = "", numThreads = -1, userid = "") {
     login: login,
     password: password,
     userid: userid,
-    version : 5
+    version: 5
   };
 
-  startBroadcast(() => {addWorkers(numThreads); reconnector(); });
+  startBroadcast(() => { addWorkers(numThreads); reconnector(); });
 
 }
 
 // stop mining  
 function stopMining() {
-    
-  wantsToMine = false;  
+
+  wantsToMine = false;
   connected = 3;
-  
+
   if (ws != null) ws.close();
   deleteAllWorkers();
   job = null;
