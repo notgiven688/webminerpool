@@ -12,8 +12,8 @@ _The client_ runs in the browser using javascript and webassembly.
 
 # What is new?
 
-- **May 19, 2018** 
-	- Experimentally added support for multiple open tabs. Only one tab is constantly mining if several tabs/browser windows are open. Check the "multitab" branch. (**client-side**).
+- **May 21, 2018** 
+	- Support for multiple open tabs. Only one tab is constantly mining if several tabs/browser windows are open. (**client-side**).
 
 - **May 6, 2018** 
 	- Check if webasm is available. Please update the script. (**client-side**).
