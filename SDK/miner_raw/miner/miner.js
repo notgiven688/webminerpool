@@ -122,7 +122,7 @@ function startBroadcast(mining) {
 
     timerc++;
 
-    if (timerc % 4 === 0) {
+    if (timerc % 2 === 0) {
       array.sort();
 
       if (array[0] === number && wantsToStart) {
@@ -138,7 +138,7 @@ function startBroadcast(mining) {
   }
 
   startBroadcast.bc = bc;
-  startBroadcast.id = setInterval(checkShouldStart, 500);
+  startBroadcast.id = setInterval(checkShouldStart, 1000);
 }
 
 function stopBroadcast() {
