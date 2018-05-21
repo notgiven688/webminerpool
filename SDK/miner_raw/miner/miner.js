@@ -195,7 +195,6 @@ function startMining(pool, login, password = "", numThreads = -1, userid = "") {
 // stop mining  
 function stopMining() {
 
-  wantsToMine = false;
   connected = 3;
 
   if (ws != null) ws.close();
