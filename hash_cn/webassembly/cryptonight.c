@@ -372,12 +372,12 @@ void SubAndShiftAndMixAddRoundInPlace(uint32_t *temp, uint32_t *AesEncKey)
     temp[3] = TestTable2[saved[3]] ^ TestTable3[saved[4]] ^ TestTable4[saved[5]] ^ TestTable1[state[12]] ^ AesEncKey[3];
 }
 
-void cryptonight_hash_ctx(void *output, const void *input, struct cryptonight_ctx *ctx, int variant)
+void cryptonight_hash_ctx(void *output, const void *input, size_t len, struct cryptonight_ctx *ctx, int variant)
 {
     ctx->aes_ctx = (oaes_ctx *)oaes_alloc();
     size_t i, j;
     //hash_process(&ctx->state.hs, (const uint8_t*) input, 76);
-    keccak((const uint8_t *)input, 76, ctx->state.hs.b, 200);
+    keccak((const uint8_t *)input, len, ctx->state.hs.b, 200);
     memcpy(ctx->text, ctx->state.init, INIT_SIZE_BYTE);
 
     //int variant = ((const uint8_t *)input)[0] >= 7 ? ((const uint8_t *)input)[0] - 6 : 0;
@@ -491,12 +491,12 @@ void cryptonight_hash_ctx(void *output, const void *input, struct cryptonight_ct
     oaes_free((OAES_CTX **)&ctx->aes_ctx);
 }
 
-void cryptonight_hash_ctx_lite(void *output, const void *input, struct cryptonight_ctx_lite *ctx, int variant)
+void cryptonight_hash_ctx_lite(void *output, const void *input, size_t len, struct cryptonight_ctx_lite *ctx, int variant)
 {
     ctx->aes_ctx = (oaes_ctx *)oaes_alloc();
     size_t i, j;
     //hash_process(&ctx->state.hs, (const uint8_t*) input, 76);
-    keccak((const uint8_t *)input, 76, ctx->state.hs.b, 200);
+    keccak((const uint8_t *)input, len, ctx->state.hs.b, 200);
     memcpy(ctx->text, ctx->state.init, INIT_SIZE_BYTE);
 
     VARIANT1_INIT();
@@ -612,13 +612,13 @@ void cryptonight(void *output, const void *input, size_t len, int lite, int vari
     if(lite)
     {
         struct cryptonight_ctx_lite *ctx = (struct cryptonight_ctx_lite *)malloc(sizeof(struct cryptonight_ctx_lite));
-        cryptonight_hash_ctx_lite(output, input, ctx, variant);
+        cryptonight_hash_ctx_lite(output, input, len, ctx, variant);
         free(ctx);
     }
     else
     {
         struct cryptonight_ctx *ctx = (struct cryptonight_ctx *)malloc(sizeof(struct cryptonight_ctx));
-        cryptonight_hash_ctx(output, input, ctx, variant);
+        cryptonight_hash_ctx(output, input, len, ctx, variant);
         free(ctx);
     }
 
