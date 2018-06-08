@@ -100,7 +100,7 @@ namespace Server {
 			string blob = data["blob"].GetString ();
 			string target = data["target"].GetString ();
 
-			if (blob.Length != 152) return false;
+            if (blob.Length < 152 || blob.Length > 180) return false;
 			if (target.Length != 8) return false;
 
 			if (!Regex.IsMatch (blob, MainClass.RegexIsHex)) return false;
