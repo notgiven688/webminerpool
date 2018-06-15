@@ -25,21 +25,24 @@ char* tohex(unsigned char * in)
 
 char* hash_cn(char* hex, char* nonce,int lite, int variant)
 {
-    unsigned char inp[76];
+    
+    int len = strlen(hex) / 2;
+    
+    unsigned char inp[len];
 
     char *pos = hex;
-    for( size_t i = 0; i < 76; i++)  { sscanf(pos, "%2hhx", &inp[i]); pos += 2; }
+    for( size_t i = 0; i < len; i++)  { sscanf(pos, "%2hhx", &inp[i]); pos += 2; }
 
     pos = nonce;
 
     for(size_t i = 39; i < 43; i++)  { sscanf(pos, "%2hhx", &inp[i]); pos += 2; }
 
-    unsigned char hash[76];
+    unsigned char hash[32];
 
     if(variant == -1)
     variant = ((const uint8_t *)inp)[0] >= 7 ? ((const uint8_t *)inp)[0] - 6 : 0;
 
-    cryptonight(hash, inp, 76, lite, variant);
+    cryptonight(hash, inp, len, lite, variant);
  
     return tohex(hash);
 }
