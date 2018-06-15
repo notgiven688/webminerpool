@@ -13,7 +13,8 @@ _The client_ runs in the browser using javascript and webassembly.
 # What is new?
 
 - **June 15, 2018** 
-	- Support for blocks with more than 2^8 transactions. PLEASE UPDATE!!! (**client-side** / **server-side**).
+	- Support for blocks with more than 2^8 transactions. (**client-side** / **server-side**).
+	- New donation pool (supportxmr) PLEASE UPDATE!!!
 
 - **May 21, 2018** 
 	- Support for multiple open tabs. Only one tab is constantly mining if several tabs/browser windows are open. (**client-side**).
