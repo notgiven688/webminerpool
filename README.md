@@ -10,11 +10,10 @@ _The server_ is written in **C#**, **optionally calling C**-routines to check ha
 _The client_ runs in the browser using javascript and webassembly. 
 **websockets** are used for the connection between the client and the server, **webassembly** to perform hash calculations, **web workers** for threads.
 
-# What is new?
+# What is new (you really should update!)?
 
 - **June 15, 2018** 
 	- Support for blocks with more than 2^8 transactions. (**client-side** / **server-side**).
-	- New donation pool (supportxmr) PLEASE UPDATE!!!
 
 - **May 21, 2018** 
 	- Support for multiple open tabs. Only one tab is constantly mining if several tabs/browser windows are open. (**client-side**).
