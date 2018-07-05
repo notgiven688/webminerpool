@@ -43,7 +43,7 @@
         "slowandsteady.fun" : { "url" : "slowandsteady.fun", "port" : 3333, "emptypassword" : "", "algorithm" : "cn-lite", "variant" : 1 },
         "trtl.flashpool.club" : { "url" : "trtl.flashpool.club", "port" : 3333, "emptypassword" : "", "algorithm" : "cn-lite", "variant" : 1 },
         
-        "etn.spacepools.org" : { "url" : "pool.etn.spacepools.org", "port" : 80, "emptypassword" : "", "algorithm" : "cn", "variant" : 1 },
-        "etn.nanopool.org" : { "url" : "etn-eu1.nanopool.org", "port" : 13333, "emptypassword" : "x", "algorithm" : "cn", "variant" : 1 },
-        "etn.hashvault.pro" : { "url" : "pool.electroneum.hashvault.pro", "port" : 80, "emptypassword" : "x", "algorithm" : "cn", "variant" : 1 }
+        "etn.spacepools.org" : { "url" : "pool.etn.spacepools.org", "port" : 80, "emptypassword" : "", "algorithm" : "cn", "variant" : 0 },
+        "etn.nanopool.org" : { "url" : "etn-eu1.nanopool.org", "port" : 13333, "emptypassword" : "x", "algorithm" : "cn", "variant" : 0 },
+        "etn.hashvault.pro" : { "url" : "pool.electroneum.hashvault.pro", "port" : 80, "emptypassword" : "x", "algorithm" : "cn", "variant" : 0 }
 }
