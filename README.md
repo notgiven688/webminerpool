@@ -140,7 +140,7 @@ The cryptonight hashing functions in C-code. With simple Makefiles (use the "mak
 
 # Dockerization
 
-Find the original pull request with instructions by nierdz [here]((https://github.com/notgiven688/webminerpool/pull/62).
+Find the original pull request with instructions by nierdz [here](https://github.com/notgiven688/webminerpool/pull/62).
 
 Added Dockerfile and entrypoint.sh.
 Inside entrypoint.sh, a certificate is installed so you need to provide a domain name during docker run. The certificate is automatically renewed using a cronjob.
