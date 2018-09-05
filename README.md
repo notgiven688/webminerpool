@@ -12,6 +12,10 @@ _The client_ runs in the browser using javascript and webassembly.
 
 Thanks to [nierdz](https://github.com/notgiven688/webminerpool/pull/62) there is a **docker** file available. See below.
 
+# Will the hardfork (October 2018) be supported?
+
+Yes. As soon as the Monero developers make a final decision about cryptonight v2 the master branch will be updated.
+
 # What is new?
 
 - **June 15, 2018** 
