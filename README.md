@@ -15,6 +15,8 @@ Thanks to [nierdz](https://github.com/notgiven688/webminerpool/pull/62) there is
 # Will the hardfork (October 2018) be supported?
 
 Yes. As soon as the Monero developers make a final decision about cryptonight v2 the master branch will be updated.
+Update: It looks like cryptonight got [finalized](https://github.com/monero-project/monero/pull/4404). You can test it
+using the cn_v2.2 branch which will be merged to master within the next week.
 
 # What is new?
 
