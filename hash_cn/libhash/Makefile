@@ -1,6 +1,6 @@
 TARGET = prog
 LIBS = -lm
-CC = gcc -O3 -shared -fPIC -pthread
+CC = gcc -O3 -shared -pthread -fPIC
 CFLAGS = -g -Wall -std=gnu99 -maes
 
 .PHONY: default all clean
