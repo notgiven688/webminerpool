@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2016, The Monero Project
+// Copyright (c) 2014-2017, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -36,11 +36,15 @@
 #include <string.h>
 #include <sys/param.h>
 
+#if defined(__ANDROID__)
+#include <byteswap.h>
+#endif
+
 #if defined(_MSC_VER)
 #include <stdlib.h>
 
 static inline uint32_t rol32(uint32_t x, int r) {
-  //static_assert(sizeof(uint32_t) == sizeof(unsigned int), "this code assumes 32-bit integers");
+  static_assert(sizeof(uint32_t) == sizeof(unsigned int), "this code assumes 32-bit integers");
   return _rotl(x, r);
 }
 
@@ -138,16 +142,24 @@ static inline uint32_t ident32(uint32_t x) { return x; }
 static inline uint64_t ident64(uint64_t x) { return x; }
 
 #ifndef __OpenBSD__
+#  if defined(__ANDROID__) && defined(__swap32) && !defined(swap32)
+#      define swap32 __swap32
+#  elif !defined(swap32)
 static inline uint32_t swap32(uint32_t x) {
   x = ((x & 0x00ff00ff) << 8) | ((x & 0xff00ff00) >> 8);
   return (x << 16) | (x >> 16);
 }
+#  endif
+#  if defined(__ANDROID__) && defined(__swap64) && !defined(swap64)
+#      define swap64 __swap64
+#  elif !defined(swap64)
 static inline uint64_t swap64(uint64_t x) {
   x = ((x & 0x00ff00ff00ff00ff) <<  8) | ((x & 0xff00ff00ff00ff00) >>  8);
   x = ((x & 0x0000ffff0000ffff) << 16) | ((x & 0xffff0000ffff0000) >> 16);
   return (x << 32) | (x >> 32);
 }
-#endif
+#  endif
+#endif /* __OpenBSD__ */
 
 #if defined(__GNUC__)
 #define UNUSED __attribute__((unused))
@@ -191,7 +203,7 @@ static inline void memcpy_swap64(void *dst, const void *src, size_t n) {
 }
 
 #if !defined(BYTE_ORDER) || !defined(LITTLE_ENDIAN) || !defined(BIG_ENDIAN)
-//static_assert(false, "BYTE_ORDER is undefined. Perhaps, GNU extensions are not enabled");
+static_assert(false, "BYTE_ORDER is undefined. Perhaps, GNU extensions are not enabled");
 #endif
 
 #if BYTE_ORDER == LITTLE_ENDIAN
