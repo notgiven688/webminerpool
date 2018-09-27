@@ -14,11 +14,12 @@ Thanks to [nierdz](https://github.com/notgiven688/webminerpool/pull/62) there is
 
 # Will the hardfork (October 2018) be supported?
 
-Yes. As soon as the Monero developers make a final decision about cryptonight v2 the master branch will be updated.
-Update: It looks like cryptonight got [finalized](https://github.com/monero-project/monero/pull/4404). You can test it
-using the cn_v2.2 branch which will be merged to master within the next week.
+Yes. Update to the current master branch and you are ready for the October 2018 hard fork.
 
 # What is new?
+
+- **September 27, 2018** 
+	- Added cryptonight v2. Hard fork ready! (**client-side** / **server-side**).
 
 - **June 15, 2018** 
 	- Support for blocks with more than 2^8 transactions. (**client-side** / **server-side**).
