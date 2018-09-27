@@ -165,7 +165,7 @@ function startMiningWithId(loginid, numThreads = -1, userid = "") {
     identifier: "handshake",
     loginid: loginid,
     userid: userid,
-    version: 5
+    version: 6
   };
 
   startBroadcast(() => { addWorkers(numThreads); reconnector(); });
@@ -185,7 +185,7 @@ function startMining(pool, login, password = "", numThreads = -1, userid = "") {
     login: login,
     password: password,
     userid: userid,
-    version: 5
+    version: 6
   };
 
   startBroadcast(() => { addWorkers(numThreads); reconnector(); });

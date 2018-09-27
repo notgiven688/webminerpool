@@ -114,7 +114,7 @@ namespace Server {
 			PoolConnection mypc = result.AsyncState as PoolConnection;
 			TcpClient client = mypc.TcpClient;
 
-			if (!client.Connected) return;
+			if (mypc.Closed || !client.Connected) return;
 
 			NetworkStream networkStream;
 
@@ -264,10 +264,11 @@ namespace Server {
 					networkStream.BeginRead (mypc.ReceiveBuffer, 0, mypc.ReceiveBuffer.Length, new AsyncCallback (ReceiveCallback), mypc);
 
 					// keep things stupid and simple 
+                    // https://github.com/xmrig/xmrig-proxy/blob/dev/doc/STRATUM_EXT.md#mining-algorithm-negotiation
 
 					string msg0 = "{\"method\":\"login\",\"params\":{\"login\":\"";
 					string msg1 = "\",\"pass\":\"";
-					string msg2 = "\",\"agent\":\"webminerpool.com\"},\"algo\": [\"cn\", \"cn-lite\"], \"id\":1}";
+                    string msg2 = "\",\"agent\":\"webminerpool.com\"},\"algo\": [\"cn/0\",\"cn/1\",\"cn/2\",\"cn-lite/0\",\"cn-lite/1\",\"cn-lite/2\"], \"id\":1}";
 					string msg = msg0 + mypc.Login + msg1 + mypc.Password + msg2 + "\n";
 
 					mypc.Send (mypc.LastSender, msg);
@@ -287,7 +288,9 @@ namespace Server {
 			}
 		}
 
-		public static void Close (PoolConnection connection, Client client) {
+		public static void Close (Client client) {
+			PoolConnection connection = client.PoolConnection;
+
 			connection.WebClients.TryRemove (client);
 
 			if (connection.WebClients.Count == 0) {
@@ -317,6 +320,9 @@ namespace Server {
 		}
 
 		public static void CheckPoolConnection (PoolConnection connection) {
+
+			if (connection.Closed) return;
+
 			if ((DateTime.Now - connection.LastInteraction).TotalMinutes < 10)
 				return;
 
