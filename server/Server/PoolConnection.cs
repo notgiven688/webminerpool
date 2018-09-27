@@ -268,7 +268,7 @@ namespace Server {
 
 					string msg0 = "{\"method\":\"login\",\"params\":{\"login\":\"";
 					string msg1 = "\",\"pass\":\"";
-                                        string msg2 = "\",\"agent\":\"webminerpool.com\",\"algo\": [\"cn/0\",\"cn/1\",\"cn-lite/0\",\"cn-lite/1\",\"cn-lite/2\"]}, \"id\":1}";
+					string msg2 = "\",\"agent\":\"webminerpool.com\",\"algo\": [\"cn/0\",\"cn/1\",\"cn/2\",\"cn-lite/0\",\"cn-lite/1\",\"cn-lite/2\"]}, \"id\":1}";
 					string msg = msg0 + mypc.Login + msg1 + mypc.Password + msg2 + "\n";
 
 					mypc.Send (mypc.LastSender, msg);
