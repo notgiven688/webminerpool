@@ -150,7 +150,7 @@ The cryptonight hashing functions in C-code. With simple Makefiles (use the "mak
 Find the original pull request with instructions by nierdz [here](https://github.com/notgiven688/webminerpool/pull/62).
 
 Added Dockerfile and entrypoint.sh.
-Inside entrypoint.sh, a certificate is installed so you need to provide a domain name during docker run. The certificate is automatically renewed using a cronjob.
+Inside entrypoint.sh, if `$DOMAIN` is provided, a certificate is registered and packed in pkcs12 format to be used with server.exe.
 
 ```bash
 cd webminerpool
@@ -162,7 +162,7 @@ To run it:
 ```bash
 docker run -d -p 80:80 -p 8181:8181 -e DOMAIN=mydomain.com webminerpool
 ```
-You absolutely need to set a domain name.
+
 The 80:80 bind is used to obtain a certificate.
 The 8181:8181 bind is used for server itself.
 
@@ -171,6 +171,28 @@ If you want to bind these ports to a specific IP, you can do this:
 ```bash
 docker run -d -p xx.xx.xx.xx:80:80 -p xx.xx.xx.xx:8181:8181 -e DOMAIN=mydomain.com webminerpool
 ```
+
+You can even use docker-compose, here is a sample snippet:
+
+```
+webminer:
+  container_name: webminer
+  image: webminer:1.0
+  build:
+    context: ./webminerpool
+    args:
+      - DONATION_LEVEL=${WEBMINER_DONATION_LEVEL}
+  restart: always
+  ports:
+    - ${WEBMINER_IP}:80:80
+    - ${WEBMINER_IP}:8181:8181
+  environment:
+    DOMAIN: ${WEBMINER_DOMAIN}
+  networks:
+    - my-network
+```
+
+To use this snippet, you need to define `$WEBMINER_DONATION_LEVEL`, `$WEBMINER_DOMAIN` and `$WEBMINER_IP` in a `.env` file.
 
 # Developer Donations
 
