@@ -12,7 +12,7 @@ _The client_ runs in the browser using javascript and webassembly.
 
 Thanks to [nierdz](https://github.com/notgiven688/webminerpool/pull/62) there is a **docker** file available. See below.
 
-# Will the hardfork (<span style="color:red">March 2019</span>). be supported?
+# Will the hardfork (<span style="color:red">March 2019</span>) be supported?
 
 Yes. Work is in progress. Updated code will be available at least one week before fork day.
 
