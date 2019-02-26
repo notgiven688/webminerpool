@@ -60,7 +60,6 @@ namespace Server
         public string DefaultAlgorithm = "cn";
         public int DefaultVariant = -1;
 
-
         public CcHashset<Client> WebClients = new CcHashset<Client>();
 
         public void Send(Client client, string msg)

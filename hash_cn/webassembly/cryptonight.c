@@ -8,6 +8,7 @@
 #include "groestl.h"
 #include "oaes_lib.h"
 #include "variant2_int_sqrt.h"
+#include "variant4_random_math.h"
 
 #define MEMORY (1 << 21) /* 2 MiB */
 #define ITER (1 << 20)
@@ -17,6 +18,9 @@
 #define INIT_SIZE_BYTE (INIT_SIZE_BLK * AES_BLOCK_SIZE) // 128
 
 #define U64(x) ((uint64_t *) (x))
+
+
+// -------------------------------------- VARIANT 1 -----------------------------------------------
 
 #define VARIANT1_1(p) \
   do \
@@ -33,9 +37,10 @@
     xor64(p, tweak1_2); \
   } while(0)
   
- 
 #define VARIANT1_INIT64() \
  const uint64_t tweak1_2 = (variant == 1) ? *(const uint64_t *)(((const uint8_t *)input) + 35) ^ ctx->state.hs.w[24] : 0
+ 
+// -------------------------------------- VARIANT 2/3 ---------------------------------------------
 
 #define VARIANT2_INIT64() \
   uint64_t division_result = 0; \
@@ -48,7 +53,6 @@
     sqrt_result = ctx->state.hs.w[13]; \
   } while (0)
 
-  
 #define VARIANT2_2_PORTABLE() \
   do \
   { \
@@ -96,8 +100,7 @@
     chunk2[0] = chunk1_old0 + ((uint64_t*) ctx->c)[0]; \
     chunk2[1] = chunk1_old1 + ((uint64_t*) ctx->c)[1]; \
   } while (0)
-
-
+  
 #define VARIANT2_INTEGER_MATH_DIVISION_STEP(b, ptr) \
   ((uint64_t*)(b))[0] ^= division_result ^ (sqrt_result << 32); \
   { \
@@ -120,13 +123,97 @@
 #else
   // double precision floating point type is not good enough on current platform
   // fall back to the reference code (integer only)
-  #define VARIANT2_PORTABLE_INTEGER_MATH(b, ptr) \
+#define VARIANT2_PORTABLE_INTEGER_MATH(b, ptr) \
   do \
     { \
       VARIANT2_INTEGER_MATH_DIVISION_STEP(b, ptr); \
       VARIANT2_INTEGER_MATH_SQRT_STEP_REF(); \
     } while (0)
 #endif
+    
+// -------------------------------------- VARIANT 4 ---------------------------------------------
+    
+struct V4_Instruction code[NUM_INSTRUCTIONS_MAX + 1]; 
+v4_reg r[9]; 
+    
+#define V4_REG_LOAD(dst, src) \
+  do { \
+    memcpy((dst), (src), sizeof(v4_reg)); \
+    *(dst) = (*(dst)); \
+  } while (0)
+
+#define VARIANT4_RANDOM_MATH_INIT() \
+  do if (variant >= 4) \
+  { \
+    for (int i = 0; i < 4; ++i) \
+      V4_REG_LOAD(r + i, (uint8_t*)(ctx->state.hs.w + 12) + sizeof(v4_reg) * i); \
+    v4_random_math_init(code, height); \
+  } while (0)
+
+#define VARIANT4_RANDOM_MATH(a, b, r, _b, _b1) \
+  do if (variant >= 4) \
+  { \
+    uint64_t t[2]; \
+    memcpy(t, b, sizeof(uint64_t)); \
+    \
+    if (sizeof(v4_reg) == sizeof(uint32_t)) \
+      t[0] ^= ((r[0] + r[1]) | ((uint64_t)(r[2] + r[3]) << 32)); \
+    else \
+      t[0] ^= ((r[0] + r[1]) ^ (r[2] + r[3])); \
+    \
+    memcpy(b, t, sizeof(uint64_t)); \
+    \
+    V4_REG_LOAD(r + 4, a); \
+    V4_REG_LOAD(r + 5, (uint64_t*)(a) + 1); \
+    V4_REG_LOAD(r + 6, _b); \
+    V4_REG_LOAD(r + 7, _b1); \
+    V4_REG_LOAD(r + 8, (uint64_t*)(_b1) + 1); \
+    \
+      v4_random_math(code, r); \
+    \
+    memcpy(t, a, sizeof(uint64_t) * 2); \
+    \
+    if (sizeof(v4_reg) == sizeof(uint32_t)) { \
+      t[0] ^= (r[2] | ((uint64_t)(r[3]) << 32)); \
+      t[1] ^= (r[0] | ((uint64_t)(r[1]) << 32)); \
+    } else { \
+      t[0] ^= (r[2] ^ r[3]); \
+      t[1] ^= (r[0] ^ r[1]); \
+    } \
+    memcpy(a, t, sizeof(uint64_t) * 2); \
+  } while (0)
+  
+  #define VARIANT4_PORTABLE_SHUFFLE_ADD(out,a_,b_, base_ptr, offset) \
+  do \
+  { \
+    uint64_t* chunk1 = U64((base_ptr) + ((offset) ^ 0x10)); \
+    uint64_t* chunk2 = U64((base_ptr) + ((offset) ^ 0x20)); \
+    uint64_t* chunk3 = U64((base_ptr) + ((offset) ^ 0x30)); \
+    uint64_t* out_chunk = U64(out);\
+    \
+    uint64_t chunk1_old0 = chunk1[0]; \
+    uint64_t chunk1_old1 = chunk1[1]; \
+    uint64_t chunk2_old0 = chunk2[0]; \
+    uint64_t chunk2_old1 = chunk2[1]; \
+    uint64_t chunk3_old0 = chunk3[0]; \
+    uint64_t chunk3_old1 = chunk3[1]; \
+    \
+    chunk1[0] = chunk3_old0 + ((uint64_t*) ctx->d)[0]; \
+    chunk1[1] = chunk3_old1 + ((uint64_t*) ctx->d)[1]; \
+    \
+    chunk3[0] = chunk2_old0 + ((uint64_t*) a_)[0]; \
+    chunk3[1] = chunk2_old1 + ((uint64_t*) a_)[1]; \
+    \
+    chunk2[0] = chunk1_old0 + ((uint64_t*) b_)[0]; \
+    chunk2[1] = chunk1_old1 + ((uint64_t*) b_)[1]; \
+    \
+     chunk1_old0 ^= chunk2_old0; \
+     chunk1_old1 ^= chunk2_old1; \
+     out_chunk[0] ^= chunk3_old0; \
+     out_chunk[1] ^= chunk3_old1; \
+     out_chunk[0] ^= chunk1_old0; \
+     out_chunk[1] ^= chunk1_old1; \
+  } while (0)
 
 static void xor64(uint8_t *a, const uint64_t b)
 {
@@ -197,6 +284,7 @@ struct cryptonight_ctx
     uint8_t c[AES_BLOCK_SIZE] __attribute__((aligned(16)));
     uint8_t d[AES_BLOCK_SIZE] __attribute__((aligned(16)));
     uint8_t e[AES_BLOCK_SIZE] __attribute__((aligned(16)));
+    uint8_t a1[AES_BLOCK_SIZE] __attribute__((aligned(16)));
     oaes_ctx *aes_ctx;
 };
 
@@ -423,7 +511,7 @@ void SubAndShiftAndMixAddRoundInPlace(uint32_t *temp, uint32_t *AesEncKey)
     temp[3] = TestTable2[saved[3]] ^ TestTable3[saved[4]] ^ TestTable4[saved[5]] ^ TestTable1[state[12]] ^ AesEncKey[3];
 }
 
-void cryptonight_hash_ctx(void *output, const void *input, size_t len, struct cryptonight_ctx *ctx, int variant)
+void cryptonight_hash_ctx(void *output, const void *input, size_t len, struct cryptonight_ctx *ctx, int variant, int height)
 {
     ctx->aes_ctx = (oaes_ctx *)oaes_alloc();
     size_t i, j;
@@ -433,6 +521,7 @@ void cryptonight_hash_ctx(void *output, const void *input, size_t len, struct cr
     
     VARIANT1_INIT64();
     VARIANT2_INIT64();
+    VARIANT4_RANDOM_MATH_INIT();
     
     oaes_key_import_data(ctx->aes_ctx, ctx->state.hs.b, AES_KEY_SIZE);
     
@@ -506,7 +595,7 @@ void cryptonight_hash_ctx(void *output, const void *input, size_t len, struct cr
             VARIANT1_2(&ctx->long_state[j] + 8);
         }
     }
-    else
+    else if(variant == 2 || variant == 3)
     {
         for (i = 0; likely(i < ITER / 4); ++i)
         {
@@ -518,7 +607,7 @@ void cryptonight_hash_ctx(void *output, const void *input, size_t len, struct cr
             j = ((uint32_t *)ctx->c)[0] & 0x1FFFF0;
             VARIANT2_PORTABLE_INTEGER_MATH(&ctx->long_state[j], ctx->c);  
             mul64to128(ctx->c, &ctx->long_state[j], ctx->e);
-	    VARIANT2_2_PORTABLE();
+            VARIANT2_2_PORTABLE();
             VARIANT2_PORTABLE_SHUFFLE_ADD1(ctx->long_state, j);
             sum_xor_dst(ctx->e, ctx->a, &ctx->long_state[j]);
             copy_block(ctx->d, ctx->b); 
@@ -531,8 +620,39 @@ void cryptonight_hash_ctx(void *output, const void *input, size_t len, struct cr
             j = ((uint32_t *)ctx->b)[0] & 0x1FFFF0;
             VARIANT2_PORTABLE_INTEGER_MATH(&ctx->long_state[j], ctx->b);
             mul64to128(ctx->b, &ctx->long_state[j], ctx->e);
-	    VARIANT2_2_PORTABLE();
+            VARIANT2_2_PORTABLE();
             VARIANT2_PORTABLE_SHUFFLE_ADD2(ctx->long_state, j);
+            sum_xor_dst(ctx->e, ctx->a, &ctx->long_state[j]);
+            copy_block(ctx->d, ctx->c); 
+        }
+    }
+    else
+    {
+        for (i = 0; likely(i < ITER / 4); ++i)
+        {
+            j = ((uint32_t *)(ctx->a))[0] & 0x1FFFF0;
+            SubAndShiftAndMixAddRound((uint32_t *)ctx->c, &ctx->long_state[j], (uint32_t *)ctx->a);
+            VARIANT4_PORTABLE_SHUFFLE_ADD(ctx->c, ctx->a, ctx->b, ctx->long_state, j);
+            xor_blocks_dst(ctx->c, ctx->b, &ctx->long_state[j]);
+               
+            j = ((uint32_t *)ctx->c)[0] & 0x1FFFF0;
+            copy_block(ctx->a1,ctx->a);
+            VARIANT4_RANDOM_MATH(ctx->a, &ctx->long_state[j], r, ctx->b, ctx->d);
+            mul64to128(ctx->c, &ctx->long_state[j], ctx->e);
+            VARIANT4_PORTABLE_SHUFFLE_ADD(ctx->c, ctx->a1, ctx->b, ctx->long_state, j);
+            sum_xor_dst(ctx->e, ctx->a, &ctx->long_state[j]);
+            copy_block(ctx->d, ctx->b); 
+            
+            j = ((uint32_t *)(ctx->a))[0] & 0x1FFFF0;
+            SubAndShiftAndMixAddRound((uint32_t *)ctx->b, &ctx->long_state[j], (uint32_t *)ctx->a);
+            VARIANT4_PORTABLE_SHUFFLE_ADD(ctx->b, ctx->a, ctx->c, ctx->long_state, j);
+            xor_blocks_dst(ctx->b, ctx->c, &ctx->long_state[j]); 
+            
+            j = ((uint32_t *)ctx->b)[0] & 0x1FFFF0;
+            copy_block(ctx->a1,ctx->a);
+            VARIANT4_RANDOM_MATH(ctx->a, &ctx->long_state[j], r, ctx->c, ctx->d);
+            mul64to128(ctx->b, &ctx->long_state[j], ctx->e);
+            VARIANT4_PORTABLE_SHUFFLE_ADD(ctx->b, ctx->a1, ctx->c, ctx->long_state, j);
             sum_xor_dst(ctx->e, ctx->a, &ctx->long_state[j]);
             copy_block(ctx->d, ctx->c); 
         }
@@ -672,7 +792,7 @@ void cryptonight_hash_ctx_lite(void *output, const void *input, size_t len, stru
             j = ((uint32_t *)ctx->c)[0] & 0x0FFFF0;
             VARIANT2_PORTABLE_INTEGER_MATH(&ctx->long_state[j], ctx->c);  
             mul64to128(ctx->c, &ctx->long_state[j], ctx->e);
-	    VARIANT2_2_PORTABLE();
+            VARIANT2_2_PORTABLE();
             VARIANT2_PORTABLE_SHUFFLE_ADD1(ctx->long_state, j);
             sum_xor_dst(ctx->e, ctx->a, &ctx->long_state[j]);
             copy_block(ctx->d, ctx->b); 
@@ -685,7 +805,7 @@ void cryptonight_hash_ctx_lite(void *output, const void *input, size_t len, stru
             j = ((uint32_t *)ctx->b)[0] & 0x0FFFF0;
             VARIANT2_PORTABLE_INTEGER_MATH(&ctx->long_state[j], ctx->b);
             mul64to128(ctx->b, &ctx->long_state[j], ctx->e);
-	    VARIANT2_2_PORTABLE();
+            VARIANT2_2_PORTABLE();
             VARIANT2_PORTABLE_SHUFFLE_ADD2(ctx->long_state, j);
             sum_xor_dst(ctx->e, ctx->a, &ctx->long_state[j]);
             copy_block(ctx->d, ctx->c); 
@@ -731,7 +851,7 @@ void cryptonight_hash_ctx_lite(void *output, const void *input, size_t len, stru
     oaes_free((OAES_CTX **)&ctx->aes_ctx);
 }
 
-void cryptonight(void *output, const void *input, size_t len, int lite, int variant)
+void cryptonight(void *output, const void *input, size_t len, int lite, int variant, int height)
 {
     if(lite)
     {
@@ -742,7 +862,7 @@ void cryptonight(void *output, const void *input, size_t len, int lite, int vari
     else
     {
         struct cryptonight_ctx *ctx = (struct cryptonight_ctx *)malloc(sizeof(struct cryptonight_ctx));
-        cryptonight_hash_ctx(output, input, len, ctx, variant);
+        cryptonight_hash_ctx(output, input, len, ctx, variant, height);
         free(ctx);
     }
 
