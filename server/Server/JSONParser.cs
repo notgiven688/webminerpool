@@ -147,19 +147,19 @@ namespace TinyJson {
                 string str = json.Substring (1, json.Length - 2);
                 return str.Replace ("\\\\", "\"\"").Replace ("\\", string.Empty).Replace ("\"\"", "\\");
             }
-            if (type == typeof (int)) {
-                int result;
-                int.TryParse (json, out result);
+            if (type == typeof (int))
+            {
+                int.TryParse(json, out int result);
                 return result;
             }
-            if (type == typeof (float)) {
-                float result;
-                float.TryParse (json, out result);
+            if (type == typeof (float))
+            {
+                float.TryParse(json, out float result);
                 return result;
             }
-            if (type == typeof (double)) {
-                double result;
-                double.TryParse (json, out result);
+            if (type == typeof (double))
+            {
+                double.TryParse(json, out double result);
                 return result;
             }
             if (type == typeof (bool)) {
@@ -254,13 +254,13 @@ namespace TinyJson {
                 return str.Replace ("\\", string.Empty);
             }
             if (char.IsDigit (json[0]) || json[0] == '-') {
-                if (json.Contains (".")) {
-                    double result;
-                    double.TryParse (json, out result);
+                if (json.Contains ("."))
+                {
+                    double.TryParse(json, out double result);
                     return result;
-                } else {
-                    int result;
-                    int.TryParse (json, out result);
+                } else
+                {
+                    int.TryParse(json, out int result);
                     return result;
                 }
             }

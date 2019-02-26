@@ -30,72 +30,72 @@ using JsonData = System.Collections.Generic.Dictionary<string, object>;
 
 namespace Server {
 
-	public struct PoolInfo {
-		public int Port;
-		public string Url;
-		// some pools require a non-empty password
-		public string EmptyPassword;
-		public string DefaultAlgorithm;
-		public int DefaultVariant;
+    public struct PoolInfo {
+        public int Port;
+        public string Url;
+        // some pools require a non-empty password
+        public string EmptyPassword;
+        public string DefaultAlgorithm;
+        public int DefaultVariant;
 
-		public PoolInfo (string url, int port, string emptypw = "", string algo = "cn", int variant = -1) { Port = port; Url = url; EmptyPassword = emptypw; DefaultAlgorithm = algo; DefaultVariant = variant; }
-	}
+        public PoolInfo (string url, int port, string emptypw = "", string algo = "cn", int variant = -1) { Port = port; Url = url; EmptyPassword = emptypw; DefaultAlgorithm = algo; DefaultVariant = variant; }
+    }
 
-	public class PoolList {
+    public class PoolList {
 
-		private Dictionary<string, PoolInfo> pools;
-		private PoolList () { }
+        private Dictionary<string, PoolInfo> pools;
+        private PoolList () { }
 
-		public string JsonPools { private set; get; }
+        public string JsonPools { private set; get; }
 
-		public bool TryGetPool (string pool, out PoolInfo info) {
-			return pools.TryGetValue (pool, out info);
-		}
+        public bool TryGetPool (string pool, out PoolInfo info) {
+            return pools.TryGetValue (pool, out info);
+        }
 
-		public int Count { get { return pools.Count; } }
+        public int Count { get { return pools.Count; } }
 
-		public static PoolList LoadFromFile (string filename) {
-			PoolList pl = new PoolList ();
-			pl.pools = new Dictionary<string, PoolInfo> ();
+        public static PoolList LoadFromFile (string filename) {
+            PoolList pl = new PoolList ();
+            pl.pools = new Dictionary<string, PoolInfo> ();
 
-			string json = File.ReadAllText (filename);
+            string json = File.ReadAllText (filename);
 
-			JsonData data = json.FromJson<JsonData> ();
+            JsonData data = json.FromJson<JsonData> ();
 
-			foreach (string pool in data.Keys) {
+            foreach (string pool in data.Keys) {
 
-				JsonData jinfo = data[pool] as JsonData;
-				PoolInfo pi = new PoolInfo ();
+                JsonData jinfo = data[pool] as JsonData;
+                PoolInfo pi = new PoolInfo ();
 
-				if (!(jinfo.ContainsKey ("url") && jinfo.ContainsKey ("port") &&
-						jinfo.ContainsKey ("emptypassword") && jinfo.ContainsKey ("algorithm") &&
-						jinfo.ContainsKey ("variant")))
-					throw new Exception ("Invalid entry.");
+                if (!(jinfo.ContainsKey ("url") && jinfo.ContainsKey ("port") &&
+                        jinfo.ContainsKey ("emptypassword") && jinfo.ContainsKey ("algorithm") &&
+                        jinfo.ContainsKey ("variant")))
+                    throw new Exception ("Invalid entry.");
 
-				pi.Url = jinfo["url"].GetString ();
-				pi.EmptyPassword = jinfo["emptypassword"].GetString ();
-				pi.DefaultAlgorithm = jinfo["algorithm"].GetString ();
-				pi.DefaultVariant = int.Parse (jinfo["variant"].GetString ());
-				pi.Port = int.Parse (jinfo["port"].GetString ());
+                pi.Url = jinfo["url"].GetString ();
+                pi.EmptyPassword = jinfo["emptypassword"].GetString ();
+                pi.DefaultAlgorithm = jinfo["algorithm"].GetString ();
+                pi.DefaultVariant = int.Parse (jinfo["variant"].GetString ());
+                pi.Port = int.Parse (jinfo["port"].GetString ());
 
-				pl.pools.Add (pool, pi);
+                pl.pools.Add (pool, pi);
 
-			}
+            }
 
-			int counter = 0;
+            int counter = 0;
 
-			pl.JsonPools = "{\"identifier\":\"" + "poolinfo";
+            pl.JsonPools = "{\"identifier\":\"" + "poolinfo";
 
-			foreach (string pool in pl.pools.Keys) {
-				counter++;
-				pl.JsonPools += "\",\"pool" + counter.ToString () + "\":\"" + pool;
-			}
+            foreach (string pool in pl.pools.Keys) {
+                counter++;
+                pl.JsonPools += "\",\"pool" + counter.ToString () + "\":\"" + pool;
+            }
 
-			pl.JsonPools += "\"}\n";
+            pl.JsonPools += "\"}\n";
 
-			return pl;
-		}
+            return pl;
+        }
 
-	}
+    }
 
 }

@@ -21,10 +21,10 @@
 
 namespace System {
 
-	public static class ObjectExtensionClass {
-		public static string GetString (this object input) {
-			return input == null ? string.Empty : input.ToString ();
-		}
-	}
+    public static class ObjectExtensionClass {
+        public static string GetString (this object input) {
+            return input == null ? string.Empty : input.ToString ();
+        }
+    }
 
 }

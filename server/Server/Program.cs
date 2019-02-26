@@ -96,7 +96,7 @@ namespace Server {
 
         private static bool libHashAvailable = false;
 
-		private static PoolList PoolList;
+        private static PoolList PoolList;
 
         // time to connect to a pool in seconds 
         private const int GraceConnectionTime = 16;
@@ -507,15 +507,15 @@ namespace Server {
                 Console.WriteLine ();
             });
 
-			try {
-				PoolList = PoolList.LoadFromFile ("pools.json");
-			}
-			catch(Exception ex) {
-				CConsole.ColorAlert (() => Console.WriteLine("Could not load pool list from pools.json: {0}", ex.Message));
-				return;
-			}
+            try {
+                PoolList = PoolList.LoadFromFile ("pools.json");
+            }
+            catch(Exception ex) {
+                CConsole.ColorAlert (() => Console.WriteLine("Could not load pool list from pools.json: {0}", ex.Message));
+                return;
+            }
 
-			CConsole.ColorInfo (() => Console.WriteLine ("Loaded {0} pools from pools.json.", PoolList.Count));
+            CConsole.ColorInfo (() => Console.WriteLine ("Loaded {0} pools from pools.json.", PoolList.Count));
 
 
             Exception exception = null;
@@ -533,7 +533,7 @@ namespace Server {
 
             // cn_v2
             libHashAvailable &= CheckLibHash("5468697320697320612074657374205468697320697320612074657374205468697320697320612074657374",
-											 "353fdc068fd47b03c04b9431e005e00b68c2168a3cc7335c8b9b308156591a4f",
+                                             "353fdc068fd47b03c04b9431e005e00b68c2168a3cc7335c8b9b308156591a4f",
                                               0, 2, out exception);
 
             // cn_lite
@@ -548,7 +548,7 @@ namespace Server {
 
             // cn_lite_v2 (speculative)
             libHashAvailable &= CheckLibHash("5468697320697320612074657374205468697320697320612074657374205468697320697320612074657374",
-											 "49c95241af3bd74e78f473936ac36214bbc386a36869f9406b5da16aa0ee4b06",
+                                             "49c95241af3bd74e78f473936ac36214bbc386a36869f9406b5da16aa0ee4b06",
                                               1, 2, out exception);
 
             if (!libHashAvailable) CConsole.ColorWarning (() =>
@@ -790,7 +790,7 @@ namespace Server {
 
                         PoolInfo pi;
 
-						if (!PoolList.TryGetPool(client.Pool, out pi)) {
+                        if (!PoolList.TryGetPool(client.Pool, out pi)) {
                             // we dont have that pool?
                             DisconnectClient (client, "pool not known");
                             return;
@@ -932,7 +932,7 @@ namespace Server {
                     } else if (identifier == "poolinfo") {
                         if (!client.GotPoolInfo) {
                             client.GotPoolInfo = true;
-							client.WebSocket.Send (PoolList.JsonPools);
+                            client.WebSocket.Send (PoolList.JsonPools);
                         }
 
                     } else
@@ -973,7 +973,7 @@ namespace Server {
 
                         PoolInfo pi;
 
-						if (!PoolList.TryGetPool (crdts.Pool, out pi)) {
+                        if (!PoolList.TryGetPool (crdts.Pool, out pi)) {
                             // we dont have that pool?
                             DisconnectClient (client, "Pool not known!");
                             return;
