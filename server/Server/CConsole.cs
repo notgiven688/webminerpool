@@ -29,9 +29,8 @@ namespace Server {
     public static class CConsole {
 
         // Info, Alert, Warning
-        private static object locker = new object ();
-
-        private static bool enabled = true;
+        private static readonly object locker = new object ();
+        private static readonly bool enabled = true;
 
         static CConsole () {
             try {
@@ -39,7 +38,7 @@ namespace Server {
                 Console.ForegroundColor = ConsoleColor.Black;
                 Console.ResetColor ();
             } catch {
-                // ArgumentException, SecurityException, IOException	.
+                // ArgumentException, SecurityException, IOException.
                 enabled = false;
             }
         }
