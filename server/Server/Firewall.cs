@@ -26,10 +26,13 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Server {
-    public static class Firewall {
+namespace Server
+{
+    public static class Firewall
+    {
 
-        public enum UpdateEntry {
+        public enum UpdateEntry
+        {
             SolvedJob,
             AuthSuccess,
             AuthFailure,
@@ -37,10 +40,12 @@ namespace Server {
             Handshake
         }
 
-        private class Entry {
+        private class Entry
+        {
             public string Address;
 
-            public Entry (string adr) {
+            public Entry(string adr)
+            {
                 Address = adr;
             }
 
@@ -53,19 +58,22 @@ namespace Server {
             public DateTime FirstSeen = DateTime.Now;
         }
 
-        private static CcDictionary<string, Entry> entries = new CcDictionary<string, Entry> ();
+        private static CcDictionary<string, Entry> entries = new CcDictionary<string, Entry>();
 
         public const int CheckTimeInHeartbeats = 6 * 10; //  every 10min
 
-        private static void AddToIpTables (Entry entry, int rule) {
-            Helper.WriteTextAsyncWrapper ("ip_list", entry.Address + Environment.NewLine);
-            CConsole.ColorWarning(() => Console.WriteLine ("Added {0} to ip_list (rule #{1})", entry.Address, rule.ToString ()));
-            entries.TryRemove (entry.Address);
+        private static void AddToIpTables(Entry entry, int rule)
+        {
+            Helper.WriteTextAsyncWrapper("ip_list", entry.Address + Environment.NewLine);
+            CConsole.ColorWarning(() => Console.WriteLine("Added {0} to ip_list (rule #{1})", entry.Address, rule.ToString()));
+            entries.TryRemove(entry.Address);
         }
 
-        public static void Update (string ip, UpdateEntry update) {
+        public static void Update(string ip, UpdateEntry update)
+        {
             Entry entry = null;
-            if (entries.TryGetValue (ip, out entry)) {
+            if (entries.TryGetValue(ip, out entry))
+            {
 
                 if (update == UpdateEntry.SolvedJob)
                     entry.SolvedJobs++;
@@ -77,36 +85,52 @@ namespace Server {
                     entry.WrongHash++;
                 else if (update == UpdateEntry.Handshake)
                     entry.Handshake++;
-            } else {
-                entries.TryAdd (ip, new Entry (ip));
+            }
+            else
+            {
+                entries.TryAdd(ip, new Entry(ip));
             }
 
         }
 
-        public static void Heartbeat (int heartBeats) {
+        public static void Heartbeat(int heartBeats)
+        {
 
-            List<Entry> entrylst = new List<Entry> (entries.Values);
+            List<Entry> entrylst = new List<Entry>(entries.Values);
 
-            foreach (Entry entry in entrylst) {
+            foreach (Entry entry in entrylst)
+            {
                 // decide here...
                 if (entry.AuthSuccess == 0 && entry.SolvedJobs == 0 &&
-                    entry.AuthFailure > 20) {
-                    AddToIpTables (entry, 1);
-                } else if (entry.AuthFailure > 500 && entry.AuthSuccess < 500) {
-                    AddToIpTables (entry, 2);
-                } else if (entry.AuthSuccess + entry.AuthFailure > 1000 && entry.SolvedJobs < 3) {
-                    AddToIpTables (entry, 3);
-                } else if (entry.AuthSuccess + entry.AuthFailure > 4000) {
-                    AddToIpTables (entry, 4);
-                } else if (entry.WrongHash > 0 && entry.AuthSuccess < 5) {
-                    AddToIpTables (entry, 5);
-                } else if (entry.AuthSuccess + entry.AuthFailure > 2000 && entry.Handshake < 1) {
-                    AddToIpTables (entry, 6);
+                    entry.AuthFailure > 20)
+                {
+                    AddToIpTables(entry, 1);
+                }
+                else if (entry.AuthFailure > 500 && entry.AuthSuccess < 500)
+                {
+                    AddToIpTables(entry, 2);
+                }
+                else if (entry.AuthSuccess + entry.AuthFailure > 1000 && entry.SolvedJobs < 3)
+                {
+                    AddToIpTables(entry, 3);
+                }
+                else if (entry.AuthSuccess + entry.AuthFailure > 4000)
+                {
+                    AddToIpTables(entry, 4);
+                }
+                else if (entry.WrongHash > 0 && entry.AuthSuccess < 5)
+                {
+                    AddToIpTables(entry, 5);
+                }
+                else if (entry.AuthSuccess + entry.AuthFailure > 2000 && entry.Handshake < 1)
+                {
+                    AddToIpTables(entry, 6);
                 }
             }
 
-            if ((heartBeats % CheckTimeInHeartbeats) == 0) {
-                entries.Clear ();
+            if ((heartBeats % CheckTimeInHeartbeats) == 0)
+            {
+                entries.Clear();
             }
         }
 

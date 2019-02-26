@@ -24,62 +24,81 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Server {
+namespace Server
+{
 
-    public static class CConsole {
+    public static class CConsole
+    {
 
         // Info, Alert, Warning
-        private static readonly object locker = new object ();
+        private static readonly object locker = new object();
         private static readonly bool enabled = true;
 
-        static CConsole () {
-            try {
+        static CConsole()
+        {
+            try
+            {
                 Console.BackgroundColor = ConsoleColor.White;
                 Console.ForegroundColor = ConsoleColor.Black;
-                Console.ResetColor ();
-            } catch {
+                Console.ResetColor();
+            }
+            catch
+            {
                 // ArgumentException, SecurityException, IOException.
                 enabled = false;
             }
         }
 
-        private static void ColorConsole (Action consoleAction, ConsoleColor foreground) {
+        private static void ColorConsole(Action consoleAction, ConsoleColor foreground)
+        {
 
-            if (enabled) {
-                lock (locker) {
+            if (enabled)
+            {
+                lock (locker)
+                {
                     Console.ForegroundColor = foreground;
-                    consoleAction ();
-                    Console.ResetColor ();
+                    consoleAction();
+                    Console.ResetColor();
                 }
-            } else {
-                consoleAction ();
+            }
+            else
+            {
+                consoleAction();
             }
         }
 
-        private static void ColorConsole (Action consoleAction, ConsoleColor foreground, ConsoleColor background) {
+        private static void ColorConsole(Action consoleAction, ConsoleColor foreground, ConsoleColor background)
+        {
 
-            if (enabled) {
-                lock (locker) {
+            if (enabled)
+            {
+                lock (locker)
+                {
                     Console.ForegroundColor = foreground;
                     Console.BackgroundColor = background;
-                    consoleAction ();
-                    Console.ResetColor ();
+                    consoleAction();
+                    Console.ResetColor();
                 }
-            } else {
-                consoleAction ();
+            }
+            else
+            {
+                consoleAction();
             }
         }
 
-        public static void ColorInfo (Action consoleAction) {
-            ColorConsole (consoleAction, ConsoleColor.Cyan);
+        public static void ColorInfo(Action consoleAction)
+        {
+            ColorConsole(consoleAction, ConsoleColor.Cyan);
         }
 
-        public static void ColorWarning (Action consoleAction) {
-            ColorConsole (consoleAction, ConsoleColor.Yellow);
+        public static void ColorWarning(Action consoleAction)
+        {
+            ColorConsole(consoleAction, ConsoleColor.Yellow);
         }
 
-        public static void ColorAlert (Action consoleAction) {
-            ColorConsole (consoleAction, ConsoleColor.Red);
+        public static void ColorAlert(Action consoleAction)
+        {
+            ColorConsole(consoleAction, ConsoleColor.Red);
         }
 
     }

@@ -24,22 +24,27 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Server {
+namespace Server
+{
 
-    public class Helper {
-        public static void WriteTextAsyncWrapper (string filePath, string text, FileMode fileMode = FileMode.Append) {
-            #pragma warning disable 4014
-            WriteTextAsync (filePath, text, fileMode);
-            #pragma warning restore 4014
+    public class Helper
+    {
+        public static void WriteTextAsyncWrapper(string filePath, string text, FileMode fileMode = FileMode.Append)
+        {
+#pragma warning disable 4014
+            WriteTextAsync(filePath, text, fileMode);
+#pragma warning restore 4014
         }
 
-        public static async Task WriteTextAsync (string filePath, string text, FileMode fileMode = FileMode.Append) {
-            byte[] encodedText = Encoding.ASCII.GetBytes (text);
+        public static async Task WriteTextAsync(string filePath, string text, FileMode fileMode = FileMode.Append)
+        {
+            byte[] encodedText = Encoding.ASCII.GetBytes(text);
 
-            using (FileStream sourceStream = new FileStream (filePath,
+            using (FileStream sourceStream = new FileStream(filePath,
                 fileMode, FileAccess.Write, FileShare.None,
-                bufferSize : 4096, useAsync : true)) {
-                await sourceStream.WriteAsync (encodedText, 0, encodedText.Length);
+                bufferSize: 4096, useAsync: true))
+            {
+                await sourceStream.WriteAsync(encodedText, 0, encodedText.Length);
             };
         }
 

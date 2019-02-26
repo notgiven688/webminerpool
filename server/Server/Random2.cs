@@ -28,25 +28,25 @@ namespace Server
     // System.Random is not thread safe(!!)
     // https://blogs.msdn.microsoft.com/pfxteam/2009/02/19/getting-random-numbers-in-a-thread-safe-way/
 
-    public static class Random2 
-    { 
-        private static Random global = new Random(); 
+    public static class Random2
+    {
+        private static Random global = new Random();
 
-        [ThreadStatic] 
+        [ThreadStatic]
         private static Random local;
 
         public static double NextDouble()
         {
-            Random inst = local; 
-            if (inst == null) 
-            { 
-                int seed; 
-                lock (global) seed = global.Next(); 
-                local = inst = new Random(seed); 
-            } 
-            return inst.NextDouble (); 
+            Random inst = local;
+            if (inst == null)
+            {
+                int seed;
+                lock (global) seed = global.Next();
+                local = inst = new Random(seed);
+            }
+            return inst.NextDouble();
         }
-            
+
     }
 }
 
