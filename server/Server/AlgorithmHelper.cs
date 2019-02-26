@@ -1,6 +1,6 @@
 ﻿// The MIT License (MIT)
 
-// Copyright (c) 2018 - the webminerpool developer
+// Copyright (c) 2018-2019 - the webminerpool developer
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy of
 // this software and associated documentation files (the "Software"), to deal in
@@ -27,7 +27,7 @@ using JsonData = System.Collections.Generic.Dictionary<string, object>;
 namespace Server
 {
 
-    public class AlgorithmHelper
+    public static class AlgorithmHelper
     {
 
         // quite a mess
@@ -38,12 +38,14 @@ namespace Server
             { "cryptonight/0", new Tuple<string, int>("cn", 0) },
             { "cryptonight/1", new Tuple<string, int>("cn", 1) },
             { "cryptonight/2", new Tuple<string, int>("cn", 2) },
+            { "cryptonight/r", new Tuple<string, int>("cn", 4) },
             { "cryptonight-lite/0", new Tuple<string, int>("cn-lite", 0) },
             { "cryptonight-lite/1", new Tuple<string, int>("cn-lite", 1) },
             { "cryptonight-lite/2", new Tuple<string, int>("cn-lite", 2) },
             { "cn/0", new Tuple<string, int>("cn", 0) },
             { "cn/1", new Tuple<string, int>("cn", 1) },
             { "cn/2", new Tuple<string, int>("cn", 2) },
+            { "cn/r", new Tuple<string, int>("cn", 4) },
             { "cn-lite/0", new Tuple<string, int>("cn-lite", 0) },
             { "cn-lite/1", new Tuple<string, int>("cn-lite", 1) },
             { "cn-lite/2", new Tuple<string, int>("cn-lite", 2) }
@@ -51,8 +53,10 @@ namespace Server
 
         public static bool NormalizeAlgorithmAndVariant(JsonData job)
         {
-
             string algo = job["algo"].GetString().ToLower();
+            string variant = job["variant"].GetString().ToLower();
+
+            if (variant == "r") job["variant"] = "4";
 
             if (algo == "cn" || algo == "cryptonight")
                 job["algo"] = "cn";
