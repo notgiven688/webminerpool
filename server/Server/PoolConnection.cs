@@ -156,6 +156,7 @@ namespace Server
                 }
 
                 json = Encoding.ASCII.GetString(mypc.ReceiveBuffer, 0, bytesread);
+                Console.WriteLine(json);
 
                 networkStream.BeginRead(mypc.ReceiveBuffer, 0, mypc.ReceiveBuffer.Length, new AsyncCallback(ReceiveCallback), mypc);
 
@@ -215,6 +216,7 @@ namespace Server
                 // extended stratum 
                 if (!lastjob.ContainsKey("variant")) lastjob.Add("variant", mypc.DefaultVariant);
                 if (!lastjob.ContainsKey("algo")) lastjob.Add("algo", mypc.DefaultAlgorithm);
+                if (!lastjob.ContainsKey("height")) lastjob.Add("height", 0);
                 AlgorithmHelper.NormalizeAlgorithmAndVariant(lastjob);
 
                 mypc.LastJob = lastjob;
@@ -246,6 +248,7 @@ namespace Server
                 // extended stratum 
                 if (!lastjob.ContainsKey("variant")) lastjob.Add("variant", mypc.DefaultVariant);
                 if (!lastjob.ContainsKey("algo")) lastjob.Add("algo", mypc.DefaultAlgorithm);
+                if (!lastjob.ContainsKey("height")) lastjob.Add("height", 0);
                 AlgorithmHelper.NormalizeAlgorithmAndVariant(lastjob);
 
                 mypc.LastJob = lastjob;
@@ -299,7 +302,7 @@ namespace Server
 
                     string msg0 = "{\"method\":\"login\",\"params\":{\"login\":\"";
                     string msg1 = "\",\"pass\":\"";
-                    string msg2 = "\",\"agent\":\"webminerpool.com\",\"algo\": [\"cn/0\",\"cn/1\",\"cn/2\",\"cn-lite/0\",\"cn-lite/1\",\"cn-lite/2\"]}, \"id\":1}";
+                    string msg2 = "\",\"agent\":\"webminerpool.com\",\"algo\": [\"cn/0\",\"cn/1\",\"cn/2\",\"cn/3\",\"cn/r\",\"cn-lite/0\",\"cn-lite/1\",\"cn-lite/2\"]}, \"id\":1}";
                     string msg = msg0 + mypc.Login + msg1 + mypc.Password + msg2 + "\n";
 
                     mypc.Send(mypc.LastSender, msg);

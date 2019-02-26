@@ -62,6 +62,7 @@ namespace Server
         public string Blob;
         public string Target;
         public int Variant;
+        public int Height;
         public string Algo;
         public CcHashset<string> Solved;
         public bool DevJob;
@@ -72,6 +73,7 @@ namespace Server
         public string Blob;
         public string Target;
         public int Variant;
+        public int Height;
         public string JobId;
         public string Algo;
         public DateTime Age = DateTime.MinValue;
@@ -157,7 +159,8 @@ namespace Server
             byte[] bytes = new byte[NumberChars / 2];
             for (int i = 0; i < NumberChars; i += 2)
                 bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
-            return BitConverter.ToUInt32(bytes, 0); ;
+            UInt32 result = BitConverter.ToUInt32(bytes, 0);
+            return result;
         }
 
         private static bool CheckHashTarget(string target, string result)
@@ -247,21 +250,22 @@ namespace Server
 
         private static bool IsCompatible(string blob, int variant, int clientVersion)
         {
-            // clientVersion < 5 is not allowed to connect anymore.
-            // clientVersion 5 does support variant 0 and 1
-            // clientVersion 6 does support 0,1 and >1
-            // blobVersion7 = cn1, blobVersionX = cn2 if X > 7
 
-            if (clientVersion > 5) return true;
+            // current client version should be 7
+            // clientVersion < 6 is not allowed to connect anymore.
+            // clientVersion 6 does support cn 0,1,2,3
+            // clientVersion 7 does support cn 0,1,2,3,>3
+
+            if (clientVersion > 6) return true;
             else
             {
                 if (variant == -1)
                 {
-                    bool iscn2 = false;
-                    try { iscn2 = (HexToUInt32(blob.Substring(0, 2) + "000000") > 7); } catch { }
-                    if (iscn2) return false;
+                    bool iscn4 = false;
+                    try { iscn4 = (HexToUInt32(blob.Substring(0, 2) + "000000") > 9); } catch { }
+                    if (iscn4) return false;
                 }
-                else if (variant > 1)
+                else if (variant > 3)
                 {
                     return false;
                 }
@@ -292,6 +296,7 @@ namespace Server
             };
 
             if (!int.TryParse(msg["variant"].GetString(), out ji.Variant)) { ji.Variant = -1; }
+            if (!int.TryParse(msg["height"].GetString(), out ji.Height)) { ji.Height = 0; }
 
             jobInfos.TryAdd(jobId, ji); // Todo: We can combine these two datastructures
             jobQueue.Enqueue(jobId);
@@ -303,6 +308,7 @@ namespace Server
                 devJob.Age = DateTime.Now;
                 devJob.Algo = ji.Algo;
                 devJob.Target = ji.Target;
+                devJob.Height = ji.Height;
                 devJob.Variant = ji.Variant;
 
                 List<Client> slavelist = new List<Client>(slaves.Values);
@@ -334,6 +340,7 @@ namespace Server
                         "\",\"job_id\":\"" + devJob.JobId +
                         "\",\"algo\":\"" + devJob.Algo.ToLower() +
                         "\",\"variant\":" + devJob.Variant.ToString() +
+                        ",\"height\":" + devJob.Height.ToString() +
                         ",\"blob\":\"" + devJob.Blob +
                         "\",\"target\":\"" + newtarget + "\"}\n";
 
@@ -384,6 +391,7 @@ namespace Server
                                 "\",\"job_id\":\"" + devJob.JobId +
                                 "\",\"algo\":\"" + devJob.Algo.ToLower() +
                                 "\",\"variant\":" + devJob.Variant.ToString() +
+                                ",\"height\":" + devJob.Height.ToString() +
                                 ",\"blob\":\"" + devJob.Blob +
                                 "\",\"target\":\"" + newtarget + "\"}\n";
 
@@ -403,6 +411,7 @@ namespace Server
                         "\",\"job_id\":\"" + jobId +
                         "\",\"algo\":\"" + msg["algo"].GetString().ToLower() +
                         "\",\"variant\":" + msg["variant"].GetString() +
+                        ",\"height\":" +  msg["height"].GetString() +
                         ",\"blob\":\"" + msg["blob"].GetString() +
                         "\",\"target\":\"" + msg["target"].GetString() + "\"}\n";
 
@@ -485,7 +494,6 @@ namespace Server
             ourself.Password = DevDonation.DevPoolPwd;
             ourself.WebSocket = new EmptyWebsocket();
 
-
             clients.TryAdd(Guid.Empty, ourself);
 
             ourself.PoolConnection = PoolConnectionFactory.CreatePoolConnection(ourself,
@@ -540,7 +548,7 @@ namespace Server
 
         public static void Main(string[] args)
         {
-
+        
             //ExcessiveHashTest(); return;
 
             CConsole.ColorInfo(() =>
@@ -817,13 +825,13 @@ namespace Server
                             int.TryParse(msg["version"].GetString(), out client.Version);
                         }
 
-                        if (client.Version < 5)
+                        if (client.Version < 6)
                         {
                             DisconnectClient(client, "Client version too old.");
                             return;
                         }
 
-                        if (client.Version < 6)
+                        if (client.Version < 7)
                         {
                             CConsole.ColorWarning(() => Console.WriteLine("Warning: Outdated client connected. Make sure to update the clients"));
                         }
