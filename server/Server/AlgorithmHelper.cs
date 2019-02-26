@@ -24,9 +24,11 @@ using System.Collections.Generic;
 using JsonData = System.Collections.Generic.Dictionary<string, object>;
 
 
-namespace Server {
+namespace Server
+{
 
-    public class AlgorithmHelper {
+    public class AlgorithmHelper
+    {
 
         // quite a mess
         // https://github.com/xmrig/xmrig-proxy/blob/dev/doc/STRATUM_EXT.md#mining-algorithm-negotiation
@@ -46,8 +48,9 @@ namespace Server {
             { "cn-lite/1", new Tuple<string, int>("cn-lite", 1) },
             { "cn-lite/2", new Tuple<string, int>("cn-lite", 2) }
         };
-              
-        public static bool NormalizeAlgorithmAndVariant (JsonData job) {
+
+        public static bool NormalizeAlgorithmAndVariant(JsonData job)
+        {
 
             string algo = job["algo"].GetString().ToLower();
 
@@ -65,22 +68,6 @@ namespace Server {
             {
                 return false;
             }
-
-
-            /*if (lookup.ContainsKey(algo))
-            {
-                var tuple = lookup[algo];
-                job["algo"] = tuple.Item1;
-                job["variant"] = tuple.Item2;
-            }
-            else
-            {
-                if (algo == "cn" || algo == "cryptonight")
-                    job["algo"] = "cn";
-                else if (algo == "cn-lite" || algo == "cryptonight-lite")
-                    job["algo"] = "cn-lite";
-                else return false;
-            }*/
 
             return true;
         }
