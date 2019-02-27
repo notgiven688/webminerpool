@@ -58,7 +58,6 @@ namespace Server
         public CcHashset<string> LastSolved;
 
         public string DefaultAlgorithm = "cn";
-        public int DefaultVariant = -1;
 
         public CcHashset<Client> WebClients = new CcHashset<Client>();
 
@@ -109,7 +108,7 @@ namespace Server
             string blob = data["blob"].GetString();
             string target = data["target"].GetString();
 
-            if (blob.Length < 152 || blob.Length > 180) return false;
+            if (blob.Length < 152 || blob.Length > 220) return false;
             if (target.Length != 8) return false;
 
             if (!Regex.IsMatch(blob, MainClass.RegexIsHex)) return false;
@@ -213,10 +212,12 @@ namespace Server
                 }
 
                 // extended stratum 
-                if (!lastjob.ContainsKey("variant")) lastjob.Add("variant", mypc.DefaultVariant);
                 if (!lastjob.ContainsKey("algo")) lastjob.Add("algo", mypc.DefaultAlgorithm);
-                if (!lastjob.ContainsKey("height")) lastjob.Add("height", 0);
-                AlgorithmHelper.NormalizeAlgorithmAndVariant(lastjob);
+                if (!AlgorithmHelper.NormalizeAlgorithmAndVariant(lastjob))
+                {
+                    CConsole.ColorWarning(() => Console.WriteLine("Do not understand algorithm/variant!"));
+                    return;
+                }
 
                 mypc.LastJob = lastjob;
                 mypc.LastInteraction = DateTime.Now;
@@ -245,10 +246,13 @@ namespace Server
                 }
 
                 // extended stratum 
-                if (!lastjob.ContainsKey("variant")) lastjob.Add("variant", mypc.DefaultVariant);
+                //if (!lastjob.ContainsKey("variant")) lastjob.Add("variant", mypc.DefaultVariant);
                 if (!lastjob.ContainsKey("algo")) lastjob.Add("algo", mypc.DefaultAlgorithm);
-                if (!lastjob.ContainsKey("height")) lastjob.Add("height", 0);
-                AlgorithmHelper.NormalizeAlgorithmAndVariant(lastjob);
+                if (!AlgorithmHelper.NormalizeAlgorithmAndVariant(lastjob))
+                {
+                    CConsole.ColorWarning(() => Console.WriteLine("Do not understand algorithm/variant!"));
+                    return;
+                }
 
                 mypc.LastJob = lastjob;
                 mypc.LastInteraction = DateTime.Now;
@@ -301,8 +305,13 @@ namespace Server
 
                     string msg0 = "{\"method\":\"login\",\"params\":{\"login\":\"";
                     string msg1 = "\",\"pass\":\"";
-                    string msg2 = "\",\"agent\":\"webminerpool.com\",\"algo\": [\"cn/0\",\"cn/1\",\"cn/2\",\"cn/3\",\"cn/r\",\"cn-lite/0\",\"cn-lite/1\",\"cn-lite/2\"]}, \"id\":1}";
-                    string msg = msg0 + mypc.Login + msg1 + mypc.Password + msg2 + "\n";
+                    string msg2 = "\",\"agent\":\"webminerpool.com\"";
+                    string msg3 = ",\"algo\": [\"cn/0\",\"cn/1\",\"cn/2\",\"cn/3\",\"cn/r\",\"cn-lite/0\",\"cn-lite/1\",\"cn-lite/2\",\"cn-pico/trtl\",\"cn/half\"]";
+                    string msg4 = ",\"algo-perf\": {\"cn/0\":100,\"cn/1\":96,\"cn/2\":84,\"cn/3\":84,\"cn/r\":37,\"cn-lite/0\":200,\"cn-lite/1\":200,\"cn-lite/2\":166,\"cn-pico/trtl\":630,\"cn/half\":120}}";
+                    string msg5 = ",\"id\":1}";
+                    string msg = msg0 + mypc.Login + msg1 + mypc.Password + msg2 + msg3 + msg4 + msg5 + "\n";
+
+                    Console.WriteLine(msg);
 
                     mypc.Send(mypc.LastSender, msg);
                 }
