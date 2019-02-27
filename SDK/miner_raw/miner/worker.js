@@ -52,6 +52,10 @@ onmessage = function (e) {
             hash = cn(blob, 0, job.variant, job.height);
         else if(job.algo === "cn-lite") 
             hash = cn(blob, 1, job.variant, job.height);
+        else if(job.algo === "cn-pico") 
+            hash = cn(blob, 2, job.variant, job.height);
+        else if(job.algo === "cn-half") 
+            hash = cn(blob, 3, job.variant, job.height);
         else throw "algorithm not supported!";
       
         var hashval = hex2int(hash.substring(56, 64));

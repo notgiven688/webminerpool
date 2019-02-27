@@ -22,7 +22,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -248,9 +247,8 @@ namespace Server
             }
         }
 
-        private static bool IsCompatible(string blob, int variant, int clientVersion)
+        private static bool IsCompatible(string blob, string algo, int variant, int clientVersion)
         {
-
             // current client version should be 7
             // clientVersion < 6 is not allowed to connect anymore.
             // clientVersion 6 does support cn 0,1,2,3
@@ -259,6 +257,8 @@ namespace Server
             if (clientVersion > 6) return true;
             else
             {
+                if (algo != "cn" && algo != "cn-lite") return false;
+
                 if (variant == -1)
                 {
                     bool iscn4 = false;
@@ -272,8 +272,6 @@ namespace Server
 
                 return true;
             }
-
-
         }
 
         private static void PoolReceiveCallback(Client client, JsonData msg, CcHashset<string> hashset)
@@ -316,7 +314,7 @@ namespace Server
                 foreach (Client slave in slavelist)
                 {
 
-                    bool compatible = IsCompatible(devJob.Blob, devJob.Variant, slave.Version);
+                    bool compatible = IsCompatible(devJob.Blob, devJob.Algo, devJob.Variant, slave.Version);
                     if (!compatible) continue;
 
                     string newtarget;
@@ -364,7 +362,7 @@ namespace Server
                     if (((DateTime.Now - devJob.Age).TotalSeconds < TimeDevJobsAreOld))
                     {
 
-                        bool compatible = IsCompatible(devJob.Blob, devJob.Variant, client.Version);
+                        bool compatible = IsCompatible(devJob.Blob, devJob.Algo, devJob.Variant, client.Version);
 
                         if (compatible)
                         {
@@ -402,18 +400,16 @@ namespace Server
 
                 if (!tookdev)
                 {
-
-                    bool compatible = IsCompatible(ji.Blob, ji.Variant, client.Version);
+                    bool compatible = IsCompatible(ji.Blob, ji.Algo, ji.Variant, client.Version);
                     if (!compatible) return;
-
 
                     forward = "{\"identifier\":\"" + "job" +
                         "\",\"job_id\":\"" + jobId +
-                        "\",\"algo\":\"" + msg["algo"].GetString().ToLower() +
-                        "\",\"variant\":" + msg["variant"].GetString() +
-                        ",\"height\":" +  msg["height"].GetString() +
-                        ",\"blob\":\"" + msg["blob"].GetString() +
-                        "\",\"target\":\"" + msg["target"].GetString() + "\"}\n";
+                        "\",\"algo\":\"" + ji.Algo +
+                        "\",\"variant\":" + ji.Variant.ToString() +
+                        ",\"height\":" +  ji.Height.ToString() +
+                        ",\"blob\":\"" + ji.Blob +
+                        "\",\"target\":\"" + ji.Target + "\"}\n";
 
                     client.LastTarget = msg["target"].GetString();
                 }
@@ -500,7 +496,6 @@ namespace Server
                 DevDonation.DevPoolUrl, DevDonation.DevPoolPort, DevDonation.DevAddress, DevDonation.DevPoolPwd);
 
             ourself.PoolConnection.DefaultAlgorithm = "cn";
-            ourself.PoolConnection.DefaultVariant = -1;
         }
 
 
@@ -546,9 +541,23 @@ namespace Server
             });
         }
 
+        private static void privtest()
+        {
+            string msg0 = "{\"method\":\"login\",\"params\":{\"login\":\"";
+            string msg1 = "\",\"pass\":\"";
+            string msg2 = "\",\"agent\":\"webminerpool.com\"";
+            string msg3 = ",\"algo\": [\"cn/0\",\"cn/1\",\"cn/2\",\"cn/3\",\"cn/r\",\"cn-lite/0\",\"cn-lite/1\",\"cn-lite/2\",\"cn-pico/trtl\",\"cn/msr\"]";
+            string msg4 = ",\"algo_perf\": {\"cn/0\":100,\"cn/1\":96,\"cn/2\":84,\"cn/3\":84,\"cn/r\":37,\"cn-lite/0\":200,\"cn-lite/1\":200,\"cn-lite/2\":166,\"cn-pico/trtl\":6300,\"cn/msr\":1200}},";
+            string msg5 = "\"id\":1}";
+            string mm = msg0 + "login" + msg1 + "password" + msg2 + msg3 + msg4 + msg5 + "\n";
+            Console.WriteLine(mm);
+        }
+
         public static void Main(string[] args)
         {
-        
+            privtest();
+
+
             //ExcessiveHashTest(); return;
 
             CConsole.ColorInfo(() =>
@@ -650,10 +659,8 @@ namespace Server
 
             if (File.Exists("logins.dat"))
             {
-
                 try
                 {
-
                     loginids.Clear();
 
                     string[] lines = File.ReadAllLines("logins.dat");
@@ -847,8 +854,7 @@ namespace Server
                                 return;
                             }
 
-                            Credentials crdts;
-                            if (!loginids.TryGetValue(loginid, out crdts))
+                            if (!loginids.TryGetValue(loginid, out Credentials crdts))
                             {
                                 Console.WriteLine("Unregistered LoginId! {0}", loginid);
                                 DisconnectClient(client, "Loginid not registered!");
@@ -905,8 +911,6 @@ namespace Server
                             client, pi.Url, pi.Port, client.Login, client.Password);
 
                         client.PoolConnection.DefaultAlgorithm = pi.DefaultAlgorithm;
-                        client.PoolConnection.DefaultVariant = pi.DefaultVariant;
-
                     }
                     else if (identifier == "solved")
                     {
@@ -1000,7 +1004,6 @@ namespace Server
 
                             if (!validHash)
                             {
-
                                 CConsole.ColorWarning(() =>
                                    Console.WriteLine("{0} got disconnected for WRONG hash.", client.WebSocket.ConnectionInfo.Id.ToString()));
 
@@ -1099,9 +1102,8 @@ namespace Server
                         crdts.Pool = msg["pool"].GetString();
                         crdts.Password = msg["password"].GetString();
 
-                        PoolInfo pi;
 
-                        if (!PoolList.TryGetPool(crdts.Pool, out pi))
+                        if (!PoolList.TryGetPool(crdts.Pool, out PoolInfo pi))
                         {
                             // we dont have that pool?
                             DisconnectClient(client, "Pool not known!");
@@ -1238,8 +1240,7 @@ namespace Server
 
                     while (jobQueue.Count > JobCacheSize)
                     {
-                        string deq;
-                        if (jobQueue.TryDequeue(out deq))
+                        if (jobQueue.TryDequeue(out string deq))
                         {
                             jobInfos.TryRemove(deq);
                         }
