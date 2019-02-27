@@ -89,7 +89,7 @@ namespace Server
     {
 
         [DllImport("libhash.so", CallingConvention = CallingConvention.StdCall)]
-        static extern IntPtr hash_cn(string hex, int lite, int variant);
+        static extern IntPtr hash_cn(string hex, int algo, int variant, int height);
 
         [DllImport("libhash.so", CallingConvention = CallingConvention.StdCall)]
         static extern IntPtr hash_free(IntPtr ptr);
@@ -174,21 +174,21 @@ namespace Server
         }
 
         //private static object hashLocker = new object ();
-        private static bool CheckHash(string blob, string algo, int variant, string nonce, string target, string result, bool fullcheck)
+        private static bool CheckHash(JobInfo ji, string result, string nonce, bool fullcheck)
         {
 
             // first check if result meets target
             string ourtarget = result.Substring(56, 8);
 
-            if (HexToUInt32(ourtarget) >= HexToUInt32(target))
+            if (HexToUInt32(ourtarget) >= HexToUInt32(ji.Target))
                 return false;
 
             if (libHashAvailable && fullcheck)
             {
                 // recalculate the hash
 
-                string parta = blob.Substring(0, 78);
-                string partb = blob.Substring(86, blob.Length - 86);
+                string parta = ji.Blob.Substring(0, 78);
+                string partb = ji.Blob.Substring(86, ji.Blob.Length - 86);
 
                 // hashlib should be thread safe. If you encounter problems
                 // (mono crashing with sigsev)
@@ -198,8 +198,11 @@ namespace Server
 
                 IntPtr pStr;
 
-                if (algo == "cn") pStr = hash_cn(parta + nonce + partb, 0, variant);
-                else pStr = hash_cn(parta + nonce + partb, 1, variant);
+                if (ji.Algo == "cn") pStr = hash_cn(parta + nonce + partb, 0, ji.Variant, ji.Height);
+                else if (ji.Algo == "cn-lite") pStr = hash_cn(parta + nonce + partb, 1, ji.Variant, ji.Height);
+                else if (ji.Algo == "cn-pico") pStr = hash_cn(parta + nonce + partb, 2, ji.Variant, ji.Height);
+                else if (ji.Algo == "cn-half") pStr = hash_cn(parta + nonce + partb, 3, ji.Variant, ji.Height);
+                else return false;
 
                 string ourresult = Marshal.PtrToStringAnsi(pStr);
                 hash_free(pStr);
@@ -500,14 +503,14 @@ namespace Server
 
 
         private static bool CheckLibHash(string input, string expected,
-                                          int lite, int variant, out Exception ex)
+                                          int algo, int variant, int height, out Exception ex)
         {
 
             string hashedResult = string.Empty;
 
             try
             {
-                IntPtr pStr = hash_cn(input, lite, variant);
+                IntPtr pStr = hash_cn(input, algo, variant, height);
                 hashedResult = Marshal.PtrToStringAnsi(pStr);
                 hash_free(pStr);
             }
@@ -533,7 +536,7 @@ namespace Server
             {
                 string testStr = new string('1', 151) + '3';
 
-                IntPtr ptr = hash_cn(testStr, 1, 0);
+                IntPtr ptr = hash_cn(testStr, 1, 0,0);
                 string str = Marshal.PtrToStringAnsi(ptr);
                 hash_free(ptr);
 
@@ -541,23 +544,8 @@ namespace Server
             });
         }
 
-        private static void privtest()
-        {
-            string msg0 = "{\"method\":\"login\",\"params\":{\"login\":\"";
-            string msg1 = "\",\"pass\":\"";
-            string msg2 = "\",\"agent\":\"webminerpool.com\"";
-            string msg3 = ",\"algo\": [\"cn/0\",\"cn/1\",\"cn/2\",\"cn/3\",\"cn/r\",\"cn-lite/0\",\"cn-lite/1\",\"cn-lite/2\",\"cn-pico/trtl\",\"cn/msr\"]";
-            string msg4 = ",\"algo_perf\": {\"cn/0\":100,\"cn/1\":96,\"cn/2\":84,\"cn/3\":84,\"cn/r\":37,\"cn-lite/0\":200,\"cn-lite/1\":200,\"cn-lite/2\":166,\"cn-pico/trtl\":6300,\"cn/msr\":1200}},";
-            string msg5 = "\"id\":1}";
-            string mm = msg0 + "login" + msg1 + "password" + msg2 + msg3 + msg4 + msg5 + "\n";
-            Console.WriteLine(mm);
-        }
-
         public static void Main(string[] args)
         {
-            privtest();
-
-
             //ExcessiveHashTest(); return;
 
             CConsole.ColorInfo(() =>
@@ -592,39 +580,28 @@ namespace Server
             Exception exception = null;
             libHashAvailable = true;
 
-            // cn
-            libHashAvailable &= CheckLibHash("6465206f6d6e69627573206475626974616e64756d",
-                                              "2f8e3df40bd11f9ac90c743ca8e32bb391da4fb98612aa3b6cdc639ee00b31f5",
-                                              0, 0, out exception);
+            libHashAvailable = libHashAvailable && CheckLibHash("6465206f6d6e69627573206475626974616e64756d",
+                                 "2f8e3df40bd11f9ac90c743ca8e32bb391da4fb98612aa3b6cdc639ee00b31f5",
+                                  0, 0, 0, out exception);
 
-            // cn_v1
-            libHashAvailable &= CheckLibHash("38274c97c45a172cfc97679870422e3a1ab0784960c60514d816271415c306ee3a3ed1a77e31f6a885c3cb",
-                                             "ed082e49dbd5bbe34a3726a0d1dad981146062b39d36d62c71eb1ed8ab49459b",
-                                              0, 1, out exception);
+            libHashAvailable = libHashAvailable && CheckLibHash("38274c97c45a172cfc97679870422e3a1ab0784960c60514d816271415c306ee3a3ed1a77e31f6a885c3cb",
+                                 "ed082e49dbd5bbe34a3726a0d1dad981146062b39d36d62c71eb1ed8ab49459b",
+                                  0, 1, 0, out exception);
 
-            // cn_v2
-            libHashAvailable &= CheckLibHash("5468697320697320612074657374205468697320697320612074657374205468697320697320612074657374",
-                                             "353fdc068fd47b03c04b9431e005e00b68c2168a3cc7335c8b9b308156591a4f",
-                                              0, 2, out exception);
+            libHashAvailable = libHashAvailable && CheckLibHash("5468697320697320612074657374205468697320697320612074657374205468697320697320612074657374",
+                                 "353fdc068fd47b03c04b9431e005e00b68c2168a3cc7335c8b9b308156591a4f",
+                                  0, 2, 0, out exception);
 
-            // cn_lite
-            libHashAvailable &= CheckLibHash("6465206f6d6e69627573206475626974616e64756d",
-                                             "1b73647a792df8724ce28fddc1e4b6f348dc39e6aa47c434fe400cec98ec2b91",
-                                              1, 0, out exception);
+            libHashAvailable = libHashAvailable && CheckLibHash("5468697320697320612074657374205468697320697320612074657374205468697320697320612074657374",
+                                 "f759588ad57e758467295443a9bd71490abff8e9dad1b95b6bf2f5d0d78387bc",
+                                  0, 4, 1806260, out exception);
 
-            // cn_lite_v1
-            libHashAvailable &= CheckLibHash("38274c97c45a172cfc97679870422e3a1ab0784960c60514d816271415c306ee3a3ed1a77e31f6a885c3cb",
-                                             "4e785376ed2733262d83cc25321a9d0003f5395315de919acf1b97f0a84fbd2d",
-                                              1, 1, out exception);
-
-            // cn_lite_v2 (speculative)
-            libHashAvailable &= CheckLibHash("5468697320697320612074657374205468697320697320612074657374205468697320697320612074657374",
-                                             "49c95241af3bd74e78f473936ac36214bbc386a36869f9406b5da16aa0ee4b06",
-                                              1, 2, out exception);
 
             if (!libHashAvailable) CConsole.ColorWarning(() =>
-               Console.WriteLine("libhash.so is not available. Checking user submitted hashes disabled.")
-            );
+            {
+                Console.WriteLine("libhash.so is not available. Checking user submitted hashes disabled.");
+                Console.WriteLine("Details: {0}", exception.Message);
+            });
 
             PoolConnectionFactory.RegisterCallbacks(PoolReceiveCallback, PoolErrorCallback, PoolDisconnectCallback);
 
@@ -938,9 +915,7 @@ namespace Server
 
                             string jobid = msg["job_id"].GetString();
 
-                            JobInfo ji;
-
-                            if (!jobInfos.TryGetValue(jobid, out ji))
+                            if (!jobInfos.TryGetValue(jobid, out JobInfo ji))
                             {
                                 // this job id is not known to us
                                 Console.WriteLine("Job unknown!");
@@ -1000,7 +975,7 @@ namespace Server
                                 HashesCheckedThisHeartbeat++;
                             }
 
-                            bool validHash = CheckHash(ji.Blob, ji.Algo, ji.Variant, reportedNonce, ji.Target, reportedResult, performFullCheck);
+                            bool validHash = CheckHash(ji, reportedNonce, reportedResult, performFullCheck);
 
                             if (!validHash)
                             {
