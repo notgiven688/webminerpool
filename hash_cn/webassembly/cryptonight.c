@@ -518,12 +518,13 @@ void cryptonight_hash_ctx(void *output, const void *input, size_t len, int algo,
   size_t memory, iter;
   uint32_t mask;
 
+  memory = MEMORY;
+  iter = ITER / 4;
+  mask = 0x1FFFF0;
+
   switch (algo)
   {
   case 0: // cn
-    memory = MEMORY;
-    iter = ITER / 4;
-    mask = 0x1FFFF0;
     break;
   case 1: // cn-lite
     memory = MEMORY / 2;

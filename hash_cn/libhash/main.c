@@ -7,7 +7,7 @@
 
 #include "cryptonight.h"
 
-char *hash_cn(char *hex, int lite, int variant)
+char *hash_cn(char *hex, int algo, int variant, int height)
 {
     char *output = (char *)malloc((64 + 1) * sizeof(char));
 
@@ -27,7 +27,7 @@ char *hash_cn(char *hex, int lite, int variant)
 
     unsigned char hash[32];
 
-    cryptonight(&hash, &val, len, lite, variant);
+    cryptonight(&hash, &val, len, algo, variant, height);
 
     char *ptr = &output[0];
 
