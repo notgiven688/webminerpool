@@ -693,9 +693,8 @@ void cryptonight_hash_ctx(void *output, const void *input, size_t len, int algo,
 
   memcpy(text, state.init, INIT_SIZE_BYTE);
 
-  // TODO: check mem leaks
-  //oaes_free((OAES_CTX **)&aes_ctx);
-  //aes_ctx = (oaes_ctx *)oaes_alloc();
+  oaes_free((OAES_CTX **)&aes_ctx);
+  aes_ctx = (oaes_ctx *)oaes_alloc();
 
   oaes_key_import_data(aes_ctx, &state.hs.b[32], AES_KEY_SIZE);
 
