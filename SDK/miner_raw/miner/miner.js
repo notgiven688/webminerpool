@@ -241,6 +241,7 @@ function informWorker(wrk) {
 }
 
 function on_servermsg(e) {
+  console.log(e.data);
   var obj = JSON.parse(e.data);
 
   receiveStack.push(obj);

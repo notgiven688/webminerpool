@@ -37,7 +37,6 @@ namespace Server
 
     public class Client
     {
-
         public PoolConnection PoolConnection;
         public IWebSocketConnection WebSocket;
         public string Pool = string.Empty;
@@ -536,7 +535,7 @@ namespace Server
             {
                 string testStr = new string('1', 151) + '3';
 
-                IntPtr ptr = hash_cn(testStr, 1, 0,0);
+                IntPtr ptr = hash_cn(testStr,1, 0,0);
                 string str = Marshal.PtrToStringAnsi(ptr);
                 hash_free(ptr);
 
