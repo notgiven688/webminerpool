@@ -21,9 +21,9 @@ Unfortunately the newest version of cryptonight, cn/r (cnv4), does perform poorl
 which allows autoswitching algorithms (at the moment moneroocean.stream) webminerpool will automatically
 switch to an algorithm which is most profitable at the moment.
 
-## Update notes: It is beneficial to first update your clients (stepA) to the newest mining script (Version 7, the version number can be found in the "handshake-data" within the source code). Wait a few days till your userbase followed (because of browser caching) and then update to the newest server version (stepB). This is recommended because of the possibility that the new server negotiates a mining algorithm with the pool, which is not  yet supported by on old client (and therefore is not forwarded to the client). 
+## Update notes: It is beneficial to first update your clients (step_A) to the newest mining script (Version 7, the version number can be found in the "handshake-data" within the source code). Wait a few days till your user base followed (because of browser caching) and then update to the newest server version (step_B). This is recommended because of the possibility that the new server negotiates a mining algorithm with the pool, which is not  yet supported by on old client (and therefore is not forwarded to the client). 
 
-## stepA and stepB have to be performed before March 9th!
+## step_A and step_B have to be performed before March 9th!
 
 
 # What is new?
