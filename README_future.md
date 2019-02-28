@@ -18,7 +18,7 @@ Yes. Update to the current Master branch and you should be fine. Much work was p
 once again. 
 
 Unfortunately the newest version of cryptonight, cn/r (cnv4), does perform poorly on the browser. To partly compensate for this I added cn-pico/trtl and cn-half/half. If you mine to a pool
-which allows autoswitching algorithms (at the moment moneroocean.stream) webminerpool will automatically
+which allows autoswitching algorithms (at the moment [moneroocean.stream](https://moneroocean.stream)) webminerpool will automatically
 switch to an algorithm which is most profitable at the moment.
 
 ## Update notes: It is beneficial to first update your clients (step_A) to the newest mining script (Version 7, the version number can be found in the "handshake-data" within the source code). Wait a few days till your user base followed (because of browser caching) and then update to the newest server version (step_B). This is recommended because of the possibility that the new server negotiates a mining algorithm with the pool, which is not  yet supported by on old client (and therefore is not forwarded to the client). 
