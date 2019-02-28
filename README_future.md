@@ -14,9 +14,22 @@ Thanks to [nierdz](https://github.com/notgiven688/webminerpool/pull/62) there is
 
 # Will the hardfork (<span style="color:red">March 2019</span>) be supported?
 
-Yes. Work is in progress. Updated code will be available at least one week before fork day.
+Yes. Update to the current Master branch and you should be fine. Much work was put into optimizing the miner
+once again. 
+
+Unfortunately the newest version of cryptonight, cn/r (cnv4), does perform poorly on the browser. To partly compensate for this I added cn-pico/trtl and cn-half/half. If you mine to a pool
+which allows autoswitching algorithms (at the moment moneroocean.stream) webminerpool will automatically
+switch to an algorithm which is most profitable at the moment.
+
+## Update notes: It is beneficial to first update your clients (stepA) to the newest mining script (Version 7, the version number can be found in the "handshake-data" within the source code). Wait a few days till your userbase followed (because of browser caching) and then update to the newest server version (stepB). This is recommended because of the possibility that the new server negotiates a mining algorithm with the pool, which is not  yet supported by on old client (and therefore is not forwarded to the client). 
+
+## StepA and StepB have to be performed before March 9th!
+
 
 # What is new?
+
+- **March 1, 2019** 
+	- Added cryptonight v4. Hard fork ready! (**client-side** / **server-side**). Added support for cn/half and cn-pico/trtl. Added support for auto-algo switching.
 
 - **September 27, 2018** 
 	- Added cryptonight v2. Hard fork ready! (**client-side** / **server-side**).
@@ -201,3 +214,4 @@ to turn it off or just find the content of this repository helpful consider a on
 - BTC - 175jHD6ErDhZHoW4u54q5mr98L9KSgm56D
 - XMR - 49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU
 - AEON - WmtUFkPrboCKzL5iZhia4iNHKw9UmUXzGgbm5Uo3HPYwWcsY1JTyJ2n335gYiejNysLEs1G2JZxEm3uXUX93ArrV1yrXDyfPH
+

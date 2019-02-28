@@ -119,7 +119,6 @@ namespace Server
 
         private static void ReceiveCallback(IAsyncResult result)
         {
-
             PoolConnection mypc = result.AsyncState as PoolConnection;
             TcpClient client = mypc.TcpClient;
 
@@ -139,7 +138,6 @@ namespace Server
             {
                 if (bytesread == 0) // disconnected
                 {
-
                     // slow that down a bit to avoid negative feedback loop
 
                     Task.Run(async delegate
@@ -154,10 +152,8 @@ namespace Server
                 }
 
                 json = Encoding.ASCII.GetString(mypc.ReceiveBuffer, 0, bytesread);
-                Console.WriteLine(json);
 
                 networkStream.BeginRead(mypc.ReceiveBuffer, 0, mypc.ReceiveBuffer.Length, new AsyncCallback(ReceiveCallback), mypc);
-
             }
             catch { return; }
 
@@ -229,7 +225,6 @@ namespace Server
                 {
                     ReceiveJob(ev, mypc.LastJob, mypc.LastSolved);
                 }
-
             }
             else if (msg.ContainsKey("method") && msg["method"].GetString() == "job")
             {
@@ -246,7 +241,6 @@ namespace Server
                 }
 
                 // extended stratum 
-                //if (!lastjob.ContainsKey("variant")) lastjob.Add("variant", mypc.DefaultVariant);
                 if (!lastjob.ContainsKey("algo")) lastjob.Add("algo", mypc.DefaultAlgorithm);
                 if (!AlgorithmHelper.NormalizeAlgorithmAndVariant(lastjob))
                 {
@@ -266,7 +260,6 @@ namespace Server
                 {
                     ReceiveJob(ev, mypc.LastJob, mypc.LastSolved);
                 }
-
             }
             else
             {
@@ -274,7 +267,6 @@ namespace Server
                 {
                     // who knows?
                     ReceiveError(mypc.LastSender, msg);
-
                 }
                 else
                 {
@@ -286,13 +278,11 @@ namespace Server
 
         private static void ConnectCallback(IAsyncResult result)
         {
-
             PoolConnection mypc = result.AsyncState as PoolConnection;
             TcpClient client = mypc.TcpClient;
 
             if (!mypc.Closed && client.Connected)
             {
-
                 try
                 {
                     NetworkStream networkStream = client.GetStream();
@@ -311,17 +301,13 @@ namespace Server
                     string msg5 = ",\"id\":1}";
                     string msg = msg0 + mypc.Login + msg1 + mypc.Password + msg2 + msg3 + msg4 + msg5 + "\n";
 
-                    Console.WriteLine(msg);
-
                     mypc.Send(mypc.LastSender, msg);
                 }
                 catch { return; }
             }
             else
             {
-
                 // slow that down a bit
-
                 Task.Run(async delegate
                 {
                     await Task.Delay(TimeSpan.FromSeconds(4));
@@ -330,7 +316,6 @@ namespace Server
                     foreach (Client ev in cllist)
                         Disconnect(ev, "can not connect to pool.");
                 });
-
             }
         }
 
@@ -342,7 +327,6 @@ namespace Server
 
             if (connection.WebClients.Count == 0)
             {
-
                 connection.Closed = true;
 
                 try
@@ -359,7 +343,6 @@ namespace Server
                 Connections.TryRemove(connection.Credentials);
 
                 Console.WriteLine("{0}: closed a pool connection.", client.WebSocket.ConnectionInfo.Id);
-
             }
         }
 
@@ -372,7 +355,6 @@ namespace Server
 
         public static void CheckPoolConnection(PoolConnection connection)
         {
-
             if (connection.Closed) return;
 
             if ((DateTime.Now - connection.LastInteraction).TotalMinutes < 10)
@@ -389,25 +371,21 @@ namespace Server
 
             try { connection.TcpClient.Close(); } catch { }
             try { connection.TcpClient.Client.Close(); } catch { }
+
             connection.ReceiveBuffer = null;
-
             connection.LastInteraction = DateTime.Now;
-
             connection.PoolId = "";
             connection.LastJob = null;
-
             connection.TcpClient = new TcpClient();
 
             Fleck.SocketExtensions.SetKeepAlive(connection.TcpClient.Client, 60000, 1000);
             connection.TcpClient.Client.ReceiveBufferSize = 4096 * 2;
 
             try { connection.TcpClient.BeginConnect(connection.Url, connection.Port, new AsyncCallback(ConnectCallback), connection); } catch { }
-
         }
 
         public static PoolConnection CreatePoolConnection(Client client, string url, int port, string login, string password)
         {
-
             string credential = url + port.ToString() + login + password;
 
             PoolConnection lpc, mypc = null;
@@ -422,16 +400,13 @@ namespace Server
 
             credential += batchCounter.ToString();
 
-
             if (mypc == null)
             {
-
                 CConsole.ColorInfo(() =>
                 {
                     Console.WriteLine("{0}: initiated new pool connection", client.WebSocket.ConnectionInfo.Id);
                     Console.WriteLine("{0} {1} {2}", login, password, url);
                 });
-
 
                 mypc = new PoolConnection();
                 mypc.Credentials = credential;
@@ -452,13 +427,9 @@ namespace Server
                 Connections.TryAdd(credential, mypc);
 
                 try { mypc.TcpClient.Client.BeginConnect(url, port, new AsyncCallback(ConnectCallback), mypc); } catch { }
-
             }
             else
             {
-
-
-
                 Console.WriteLine("{0}: reusing pool connection", client.WebSocket.ConnectionInfo.Id);
 
                 mypc.WebClients.TryAdd(client);
@@ -471,7 +442,6 @@ namespace Server
             client.PoolConnection = mypc;
 
             return mypc;
-
         }
     }
 }
