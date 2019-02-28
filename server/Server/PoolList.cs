@@ -38,9 +38,6 @@ namespace Server
         // some pools require a non-empty password
         public string EmptyPassword;
         public string DefaultAlgorithm;
-        public int DefaultVariant;
-
-        public PoolInfo(string url, int port, string emptypw = "", string algo = "cn", int variant = -1) { Port = port; Url = url; EmptyPassword = emptypw; DefaultAlgorithm = algo; DefaultVariant = variant; }
     }
 
     public class PoolList
@@ -69,22 +66,23 @@ namespace Server
 
             foreach (string pool in data.Keys)
             {
-
                 JsonData jinfo = data[pool] as JsonData;
                 PoolInfo pi = new PoolInfo();
 
                 if (!(jinfo.ContainsKey("url") && jinfo.ContainsKey("port") &&
-                        jinfo.ContainsKey("emptypassword") && jinfo.ContainsKey("algorithm") &&
-                        jinfo.ContainsKey("variant")))
+                        jinfo.ContainsKey("emptypassword") && jinfo.ContainsKey("algorithm")))
                     throw new Exception("Invalid entry.");
 
                 pi.Url = jinfo["url"].GetString();
                 pi.EmptyPassword = jinfo["emptypassword"].GetString();
+
                 pi.DefaultAlgorithm = jinfo["algorithm"].GetString();
-                pi.DefaultVariant = int.Parse(jinfo["variant"].GetString());
                 pi.Port = int.Parse(jinfo["port"].GetString());
 
-                pl.pools.Add(pool, pi);
+                if (!AlgorithmHelper.ValidAlgorithm(pi.DefaultAlgorithm))
+                    throw new Exception("Invalid algorithm found in pools.json: " + pi.DefaultAlgorithm );
+
+                    pl.pools.Add(pool, pi);
 
             }
 

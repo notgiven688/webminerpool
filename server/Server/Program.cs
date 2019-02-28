@@ -22,7 +22,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -38,7 +37,6 @@ namespace Server
 
     public class Client
     {
-
         public PoolConnection PoolConnection;
         public IWebSocketConnection WebSocket;
         public string Pool = string.Empty;
@@ -62,6 +60,7 @@ namespace Server
         public string Blob;
         public string Target;
         public int Variant;
+        public int Height;
         public string Algo;
         public CcHashset<string> Solved;
         public bool DevJob;
@@ -72,6 +71,7 @@ namespace Server
         public string Blob;
         public string Target;
         public int Variant;
+        public int Height;
         public string JobId;
         public string Algo;
         public DateTime Age = DateTime.MinValue;
@@ -88,7 +88,7 @@ namespace Server
     {
 
         [DllImport("libhash.so", CallingConvention = CallingConvention.StdCall)]
-        static extern IntPtr hash_cn(string hex, int lite, int variant);
+        static extern IntPtr hash_cn(string hex, int algo, int variant, int height);
 
         [DllImport("libhash.so", CallingConvention = CallingConvention.StdCall)]
         static extern IntPtr hash_free(IntPtr ptr);
@@ -157,7 +157,8 @@ namespace Server
             byte[] bytes = new byte[NumberChars / 2];
             for (int i = 0; i < NumberChars; i += 2)
                 bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
-            return BitConverter.ToUInt32(bytes, 0); ;
+            UInt32 result = BitConverter.ToUInt32(bytes, 0);
+            return result;
         }
 
         private static bool CheckHashTarget(string target, string result)
@@ -172,21 +173,21 @@ namespace Server
         }
 
         //private static object hashLocker = new object ();
-        private static bool CheckHash(string blob, string algo, int variant, string nonce, string target, string result, bool fullcheck)
+        private static bool CheckHash(JobInfo ji, string result, string nonce, bool fullcheck)
         {
 
             // first check if result meets target
             string ourtarget = result.Substring(56, 8);
 
-            if (HexToUInt32(ourtarget) >= HexToUInt32(target))
+            if (HexToUInt32(ourtarget) >= HexToUInt32(ji.Target))
                 return false;
 
             if (libHashAvailable && fullcheck)
             {
                 // recalculate the hash
 
-                string parta = blob.Substring(0, 78);
-                string partb = blob.Substring(86, blob.Length - 86);
+                string parta = ji.Blob.Substring(0, 78);
+                string partb = ji.Blob.Substring(86, ji.Blob.Length - 86);
 
                 // hashlib should be thread safe. If you encounter problems
                 // (mono crashing with sigsev)
@@ -196,8 +197,11 @@ namespace Server
 
                 IntPtr pStr;
 
-                if (algo == "cn") pStr = hash_cn(parta + nonce + partb, 0, variant);
-                else pStr = hash_cn(parta + nonce + partb, 1, variant);
+                if (ji.Algo == "cn") pStr = hash_cn(parta + nonce + partb, 0, ji.Variant, ji.Height);
+                else if (ji.Algo == "cn-lite") pStr = hash_cn(parta + nonce + partb, 1, ji.Variant, ji.Height);
+                else if (ji.Algo == "cn-pico") pStr = hash_cn(parta + nonce + partb, 2, ji.Variant, ji.Height);
+                else if (ji.Algo == "cn-half") pStr = hash_cn(parta + nonce + partb, 3, ji.Variant, ji.Height);
+                else return false;
 
                 string ourresult = Marshal.PtrToStringAnsi(pStr);
                 hash_free(pStr);
@@ -245,31 +249,31 @@ namespace Server
             }
         }
 
-        private static bool IsCompatible(string blob, int variant, int clientVersion)
+        private static bool IsCompatible(string blob, string algo, int variant, int clientVersion)
         {
-            // clientVersion < 5 is not allowed to connect anymore.
-            // clientVersion 5 does support variant 0 and 1
-            // clientVersion 6 does support 0,1 and >1
-            // blobVersion7 = cn1, blobVersionX = cn2 if X > 7
+            // current client version should be 7
+            // clientVersion < 6 is not allowed to connect anymore.
+            // clientVersion 6 does support cn 0,1,2,3
+            // clientVersion 7 does support cn 0,1,2,3,>3
 
-            if (clientVersion > 5) return true;
+            if (clientVersion > 6) return true;
             else
             {
+                if (algo != "cn" && algo != "cn-lite") return false;
+
                 if (variant == -1)
                 {
-                    bool iscn2 = false;
-                    try { iscn2 = (HexToUInt32(blob.Substring(0, 2) + "000000") > 7); } catch { }
-                    if (iscn2) return false;
+                    bool iscn4 = false;
+                    try { iscn4 = (HexToUInt32(blob.Substring(0, 2) + "000000") > 9); } catch { }
+                    if (iscn4) return false;
                 }
-                else if (variant > 1)
+                else if (variant > 3)
                 {
                     return false;
                 }
 
                 return true;
             }
-
-
         }
 
         private static void PoolReceiveCallback(Client client, JsonData msg, CcHashset<string> hashset)
@@ -292,6 +296,7 @@ namespace Server
             };
 
             if (!int.TryParse(msg["variant"].GetString(), out ji.Variant)) { ji.Variant = -1; }
+            if (!int.TryParse(msg["height"].GetString(), out ji.Height)) { ji.Height = 0; }
 
             jobInfos.TryAdd(jobId, ji); // Todo: We can combine these two datastructures
             jobQueue.Enqueue(jobId);
@@ -303,6 +308,7 @@ namespace Server
                 devJob.Age = DateTime.Now;
                 devJob.Algo = ji.Algo;
                 devJob.Target = ji.Target;
+                devJob.Height = ji.Height;
                 devJob.Variant = ji.Variant;
 
                 List<Client> slavelist = new List<Client>(slaves.Values);
@@ -310,7 +316,7 @@ namespace Server
                 foreach (Client slave in slavelist)
                 {
 
-                    bool compatible = IsCompatible(devJob.Blob, devJob.Variant, slave.Version);
+                    bool compatible = IsCompatible(devJob.Blob, devJob.Algo, devJob.Variant, slave.Version);
                     if (!compatible) continue;
 
                     string newtarget;
@@ -334,6 +340,7 @@ namespace Server
                         "\",\"job_id\":\"" + devJob.JobId +
                         "\",\"algo\":\"" + devJob.Algo.ToLower() +
                         "\",\"variant\":" + devJob.Variant.ToString() +
+                        ",\"height\":" + devJob.Height.ToString() +
                         ",\"blob\":\"" + devJob.Blob +
                         "\",\"target\":\"" + newtarget + "\"}\n";
 
@@ -357,7 +364,7 @@ namespace Server
                     if (((DateTime.Now - devJob.Age).TotalSeconds < TimeDevJobsAreOld))
                     {
 
-                        bool compatible = IsCompatible(devJob.Blob, devJob.Variant, client.Version);
+                        bool compatible = IsCompatible(devJob.Blob, devJob.Algo, devJob.Variant, client.Version);
 
                         if (compatible)
                         {
@@ -384,6 +391,7 @@ namespace Server
                                 "\",\"job_id\":\"" + devJob.JobId +
                                 "\",\"algo\":\"" + devJob.Algo.ToLower() +
                                 "\",\"variant\":" + devJob.Variant.ToString() +
+                                ",\"height\":" + devJob.Height.ToString() +
                                 ",\"blob\":\"" + devJob.Blob +
                                 "\",\"target\":\"" + newtarget + "\"}\n";
 
@@ -394,17 +402,16 @@ namespace Server
 
                 if (!tookdev)
                 {
-
-                    bool compatible = IsCompatible(ji.Blob, ji.Variant, client.Version);
+                    bool compatible = IsCompatible(ji.Blob, ji.Algo, ji.Variant, client.Version);
                     if (!compatible) return;
-
 
                     forward = "{\"identifier\":\"" + "job" +
                         "\",\"job_id\":\"" + jobId +
-                        "\",\"algo\":\"" + msg["algo"].GetString().ToLower() +
-                        "\",\"variant\":" + msg["variant"].GetString() +
-                        ",\"blob\":\"" + msg["blob"].GetString() +
-                        "\",\"target\":\"" + msg["target"].GetString() + "\"}\n";
+                        "\",\"algo\":\"" + ji.Algo +
+                        "\",\"variant\":" + ji.Variant.ToString() +
+                        ",\"height\":" +  ji.Height.ToString() +
+                        ",\"blob\":\"" + ji.Blob +
+                        "\",\"target\":\"" + ji.Target + "\"}\n";
 
                     client.LastTarget = msg["target"].GetString();
                 }
@@ -485,26 +492,24 @@ namespace Server
             ourself.Password = DevDonation.DevPoolPwd;
             ourself.WebSocket = new EmptyWebsocket();
 
-
             clients.TryAdd(Guid.Empty, ourself);
 
             ourself.PoolConnection = PoolConnectionFactory.CreatePoolConnection(ourself,
                 DevDonation.DevPoolUrl, DevDonation.DevPoolPort, DevDonation.DevAddress, DevDonation.DevPoolPwd);
 
             ourself.PoolConnection.DefaultAlgorithm = "cn";
-            ourself.PoolConnection.DefaultVariant = -1;
         }
 
 
         private static bool CheckLibHash(string input, string expected,
-                                          int lite, int variant, out Exception ex)
+                                          int algo, int variant, int height, out Exception ex)
         {
 
             string hashedResult = string.Empty;
 
             try
             {
-                IntPtr pStr = hash_cn(input, lite, variant);
+                IntPtr pStr = hash_cn(input, algo, variant, height);
                 hashedResult = Marshal.PtrToStringAnsi(pStr);
                 hash_free(pStr);
             }
@@ -530,7 +535,7 @@ namespace Server
             {
                 string testStr = new string('1', 151) + '3';
 
-                IntPtr ptr = hash_cn(testStr, 1, 0);
+                IntPtr ptr = hash_cn(testStr,1, 0,0);
                 string str = Marshal.PtrToStringAnsi(ptr);
                 hash_free(ptr);
 
@@ -540,7 +545,6 @@ namespace Server
 
         public static void Main(string[] args)
         {
-
             //ExcessiveHashTest(); return;
 
             CConsole.ColorInfo(() =>
@@ -575,39 +579,28 @@ namespace Server
             Exception exception = null;
             libHashAvailable = true;
 
-            // cn
-            libHashAvailable &= CheckLibHash("6465206f6d6e69627573206475626974616e64756d",
-                                              "2f8e3df40bd11f9ac90c743ca8e32bb391da4fb98612aa3b6cdc639ee00b31f5",
-                                              0, 0, out exception);
+            libHashAvailable = libHashAvailable && CheckLibHash("6465206f6d6e69627573206475626974616e64756d",
+                                 "2f8e3df40bd11f9ac90c743ca8e32bb391da4fb98612aa3b6cdc639ee00b31f5",
+                                  0, 0, 0, out exception);
 
-            // cn_v1
-            libHashAvailable &= CheckLibHash("38274c97c45a172cfc97679870422e3a1ab0784960c60514d816271415c306ee3a3ed1a77e31f6a885c3cb",
-                                             "ed082e49dbd5bbe34a3726a0d1dad981146062b39d36d62c71eb1ed8ab49459b",
-                                              0, 1, out exception);
+            libHashAvailable = libHashAvailable && CheckLibHash("38274c97c45a172cfc97679870422e3a1ab0784960c60514d816271415c306ee3a3ed1a77e31f6a885c3cb",
+                                 "ed082e49dbd5bbe34a3726a0d1dad981146062b39d36d62c71eb1ed8ab49459b",
+                                  0, 1, 0, out exception);
 
-            // cn_v2
-            libHashAvailable &= CheckLibHash("5468697320697320612074657374205468697320697320612074657374205468697320697320612074657374",
-                                             "353fdc068fd47b03c04b9431e005e00b68c2168a3cc7335c8b9b308156591a4f",
-                                              0, 2, out exception);
+            libHashAvailable = libHashAvailable && CheckLibHash("5468697320697320612074657374205468697320697320612074657374205468697320697320612074657374",
+                                 "353fdc068fd47b03c04b9431e005e00b68c2168a3cc7335c8b9b308156591a4f",
+                                  0, 2, 0, out exception);
 
-            // cn_lite
-            libHashAvailable &= CheckLibHash("6465206f6d6e69627573206475626974616e64756d",
-                                             "1b73647a792df8724ce28fddc1e4b6f348dc39e6aa47c434fe400cec98ec2b91",
-                                              1, 0, out exception);
+            libHashAvailable = libHashAvailable && CheckLibHash("5468697320697320612074657374205468697320697320612074657374205468697320697320612074657374",
+                                 "f759588ad57e758467295443a9bd71490abff8e9dad1b95b6bf2f5d0d78387bc",
+                                  0, 4, 1806260, out exception);
 
-            // cn_lite_v1
-            libHashAvailable &= CheckLibHash("38274c97c45a172cfc97679870422e3a1ab0784960c60514d816271415c306ee3a3ed1a77e31f6a885c3cb",
-                                             "4e785376ed2733262d83cc25321a9d0003f5395315de919acf1b97f0a84fbd2d",
-                                              1, 1, out exception);
-
-            // cn_lite_v2 (speculative)
-            libHashAvailable &= CheckLibHash("5468697320697320612074657374205468697320697320612074657374205468697320697320612074657374",
-                                             "49c95241af3bd74e78f473936ac36214bbc386a36869f9406b5da16aa0ee4b06",
-                                              1, 2, out exception);
 
             if (!libHashAvailable) CConsole.ColorWarning(() =>
-               Console.WriteLine("libhash.so is not available. Checking user submitted hashes disabled.")
-            );
+            {
+                Console.WriteLine("libhash.so is not available. Checking user submitted hashes disabled:");
+                Console.WriteLine(" -> {0}", new StringReader(exception.ToString()).ReadLine());
+            });
 
             PoolConnectionFactory.RegisterCallbacks(PoolReceiveCallback, PoolErrorCallback, PoolDisconnectCallback);
 
@@ -642,10 +635,8 @@ namespace Server
 
             if (File.Exists("logins.dat"))
             {
-
                 try
                 {
-
                     loginids.Clear();
 
                     string[] lines = File.ReadAllLines("logins.dat");
@@ -679,8 +670,11 @@ namespace Server
 
             bool certAvailable = (cert != null);
 
-            if (!certAvailable)
-                CConsole.ColorWarning(() => Console.WriteLine("SSL certificate could not be loaded. Secure connection disabled."));
+            if (!certAvailable) CConsole.ColorWarning(() =>
+            {
+                Console.WriteLine("SSL certificate could not be loaded. Secure connection disabled.");
+                Console.WriteLine(" -> {0}", new StringReader(exception.ToString()).ReadLine());
+            });
 
             WebSocketServer server;
 
@@ -817,13 +811,13 @@ namespace Server
                             int.TryParse(msg["version"].GetString(), out client.Version);
                         }
 
-                        if (client.Version < 5)
+                        if (client.Version < 6)
                         {
                             DisconnectClient(client, "Client version too old.");
                             return;
                         }
 
-                        if (client.Version < 6)
+                        if (client.Version < 7)
                         {
                             CConsole.ColorWarning(() => Console.WriteLine("Warning: Outdated client connected. Make sure to update the clients"));
                         }
@@ -839,8 +833,7 @@ namespace Server
                                 return;
                             }
 
-                            Credentials crdts;
-                            if (!loginids.TryGetValue(loginid, out crdts))
+                            if (!loginids.TryGetValue(loginid, out Credentials crdts))
                             {
                                 Console.WriteLine("Unregistered LoginId! {0}", loginid);
                                 DisconnectClient(client, "Loginid not registered!");
@@ -897,8 +890,6 @@ namespace Server
                             client, pi.Url, pi.Port, client.Login, client.Password);
 
                         client.PoolConnection.DefaultAlgorithm = pi.DefaultAlgorithm;
-                        client.PoolConnection.DefaultVariant = pi.DefaultVariant;
-
                     }
                     else if (identifier == "solved")
                     {
@@ -926,9 +917,7 @@ namespace Server
 
                             string jobid = msg["job_id"].GetString();
 
-                            JobInfo ji;
-
-                            if (!jobInfos.TryGetValue(jobid, out ji))
+                            if (!jobInfos.TryGetValue(jobid, out JobInfo ji))
                             {
                                 // this job id is not known to us
                                 Console.WriteLine("Job unknown!");
@@ -988,11 +977,12 @@ namespace Server
                                 HashesCheckedThisHeartbeat++;
                             }
 
-                            bool validHash = CheckHash(ji.Blob, ji.Algo, ji.Variant, reportedNonce, ji.Target, reportedResult, performFullCheck);
+
+                            bool validHash = CheckHash(ji, reportedResult, reportedNonce, performFullCheck);
+
 
                             if (!validHash)
                             {
-
                                 CConsole.ColorWarning(() =>
                                    Console.WriteLine("{0} got disconnected for WRONG hash.", client.WebSocket.ConnectionInfo.Id.ToString()));
 
@@ -1004,7 +994,7 @@ namespace Server
 
                                 if (performFullCheck)
                                     Console.WriteLine("{0}: got hash-checked", client.WebSocket.ConnectionInfo.Id.ToString());
-
+                                    
                                 if (!string.IsNullOrEmpty(ipadr)) Firewall.Update(ipadr, Firewall.UpdateEntry.SolvedJob);
 
                                 ji.Solved.TryAdd(reportedNonce.ToLower());
@@ -1035,6 +1025,8 @@ namespace Server
                                     ",\"id\":\"" + "1" + "\"}\n"; // TODO: check the "1"
 
                                 jiClient.PoolConnection.Send(jiClient, msg0);
+
+                                Console.WriteLine("i");
                             }
 
                         }).Start();
@@ -1091,9 +1083,8 @@ namespace Server
                         crdts.Pool = msg["pool"].GetString();
                         crdts.Password = msg["password"].GetString();
 
-                        PoolInfo pi;
 
-                        if (!PoolList.TryGetPool(crdts.Pool, out pi))
+                        if (!PoolList.TryGetPool(crdts.Pool, out PoolInfo pi))
                         {
                             // we dont have that pool?
                             DisconnectClient(client, "Pool not known!");
@@ -1230,8 +1221,7 @@ namespace Server
 
                     while (jobQueue.Count > JobCacheSize)
                     {
-                        string deq;
-                        if (jobQueue.TryDequeue(out deq))
+                        if (jobQueue.TryDequeue(out string deq))
                         {
                             jobInfos.TryRemove(deq);
                         }

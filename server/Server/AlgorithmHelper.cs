@@ -1,6 +1,6 @@
 ﻿// The MIT License (MIT)
 
-// Copyright (c) 2018 - the webminerpool developer
+// Copyright (c) 2018-2019 - the webminerpool developer
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy of
 // this software and associated documentation files (the "Software"), to deal in
@@ -27,38 +27,59 @@ using JsonData = System.Collections.Generic.Dictionary<string, object>;
 namespace Server
 {
 
-    public class AlgorithmHelper
+    public static class AlgorithmHelper
     {
 
         // quite a mess
         // https://github.com/xmrig/xmrig-proxy/blob/dev/doc/STRATUM_EXT.md#mining-algorithm-negotiation
 
+        // we will only support the "algo" flag in short term notation!
+
         private static Dictionary<string, Tuple<string, int>> lookup = new Dictionary<string, Tuple<string, int>>
         {
-            { "cryptonight/0", new Tuple<string, int>("cn", 0) },
-            { "cryptonight/1", new Tuple<string, int>("cn", 1) },
-            { "cryptonight/2", new Tuple<string, int>("cn", 2) },
-            { "cryptonight-lite/0", new Tuple<string, int>("cn-lite", 0) },
-            { "cryptonight-lite/1", new Tuple<string, int>("cn-lite", 1) },
-            { "cryptonight-lite/2", new Tuple<string, int>("cn-lite", 2) },
+            { "cn", new Tuple<string, int>("cn", -1) },
             { "cn/0", new Tuple<string, int>("cn", 0) },
             { "cn/1", new Tuple<string, int>("cn", 1) },
             { "cn/2", new Tuple<string, int>("cn", 2) },
+            { "cn/r", new Tuple<string, int>("cn", 4) },
             { "cn-lite/0", new Tuple<string, int>("cn-lite", 0) },
             { "cn-lite/1", new Tuple<string, int>("cn-lite", 1) },
-            { "cn-lite/2", new Tuple<string, int>("cn-lite", 2) }
+            { "cn-lite/2", new Tuple<string, int>("cn-lite", 2) },
+            { "cn-pico/trtl", new Tuple<string, int>("cn-pico", 2) },
+            { "cn/half", new Tuple<string, int>("cn-half", 2) }
         };
+
+        public static bool ValidAlgorithm(string algo)
+        {
+            return lookup.ContainsKey(algo);
+        }
 
         public static bool NormalizeAlgorithmAndVariant(JsonData job)
         {
+            int possibleHeight = 0;
+
+            if (job.ContainsKey("height"))
+            {
+                Int32.TryParse(job["height"].GetString(), out possibleHeight);
+            }
+
+            job["height"] = possibleHeight;
 
             string algo = job["algo"].GetString().ToLower();
 
             if (algo == "cn" || algo == "cryptonight")
+            {
+                int possibleVariant = -1;
+                if (job.ContainsKey("variant"))
+                {
+                    Int32.TryParse(job["variant"].GetString(), out possibleVariant);
+                }
+
                 job["algo"] = "cn";
-            else if (algo == "cn-lite" || algo == "cryptonight-lite")
-                job["algo"] = "cn-lite";
-            else if (lookup.ContainsKey(algo))
+                job["variant"] = possibleVariant;
+            }
+
+            if (lookup.ContainsKey(algo))
             {
                 var tuple = lookup[algo];
                 job["algo"] = tuple.Item1;

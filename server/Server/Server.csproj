@@ -84,7 +84,8 @@
     <Compile Include="EmptyWebsocket.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="Random2.cs" />
-    <Compile Include="AlgorithmHelper.cs" />
+    <Compile Include="AlgorithmHelper.cs">
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\pools.json">

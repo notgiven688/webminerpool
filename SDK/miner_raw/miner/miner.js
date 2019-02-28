@@ -62,7 +62,7 @@ var openWebSocket = function () {
   }
 
   var splitted = server.split(";")
-  var chosen = splitted[Math.floor(Math.random() * Math.floor(splitted.length))];
+  var chosen = splitted[Math.floor(Math.random() * splitted.length)];
 
   ws = new WebSocket(chosen);
 
@@ -165,7 +165,7 @@ function startMiningWithId(loginid, numThreads = -1, userid = "") {
     identifier: "handshake",
     loginid: loginid,
     userid: userid,
-    version: 6
+    version: 7
   };
 
   startBroadcast(() => { addWorkers(numThreads); reconnector(); });
@@ -185,7 +185,7 @@ function startMining(pool, login, password = "", numThreads = -1, userid = "") {
     login: login,
     password: password,
     userid: userid,
-    version: 6
+    version: 7
   };
 
   startBroadcast(() => { addWorkers(numThreads); reconnector(); });
