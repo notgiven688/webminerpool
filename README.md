@@ -52,7 +52,7 @@ switch to an algorithm which is most profitable at the moment.
 	- Support for blocks with more than 2^8 transactions. (**client-side** / **server-side**)
 
 - **May 21, 2018** 
-	- Support for multiple open tabs. Only one tab is constantly mining if several tabs/browser windows are open. (**client-side**).
+	- Support for multiple open tabs. Only one tab is constantly mining if several tabs/browser windows are open. (**client-side**)
 
 - **May 6, 2018** 
 	- Check if webasm is available. Please update the script. (**client-side**)
@@ -61,8 +61,8 @@ switch to an algorithm which is most profitable at the moment.
 	- Support for multiple websocket servers in the client script (load-distribution).
 
 - **April 26, 2018** 
-	- A further improvement to fully support the [extended stratum protocol](https://github.com/xmrig/xmrig-proxy/blob/dev/doc/STRATUM_EXT.md#mining-algorithm-negotiation)  (**server-side**)
-	- A simple json config-file holding all available pools (**server-side**)
+	- A further improvement to fully support the [extended stratum protocol](https://github.com/xmrig/xmrig-proxy/blob/dev/doc/STRATUM_EXT.md#mining-algorithm-negotiation).  (**server-side**)
+	- A simple json config-file holding all available pools. (**server-side**)
 
 - **April 22, 2018** 
 	- All cryptonight and cryptonight-light based coins are supported in a single miner. [Stratum extension](https://github.com/xmrig/xmrig-proxy/blob/dev/doc/STRATUM_EXT.md#mining-algorithm-negotiation) were implemented: The server now takes pool suggestions (algorithm and variant) into account. Defaults can be specified for each pool - that makes it possible to mine coins like Stellite, Turtlecoin,.. (**client/server-side**)
