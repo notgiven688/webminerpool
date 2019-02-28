@@ -85,7 +85,6 @@
     <Compile Include="Helper.cs" />
     <Compile Include="Random2.cs" />
     <Compile Include="AlgorithmHelper.cs">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
   </ItemGroup>
   <ItemGroup>
