@@ -1026,7 +1026,6 @@ namespace Server
 
                                 jiClient.PoolConnection.Send(jiClient, msg0);
 
-                                Console.WriteLine("i");
                             }
 
                         }).Start();
