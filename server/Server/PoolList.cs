@@ -66,7 +66,6 @@ namespace Server
 
             foreach (string pool in data.Keys)
             {
-
                 JsonData jinfo = data[pool] as JsonData;
                 PoolInfo pi = new PoolInfo();
 
@@ -76,10 +75,14 @@ namespace Server
 
                 pi.Url = jinfo["url"].GetString();
                 pi.EmptyPassword = jinfo["emptypassword"].GetString();
+
                 pi.DefaultAlgorithm = jinfo["algorithm"].GetString();
                 pi.Port = int.Parse(jinfo["port"].GetString());
 
-                pl.pools.Add(pool, pi);
+                if (!AlgorithmHelper.ValidAlgorithm(pi.DefaultAlgorithm))
+                    throw new Exception("Invalid algorithm found in pools.json: " + pi.DefaultAlgorithm );
+
+                    pl.pools.Add(pool, pi);
 
             }
 

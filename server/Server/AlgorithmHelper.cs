@@ -49,6 +49,11 @@ namespace Server
             { "cn/half", new Tuple<string, int>("cn-half", 2) }
         };
 
+        public static bool ValidAlgorithm(string algo)
+        {
+            return lookup.ContainsKey(algo);
+        }
+
         public static bool NormalizeAlgorithmAndVariant(JsonData job)
         {
             int possibleHeight = 0;
