@@ -223,6 +223,8 @@ To use this snippet, you need to define `$WEBMINER_DONATION_LEVEL`, `$WEBMINER_D
 
 # Developer Donations
 
+contact: webminerpool@protonmail.com
+
 By default a server-side 3% dev-donation is configured. Leaving this fee at the current level is highly appreciated. If you want
 to turn it off or just find the content of this repository helpful consider a one time donation, the addresses are as follows:
 
