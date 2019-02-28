@@ -23,7 +23,7 @@ switch to an algorithm which is most profitable at the moment.
 
 ## Update notes: It is beneficial to first update your clients (stepA) to the newest mining script (Version 7, the version number can be found in the "handshake-data" within the source code). Wait a few days till your userbase followed (because of browser caching) and then update to the newest server version (stepB). This is recommended because of the possibility that the new server negotiates a mining algorithm with the pool, which is not  yet supported by on old client (and therefore is not forwarded to the client). 
 
-## StepA and StepB have to be performed before March 9th!
+## stepA and stepB have to be performed before March 9th!
 
 
 # What is new?
@@ -211,7 +211,10 @@ To use this snippet, you need to define `$WEBMINER_DONATION_LEVEL`, `$WEBMINER_D
 
 By default a server-side 3% dev-donation is configured. Leaving this fee at the current level is highly appreciated. If you want
 to turn it off or just find the content of this repository helpful consider a one time donation, the addresses are as follows:
-- BTC - 175jHD6ErDhZHoW4u54q5mr98L9KSgm56D
-- XMR - 49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU
-- AEON - WmtUFkPrboCKzL5iZhia4iNHKw9UmUXzGgbm5Uo3HPYwWcsY1JTyJ2n335gYiejNysLEs1G2JZxEm3uXUX93ArrV1yrXDyfPH
 
+
+```
+BTC - 175jHD6ErDhZHoW4u54q5mr98L9KSgm56D
+XMR - 49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU
+AEON - WmtUFkPrboCKzL5iZhia4iNHKw9UmUXzGgbm5Uo3HPYwWcsY1JTyJ2n335gYiejNysLEs1G2JZxEm3uXUX93ArrV1yrXDyfPH
+```
