@@ -599,8 +599,8 @@ namespace Server
 
             if (!libHashAvailable) CConsole.ColorWarning(() =>
             {
-                Console.WriteLine("libhash.so is not available. Checking user submitted hashes disabled.");
-                Console.WriteLine("Details: {0}", exception.Message);
+                Console.WriteLine("libhash.so is not available. Checking user submitted hashes disabled:");
+                Console.WriteLine(" -> {0}", new StringReader(exception.ToString()).ReadLine());
             });
 
             PoolConnectionFactory.RegisterCallbacks(PoolReceiveCallback, PoolErrorCallback, PoolDisconnectCallback);
@@ -671,8 +671,11 @@ namespace Server
 
             bool certAvailable = (cert != null);
 
-            if (!certAvailable)
-                CConsole.ColorWarning(() => Console.WriteLine("SSL certificate could not be loaded. Secure connection disabled."));
+            if (!certAvailable) CConsole.ColorWarning(() =>
+            {
+                Console.WriteLine("SSL certificate could not be loaded. Secure connection disabled.");
+                Console.WriteLine(" -> {0}", new StringReader(exception.ToString()).ReadLine());
+            });
 
             WebSocketServer server;
 
@@ -975,7 +978,9 @@ namespace Server
                                 HashesCheckedThisHeartbeat++;
                             }
 
-                            bool validHash = CheckHash(ji, reportedNonce, reportedResult, performFullCheck);
+
+                            bool validHash = CheckHash(ji, reportedResult, reportedNonce, performFullCheck);
+
 
                             if (!validHash)
                             {
@@ -990,7 +995,7 @@ namespace Server
 
                                 if (performFullCheck)
                                     Console.WriteLine("{0}: got hash-checked", client.WebSocket.ConnectionInfo.Id.ToString());
-
+                                    
                                 if (!string.IsNullOrEmpty(ipadr)) Firewall.Update(ipadr, Firewall.UpdateEntry.SolvedJob);
 
                                 ji.Solved.TryAdd(reportedNonce.ToLower());
@@ -1021,6 +1026,8 @@ namespace Server
                                     ",\"id\":\"" + "1" + "\"}\n"; // TODO: check the "1"
 
                                 jiClient.PoolConnection.Send(jiClient, msg0);
+
+                                Console.WriteLine("i");
                             }
 
                         }).Start();
