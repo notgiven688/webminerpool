@@ -121,14 +121,20 @@ namespace Fleck.Handlers
                 
                 if (data.Count < index + payloadLength) 
                     return; //Not complete
-                
-                var payload = data
-                                .Skip(index)
-                                .Take(payloadLength)
-                                .Select((x, i) => (byte)(x ^ maskBytes[i % 4]));
-                 
-                 
-                readState.Data.AddRange(payload);
+
+                byte[] playloadData = new byte[payloadLength];
+                for (int i = 0; i < payloadLength; i++)
+                    playloadData[i] = (byte)(data[index+i] ^ maskBytes[i % 4]);
+
+
+                //var payload = data
+                //                .Skip(index)
+                //                .Take(payloadLength)
+                //                .Select((x, i) => (byte)(x ^ maskBytes[i % 4]));
+
+                //readState.Data.AddRange(payload);
+
+                readState.Data.AddRange(playloadData);
                 data.RemoveRange(0, index + payloadLength);
                 
                 if (frameType != FrameType.Continuation)
