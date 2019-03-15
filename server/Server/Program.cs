@@ -427,7 +427,7 @@ namespace Server
                 }
 
                 client.WebSocket.Send(forward);
-                Console.WriteLine("{0}: got job from pool", client.WebSocket.ConnectionInfo.Id);
+                Console.WriteLine("{0}: got job from pool ({1}, v{2})", client.WebSocket.ConnectionInfo.Id, ji.Algo,ji.Variant);
 
             }
         }
