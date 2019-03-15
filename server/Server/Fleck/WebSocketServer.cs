@@ -68,11 +68,23 @@ namespace Fleck
             _locationIP = ParseIPAddress(uri);
             _scheme = uri.Scheme;
             var socket = new Socket(_locationIP.AddressFamily, SocketType.Stream, ProtocolType.IP);
-            if(!MonoHelper.IsRunningOnMono()){
-                  #if __MonoCS__
-                  #else
+            if (!MonoHelper.IsRunningOnMono())
+            {
+#if __MonoCS__
+#else
+#if !NET45
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+#endif
+                {
                     socket.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, false);
-                  #endif
+                }
+#if !NET45
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, 1);
+                }
+#endif
+#endif
             }
             ListenerSocket = new SocketWrapper(socket);
             SupportedSubProtocols = new string[0];
