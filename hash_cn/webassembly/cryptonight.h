@@ -12,7 +12,7 @@ void chukwa_slow_hash(const void *data, size_t length, void *output, uint64_t me
     uint8_t salt[16];
     memcpy(salt, data, sizeof(salt));
     argon2id_hash_raw(iters, mem, threads, data, length, salt, saltlen, output, hashlen);
-  }
+}
 
 #ifdef __cplusplus
 }

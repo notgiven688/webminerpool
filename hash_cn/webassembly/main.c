@@ -28,7 +28,7 @@ char* hash_cn(char* hex,int algo, int variant, int height)
     }
     else
     {
-	chukwa_slow_hash(inp, len, hash, 512, 32, 16, 3, 1);
+		chukwa_slow_hash(inp, len, hash, 512, 32, 16, 3, 1);
     }   
  
     char *ptr = &output[0];
