@@ -46,7 +46,8 @@ namespace Server
             { "cn-lite/1", new Tuple<string, int>("cn-lite", 1) },
             { "cn-lite/2", new Tuple<string, int>("cn-lite", 2) },
             { "cn-pico/trtl", new Tuple<string, int>("cn-pico", 2) },
-            { "cn/half", new Tuple<string, int>("cn-half", 2) }
+            { "cn/half", new Tuple<string, int>("cn-half", 2) },
+			{ "chukwa", new Tuple<string, int>("chukwa", 0) }
         };
 
         public static bool ValidAlgorithm(string algo)

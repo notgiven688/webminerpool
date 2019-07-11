@@ -8,8 +8,8 @@
 #include "cryptonight.h"
 
 char output[(32 * 2) + 1];
-  
-char* hash_cn(char* hex,int lite, int variant, int height)
+ 
+char* hash_cn(char* hex,int algo, int variant, int height)
 {
     int len = strlen(hex) / 2;
     
@@ -22,9 +22,15 @@ char* hash_cn(char* hex,int lite, int variant, int height)
 
     if(variant == -1)
     variant = ((const uint8_t *)inp)[0] >= 7 ? ((const uint8_t *)inp)[0] - 6 : 0;
-
-    cryptonight(hash, inp, len, lite, variant, height);
     
+    if (algo <= 3) {
+        cryptonight(hash, inp, len, algo, variant, height);
+    }
+    else
+    {
+		chukwa_slow_hash(inp, len, hash, 512, 32, 16, 3, 1);
+    }   
+ 
     char *ptr = &output[0];
     
     for (size_t i = 0; i < 32; i++) { ptr += sprintf (ptr, "%02x",hash[i]); }
