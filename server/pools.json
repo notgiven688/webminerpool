@@ -43,9 +43,5 @@
         "turtlepool.space" : { "url" : "eu.turtlepool.space", "port" : 3333, "emptypassword" : "", "algorithm" : "cn-pico/trtl" },
 		"turtlecoinfork.test" : { "url" : "publicnode.ydns.eu", "port" : 3420, "emptypassword" : "x", "algorithm" : "chukwa" },
 
-        "masari.miner.rocks" : { "url" : "masari.miner.rocks", "port" : 5005, "emptypassword" : "", "algorithm" : "cn/half" },
-  
-        "etn.spacepools.org" : { "url" : "pool.etn.spacepools.org", "port" : 80, "emptypassword" : "", "algorithm" : "cn/0"},
-        "etn.nanopool.org" : { "url" : "etn-eu1.nanopool.org", "port" : 13333, "emptypassword" : "x", "algorithm" : "cn/0" },
-        "etn.hashvault.pro" : { "url" : "pool.electroneum.hashvault.pro", "port" : 80, "emptypassword" : "x", "algorithm" : "cn/0"}
+        "masari.miner.rocks" : { "url" : "masari.miner.rocks", "port" : 5005, "emptypassword" : "", "algorithm" : "cn/half" }
 }
