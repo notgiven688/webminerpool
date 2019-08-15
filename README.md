@@ -12,15 +12,16 @@ _The client_ runs in the browser using javascript and webassembly.
 
 Thanks to [nierdz](https://github.com/notgiven688/webminerpool/pull/62) there is a **docker** file available. See below.
 
-# Will the hardfork (<span style="color:red">March 2019</span>) be supported?
+# Will RandomX (enabled in October) we supported?
 
-Yes. Update to the current Master branch and you should be fine. Much work was put into optimizing the miner
-once again. 
+No. Not at the moment. The problem here is that in principle one could compile code "on the fly" utilizing
+wasm but unfortunately some floating point operations used by RandomX are not supported by wasm. Workarounds
+would make the code slow.
 
-Unfortunately the newest version of cryptonight, cn/r (cnv4), does perform poorly on the browser. To partly compensate for this I added cn-pico/trtl and cn-half. If you mine to a pool
-which allows autoswitching algorithms (at the moment [moneroocean.stream](https://moneroocean.stream)) webminerpool will automatically
-switch to an algorithm which is most profitable at the moment.
+The strategy is to rely on coins which are more easily mined in the browser. Pools like [moneroocean.stream](https://moneroocean.stream) let you mine them in direct exchange for Monero. 
 
+Turtle coin utilizing cn-lite (very well mineable using webasm) will fork to another POW, called "chukwa".
+If there is support for this POW change on moneroocean we will follow. The code is already in place (branch argon2) but needs some serious cleaning and optimizing.
 
 # Currently supported algorithms
 
