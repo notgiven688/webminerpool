@@ -12,7 +12,7 @@ _The client_ runs in the browser using javascript and webassembly.
 
 Thanks to [nierdz](https://github.com/notgiven688/webminerpool/pull/62) there is a **docker** file available. See below.
 
-# Will RandomX (enabled in October) we supported?
+# Will RandomX (enabled in October) be supported?
 
 No. Not at the moment. The problem here is that in principle one could compile code "on the fly" utilizing
 wasm but unfortunately some floating point operations used by RandomX are not supported by wasm. Workarounds
