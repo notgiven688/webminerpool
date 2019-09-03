@@ -201,6 +201,7 @@ namespace Server
                 else if (ji.Algo == "cn-lite") pStr = hash_cn(parta + nonce + partb, 1, ji.Variant, ji.Height);
                 else if (ji.Algo == "cn-pico") pStr = hash_cn(parta + nonce + partb, 2, ji.Variant, ji.Height);
                 else if (ji.Algo == "cn-half") pStr = hash_cn(parta + nonce + partb, 3, ji.Variant, ji.Height);
+                else if (ji.Algo == "cn-rwz")  pStr = hash_cn(parta + nonce + partb, 4, ji.Variant, ji.Height);
                 else return false;
 
                 string ourresult = Marshal.PtrToStringAnsi(pStr);
@@ -251,26 +252,28 @@ namespace Server
 
         private static bool IsCompatible(string blob, string algo, int variant, int clientVersion)
         {
-            // current client version should be 7
-            // clientVersion < 6 is not allowed to connect anymore.
-            // clientVersion 6 does support cn 0,1,2,3
+            // current client version should be 8
+            // clientVersion < 7 is not allowed to connect anymore.
             // clientVersion 7 does support cn 0,1,2,3,>3
+            // clientVersion 8 does support cn 0,1,2,3,>3 and rwz
 
-            if (clientVersion > 6) return true;
+            if (clientVersion > 7) return true;
             else
             {
-                if (algo != "cn" && algo != "cn-lite") return false;
+            
+                if(algo == "cn-rwz") return false;
+                //if (algo != "cn" && algo != "cn-lite") return false;
 
-                if (variant == -1)
-                {
-                    bool iscn4 = false;
-                    try { iscn4 = (HexToUInt32(blob.Substring(0, 2) + "000000") > 9); } catch { }
-                    if (iscn4) return false;
-                }
-                else if (variant > 3)
-                {
-                    return false;
-                }
+                //if (variant == -1)
+                //{
+                //    bool iscn4 = false;
+                //    try { iscn4 = (HexToUInt32(blob.Substring(0, 2) + "000000") > 9); } catch { }
+                //    if (iscn4) return false;
+                //}
+                //else if (variant > 3)
+                //{
+                //    return false;
+                //}
 
                 return true;
             }
@@ -594,6 +597,10 @@ namespace Server
             libHashAvailable = libHashAvailable && CheckLibHash("5468697320697320612074657374205468697320697320612074657374205468697320697320612074657374",
                                  "f759588ad57e758467295443a9bd71490abff8e9dad1b95b6bf2f5d0d78387bc",
                                   0, 4, 1806260, out exception);
+                                  
+            libHashAvailable = libHashAvailable && CheckLibHash("5468697320697320612074657374205468697320697320612074657374205468697320697320612074657374",
+                                 "32f736ec1d2f3fc54c49beb8a0476cbfdd14c351b9c6d72c6f9ffcb5875be6b3",
+                                  4, 2, 0, out exception);                  
 
 
             if (!libHashAvailable) CConsole.ColorWarning(() =>
@@ -811,13 +818,13 @@ namespace Server
                             int.TryParse(msg["version"].GetString(), out client.Version);
                         }
 
-                        if (client.Version < 6)
+                        if (client.Version < 7)
                         {
                             DisconnectClient(client, "Client version too old.");
                             return;
                         }
 
-                        if (client.Version < 7)
+                        if (client.Version < 8)
                         {
                             CConsole.ColorWarning(() => Console.WriteLine("Warning: Outdated client connected. Make sure to update the clients"));
                         }

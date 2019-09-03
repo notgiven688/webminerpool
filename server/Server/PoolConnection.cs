@@ -296,8 +296,8 @@ namespace Server
                     string msg0 = "{\"method\":\"login\",\"params\":{\"login\":\"";
                     string msg1 = "\",\"pass\":\"";
                     string msg2 = "\",\"agent\":\"webminerpool.com\"";
-                    string msg3 = ",\"algo\": [\"cn/0\",\"cn/1\",\"cn/2\",\"cn/3\",\"cn/r\",\"cn-lite/0\",\"cn-lite/1\",\"cn-lite/2\",\"cn-pico/trtl\",\"cn/half\"]";
-                    string msg4 = ",\"algo-perf\": {\"cn/0\":100,\"cn/1\":96,\"cn/2\":84,\"cn/3\":84,\"cn/r\":37,\"cn-lite/0\":200,\"cn-lite/1\":200,\"cn-lite/2\":166,\"cn-pico/trtl\":630,\"cn/half\":120}}";
+                    string msg3 = ",\"algo\": [\"cn/0\",\"cn/1\",\"cn/2\",\"cn/3\",\"cn/r\",\"cn-lite/0\",\"cn-lite/1\",\"cn-lite/2\",\"cn-pico/trtl\",\"cn/rwz\",\"cn/half\"]";
+                    string msg4 = ",\"algo-perf\": {\"cn/0\":100,\"cn/1\":96,\"cn/2\":84,\"cn/3\":84,\"cn/r\":37,\"cn-lite/0\":200,\"cn-lite/1\":200,\"cn-lite/2\":166,\"cn/rwz\":100,\"cn-pico/trtl\":630,\"cn/half\":120}}";
                     string msg5 = ",\"id\":1}";
                     string msg = msg0 + mypc.Login + msg1 + mypc.Password + msg2 + msg3 + msg4 + msg5 + "\n";
 
