@@ -141,11 +141,6 @@
 
 // -------------------------------------- VARIANT 4 ---------------------------------------------
 
-struct V4_Instruction code[NUM_INSTRUCTIONS_MAX + 1];
-int lastHeight = -1;
-v4_reg r[9];
-
-
 #define V4_REG_LOAD(dst, src)             \
   do                                      \
   {                                       \
@@ -154,16 +149,14 @@ v4_reg r[9];
   } while (0)
 
 #define VARIANT4_RANDOM_MATH_INIT()                                            \
+  struct V4_Instruction code[NUM_INSTRUCTIONS_MAX + 1];                        \
+  v4_reg r[9];                                                                 \
   do                                                                           \
     if (variant >= 4)                                                          \
     {                                                                          \
       for (int i = 0; i < 4; ++i)                                              \
         V4_REG_LOAD(r + i, (uint8_t *)(state.hs.w + 12) + sizeof(v4_reg) * i); \
-      if (lastHeight != height)                                                \
-      {                                                                        \
-        v4_random_math_init(code, height);                                     \
-        lastHeight = height;                                                   \
-      }                                                                        \
+      v4_random_math_init(code, height);                                       \
     }                                                                          \
   while (0)
 
@@ -506,10 +499,10 @@ void SubAndShiftAndMixAddRoundInPlace(uint32_t *temp, uint32_t *AesEncKey)
   temp[3] = TestTable2[saved[3]] ^ TestTable3[saved[4]] ^ TestTable4[saved[5]] ^ TestTable1[state[12]] ^ AesEncKey[3];
 }
 
-uint8_t text[INIT_SIZE_BYTE];
 
 void cryptonight_hash_ctx(void *output, const void *input, size_t len, int algo, int variant, int height)
 {
+  uint8_t text[INIT_SIZE_BYTE];
   uint8_t *long_state;
   oaes_ctx *aes_ctx;
 
