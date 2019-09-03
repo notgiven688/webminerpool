@@ -63,44 +63,50 @@
     xor_blocks(e, long_state + (j ^ 0x20)); \
   } while (0)
 
-#define VARIANT2_PORTABLE_SHUFFLE_ADD1(base_ptr, offset)    \
-  do                                                        \
-  {                                                         \
-    uint64_t *chunk1 = U64((base_ptr) + ((offset) ^ 0x10)); \
-    uint64_t *chunk2 = U64((base_ptr) + ((offset) ^ 0x20)); \
-    uint64_t *chunk3 = U64((base_ptr) + ((offset) ^ 0x30)); \
-                                                            \
-    uint64_t chunk1_old0 = chunk1[0];                       \
-    uint64_t chunk1_old1 = chunk1[1];                       \
-                                                            \
-    chunk1[0] = chunk3[0] + ((uint64_t *)d)[0];             \
-    chunk1[1] = chunk3[1] + ((uint64_t *)d)[1];             \
-                                                            \
-    chunk3[0] = chunk2[0] + ((uint64_t *)a)[0];             \
-    chunk3[1] = chunk2[1] + ((uint64_t *)a)[1];             \
-                                                            \
-    chunk2[0] = chunk1_old0 + ((uint64_t *)b)[0];           \
-    chunk2[1] = chunk1_old1 + ((uint64_t *)b)[1];           \
+#define VARIANT2_PORTABLE_SHUFFLE_ADD_RVS(bb, base_ptr, offset) \
+  do                                                            \
+  {                                                             \
+    uint64_t *chunk1 = U64((base_ptr) + ((offset) ^ 0x10));     \
+    uint64_t *chunk2 = U64((base_ptr) + ((offset) ^ 0x20));     \
+    uint64_t *chunk3 = U64((base_ptr) + ((offset) ^ 0x30));     \
+                                                                \
+    uint64_t chunk1_old0, chunk1_old1;                          \
+                                                                \
+    {                                                           \
+      chunk1_old0 = chunk3[0];                                  \
+      chunk1_old1 = chunk3[1];                                  \
+      chunk1[0] = chunk1[0] + ((uint64_t *)d)[0];               \
+      chunk1[1] = chunk1[1] + ((uint64_t *)d)[1];               \
+    }                                                           \
+                                                                \
+    chunk3[0] = chunk2[0] + ((uint64_t *)a)[0];                 \
+    chunk3[1] = chunk2[1] + ((uint64_t *)a)[1];                 \
+                                                                \
+    chunk2[0] = chunk1_old0 + ((uint64_t *)bb)[0];              \
+    chunk2[1] = chunk1_old1 + ((uint64_t *)bb)[1];              \
   } while (0)
 
-#define VARIANT2_PORTABLE_SHUFFLE_ADD2(base_ptr, offset)    \
+#define VARIANT2_PORTABLE_SHUFFLE_ADD(bb, base_ptr, offset) \
   do                                                        \
   {                                                         \
     uint64_t *chunk1 = U64((base_ptr) + ((offset) ^ 0x10)); \
     uint64_t *chunk2 = U64((base_ptr) + ((offset) ^ 0x20)); \
     uint64_t *chunk3 = U64((base_ptr) + ((offset) ^ 0x30)); \
                                                             \
-    uint64_t chunk1_old0 = chunk1[0];                       \
-    uint64_t chunk1_old1 = chunk1[1];                       \
+    uint64_t chunk1_old0, chunk1_old1;                      \
                                                             \
-    chunk1[0] = chunk3[0] + ((uint64_t *)d)[0];             \
-    chunk1[1] = chunk3[1] + ((uint64_t *)d)[1];             \
+    {                                                       \
+      chunk1_old0 = chunk1[0];                              \
+      chunk1_old1 = chunk1[1];                              \
+      chunk1[0] = chunk3[0] + ((uint64_t *)d)[0];           \
+      chunk1[1] = chunk3[1] + ((uint64_t *)d)[1];           \
+    }                                                       \
                                                             \
     chunk3[0] = chunk2[0] + ((uint64_t *)a)[0];             \
     chunk3[1] = chunk2[1] + ((uint64_t *)a)[1];             \
                                                             \
-    chunk2[0] = chunk1_old0 + ((uint64_t *)c)[0];           \
-    chunk2[1] = chunk1_old1 + ((uint64_t *)c)[1];           \
+    chunk2[0] = chunk1_old0 + ((uint64_t *)bb)[0];          \
+    chunk2[1] = chunk1_old1 + ((uint64_t *)bb)[1];          \
   } while (0)
 
 #define VARIANT2_INTEGER_MATH_DIVISION_STEP(b, ptr)                                        \
@@ -135,6 +141,11 @@
 
 // -------------------------------------- VARIANT 4 ---------------------------------------------
 
+struct V4_Instruction code[NUM_INSTRUCTIONS_MAX + 1];
+int lastHeight = -1;
+v4_reg r[9];
+
+
 #define V4_REG_LOAD(dst, src)             \
   do                                      \
   {                                       \
@@ -143,14 +154,16 @@
   } while (0)
 
 #define VARIANT4_RANDOM_MATH_INIT()                                            \
-  struct V4_Instruction code[NUM_INSTRUCTIONS_MAX + 1];                        \
-  v4_reg r[9];                                                                 \
   do                                                                           \
     if (variant >= 4)                                                          \
     {                                                                          \
       for (int i = 0; i < 4; ++i)                                              \
         V4_REG_LOAD(r + i, (uint8_t *)(state.hs.w + 12) + sizeof(v4_reg) * i); \
-      v4_random_math_init(code, height);                                       \
+      if (lastHeight != height)                                                \
+      {                                                                        \
+        v4_random_math_init(code, height);                                     \
+        lastHeight = height;                                                   \
+      }                                                                        \
     }                                                                          \
   while (0)
 
@@ -493,10 +506,10 @@ void SubAndShiftAndMixAddRoundInPlace(uint32_t *temp, uint32_t *AesEncKey)
   temp[3] = TestTable2[saved[3]] ^ TestTable3[saved[4]] ^ TestTable4[saved[5]] ^ TestTable1[state[12]] ^ AesEncKey[3];
 }
 
+uint8_t text[INIT_SIZE_BYTE];
 
 void cryptonight_hash_ctx(void *output, const void *input, size_t len, int algo, int variant, int height)
 {
-  uint8_t text[INIT_SIZE_BYTE];
   uint8_t *long_state;
   oaes_ctx *aes_ctx;
 
@@ -508,12 +521,13 @@ void cryptonight_hash_ctx(void *output, const void *input, size_t len, int algo,
   uint8_t e[AES_BLOCK_SIZE];
   uint8_t f[AES_BLOCK_SIZE];
 
-  size_t memory, iter;
+  size_t memory, iter, rvs;
   uint32_t mask;
-  
+
   memory = MEMORY;
   iter = ITER / 4;
   mask = 0x1FFFF0;
+  rvs = 0;
 
   switch (algo)
   {
@@ -533,6 +547,12 @@ void cryptonight_hash_ctx(void *output, const void *input, size_t len, int algo,
     memory = MEMORY;
     iter = ITER / 8;
     mask = 0x1FFFF0;
+    break;
+  case 4: // cn-rwz
+    memory = MEMORY;
+    iter = 3 * ITER / 16;
+    mask = 0x1FFFF0;
+    rvs = 1;
     break;
   }
 
@@ -623,33 +643,67 @@ void cryptonight_hash_ctx(void *output, const void *input, size_t len, int algo,
   }
   else if (variant == 2 || variant == 3)
   {
-    for (i = 0; likely(i < iter); ++i)
+    if (rvs)
     {
-      j = ((uint32_t *)(a))[0] & mask;
-      VARIANT2_PORTABLE_SHUFFLE_ADD1(long_state, j);
-      SubAndShiftAndMixAddRound((uint32_t *)c, &long_state[j], (uint32_t *)a);
-      xor_blocks_dst(c, b, &long_state[j]);
+      for (i = 0; likely(i < iter); ++i)
+      {
+        j = ((uint32_t *)(a))[0] & mask;
+        VARIANT2_PORTABLE_SHUFFLE_ADD_RVS(b, long_state, j);
+        SubAndShiftAndMixAddRound((uint32_t *)c, &long_state[j], (uint32_t *)a);
+        xor_blocks_dst(c, b, &long_state[j]);
 
-      j = ((uint32_t *)c)[0] & mask;
-      VARIANT2_PORTABLE_INTEGER_MATH(&long_state[j], c);
-      mul64to128(c, &long_state[j], e);
-      VARIANT2_2_PORTABLE();
-      VARIANT2_PORTABLE_SHUFFLE_ADD1(long_state, j);
-      sum_xor_dst(e, a, &long_state[j]);
-      copy_block(d, b);
+        j = ((uint32_t *)c)[0] & mask;
+        VARIANT2_PORTABLE_INTEGER_MATH(&long_state[j], c);
+        mul64to128(c, &long_state[j], e);
+        VARIANT2_2_PORTABLE();
+        VARIANT2_PORTABLE_SHUFFLE_ADD_RVS(b, long_state, j);
+        sum_xor_dst(e, a, &long_state[j]);
+        copy_block(d, b);
 
-      j = ((uint32_t *)(a))[0] & mask;
-      VARIANT2_PORTABLE_SHUFFLE_ADD2(long_state, j);
-      SubAndShiftAndMixAddRound((uint32_t *)b, &long_state[j], (uint32_t *)a);
-      xor_blocks_dst(b, c, &long_state[j]);
+        j = ((uint32_t *)(a))[0] & mask;
+        VARIANT2_PORTABLE_SHUFFLE_ADD_RVS(c, long_state, j);
+        SubAndShiftAndMixAddRound((uint32_t *)b, &long_state[j], (uint32_t *)a);
+        xor_blocks_dst(b, c, &long_state[j]);
 
-      j = ((uint32_t *)b)[0] & mask;
-      VARIANT2_PORTABLE_INTEGER_MATH(&long_state[j], b);
-      mul64to128(b, &long_state[j], e);
-      VARIANT2_2_PORTABLE();
-      VARIANT2_PORTABLE_SHUFFLE_ADD2(long_state, j);
-      sum_xor_dst(e, a, &long_state[j]);
-      copy_block(d, c);
+        j = ((uint32_t *)b)[0] & mask;
+        VARIANT2_PORTABLE_INTEGER_MATH(&long_state[j], b);
+        mul64to128(b, &long_state[j], e);
+        VARIANT2_2_PORTABLE();
+        VARIANT2_PORTABLE_SHUFFLE_ADD_RVS(c, long_state, j);
+        sum_xor_dst(e, a, &long_state[j]);
+        copy_block(d, c);
+      }
+    }
+    else
+    {
+      for (i = 0; likely(i < iter); ++i)
+      {
+        j = ((uint32_t *)(a))[0] & mask;
+        VARIANT2_PORTABLE_SHUFFLE_ADD(b, long_state, j);
+        SubAndShiftAndMixAddRound((uint32_t *)c, &long_state[j], (uint32_t *)a);
+        xor_blocks_dst(c, b, &long_state[j]);
+
+        j = ((uint32_t *)c)[0] & mask;
+        VARIANT2_PORTABLE_INTEGER_MATH(&long_state[j], c);
+        mul64to128(c, &long_state[j], e);
+        VARIANT2_2_PORTABLE();
+        VARIANT2_PORTABLE_SHUFFLE_ADD(b, long_state, j);
+        sum_xor_dst(e, a, &long_state[j]);
+        copy_block(d, b);
+
+        j = ((uint32_t *)(a))[0] & mask;
+        VARIANT2_PORTABLE_SHUFFLE_ADD(c, long_state, j);
+        SubAndShiftAndMixAddRound((uint32_t *)b, &long_state[j], (uint32_t *)a);
+        xor_blocks_dst(b, c, &long_state[j]);
+
+        j = ((uint32_t *)b)[0] & mask;
+        VARIANT2_PORTABLE_INTEGER_MATH(&long_state[j], b);
+        mul64to128(b, &long_state[j], e);
+        VARIANT2_2_PORTABLE();
+        VARIANT2_PORTABLE_SHUFFLE_ADD(c, long_state, j);
+        sum_xor_dst(e, a, &long_state[j]);
+        copy_block(d, c);
+      }
     }
   }
   else
