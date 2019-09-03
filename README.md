@@ -21,7 +21,7 @@ would make the code slow.
 The strategy is to rely on coins which are more easily mined in the browser. Pools like [moneroocean.stream](https://moneroocean.stream) let you mine them in direct exchange for Monero. 
 
 Turtle coin utilizing cn-lite (very well mineable using webasm) will fork to another POW, called "chukwa".
-If there is support for this POW change on moneroocean we will follow. The code is already in place (branch argon2) but needs some serious cleaning and optimizing.
+If there is support for this POW change on moneroocean (AND the algorithm turns out to be profitable) we will follow. The code is already in place (branch argon2) but needs some serious cleaning and optimizing.
 
 # Currently supported algorithms
 
@@ -37,11 +37,15 @@ If there is support for this POW change on moneroocean we will follow. The code 
 | 8  | cn-lite/1     | algo="cn-lite", variant=1         | same as #3 with memory/2, iterations/2           |
 | 9  | cn-pico/trtl  | algo="cn-pico", variant=2 or 3    | same as #4 with memory/8, iterations/8           |
 | 10 | cn-half       | algo="cn-half", variant=2 or 3    | same as #4 with memory/1, iterations/2           |
+| 11 | cn/rwz       | algo="cn-rwz", variant=2 or 3    | same as #4 with memory/1, iterations*3/4           |
 
  # What is new?
 
-- **March 1, 2019** 
+ - **March 1, 2019** 
 	- Added cryptonight v4. Hard fork ready! Added support for cn/half and cn-pico/trtl. Added support for auto-algo switching. (**client-side** / **server-side**)
+
+- **September 3, 2019** 
+	- Added cn/rwz (CryptoNight v8 ReverseWaltz). (**client-side** / **server-side**)
 
 - **September 27, 2018** 
 	- Added cryptonight v2. Hard fork ready! (**client-side** / **server-side**)
