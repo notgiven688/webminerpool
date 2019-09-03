@@ -46,6 +46,7 @@ namespace Server
             { "cn-lite/1", new Tuple<string, int>("cn-lite", 1) },
             { "cn-lite/2", new Tuple<string, int>("cn-lite", 2) },
             { "cn-pico/trtl", new Tuple<string, int>("cn-pico", 2) },
+            { "cn/rwz", new Tuple<string, int>("cn-rwz", 2) },
             { "cn/half", new Tuple<string, int>("cn-half", 2) }
         };
 
