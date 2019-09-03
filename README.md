@@ -41,11 +41,11 @@ If there is support for this POW change on moneroocean (AND the algorithm turns 
 
  # What is new?
 
+ - **September 3, 2019** 
+	- Added cn/rwz (CryptoNight v8 ReverseWaltz). (**client-side** / **server-side**)
+
  - **March 1, 2019** 
 	- Added cryptonight v4. Hard fork ready! Added support for cn/half and cn-pico/trtl. Added support for auto-algo switching. (**client-side** / **server-side**)
-
-- **September 3, 2019** 
-	- Added cn/rwz (CryptoNight v8 ReverseWaltz). (**client-side** / **server-side**)
 
 - **September 27, 2018** 
 	- Added cryptonight v2. Hard fork ready! (**client-side** / **server-side**)
