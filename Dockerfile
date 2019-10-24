@@ -30,7 +30,7 @@ RUN apt-get -qq update && \
 	rm -rf /var/lib/apt/lists/* && \
 	git clone https://github.com/Neilpang/acme.sh.git /root/acme.sh && \
 	cd /root/acme.sh && \
-	git checkout 2.7.9 && \
+	git checkout 2.8.3 && \
 	/root/acme.sh/acme.sh --install --home /root/.acme.sh
 COPY entrypoint.sh /entrypoint.sh
 COPY --from=webminerpool-build /server/Server/bin/Release_Server/server.exe /webminerpool
