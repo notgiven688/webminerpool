@@ -1,4 +1,4 @@
-FROM mono:5.16 AS webminerpool-build
+FROM mono:6 AS webminerpool-build
 
 ARG DONATION_LEVEL=0.03
 
@@ -14,7 +14,7 @@ RUN sed -ri "s/^(.*DonationLevel = )[0-9]\.[0-9]{2}/\1${DONATION_LEVEL}/" /serve
 	cd /server && \
 	msbuild Server.sln /p:Configuration=Release_Server /p:Platform="any CPU"
 
-FROM mono:5.16
+FROM mono:6
 
 RUN mkdir /webminerpool
 
