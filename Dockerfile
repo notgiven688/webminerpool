@@ -7,7 +7,7 @@ COPY hash_cn /hash_cn
 
 RUN sed -ri "s/^(.*DonationLevel = )[0-9]\.[0-9]{2}/\1${DONATION_LEVEL}/" /server/Server/DevDonation.cs && \
 	apt-get -qq update && \
-	apt-get -qq install build-essential && \
+	apt-get --no-install-recommends -qq install build-essential && \
 	rm -rf /var/lib/apt/lists/* && \
 	cd /hash_cn/libhash && \
 	make && \
@@ -20,7 +20,7 @@ RUN mkdir /webminerpool
 
 # Install acme.sh
 RUN apt-get -qq update && \
-	apt-get install -qq \
+	apt-get install --no-install-recommends -qq \
 		coreutils \
 		cron \
 		curl \
