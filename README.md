@@ -209,8 +209,6 @@ webminer:
   image: webminer:1.0
   build:
     context: ./webminerpool
-    args:
-      - DONATION_LEVEL=${WEBMINER_DONATION_LEVEL}
   restart: always
   ports:
     - ${WEBMINER_IP}:80:80
@@ -221,18 +219,4 @@ webminer:
     - my-network
 ```
 
-To use this snippet, you need to define `$WEBMINER_DONATION_LEVEL`, `$WEBMINER_DOMAIN` and `$WEBMINER_IP` in a `.env` file.
-
-# Developer Donations
-
-contact: webminerpool@protonmail.com
-
-By default a server-side 3% dev-donation is configured. Leaving this fee at the current level is highly appreciated. If you want
-to turn it off or just find the content of this repository helpful consider a one time donation, the addresses are as follows:
-
-
-```
-BTC - 175jHD6ErDhZHoW4u54q5mr98L9KSgm56D
-XMR - 49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU
-AEON - WmtUFkPrboCKzL5iZhia4iNHKw9UmUXzGgbm5Uo3HPYwWcsY1JTyJ2n335gYiejNysLEs1G2JZxEm3uXUX93ArrV1yrXDyfPH
-```
+To use this snippet, you need to define `$WEBMINER_DOMAIN` and `$WEBMINER_IP` in a `.env` file.

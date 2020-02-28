@@ -49,7 +49,7 @@ namespace Server
         public string LastTarget = string.Empty;
         public string UserId;
         public int NumChecked = 0;
-        public double Fee = DevDonation.DonationLevel;
+        public double Fee = Donation.DonationLevel;
         public int Version = 1;
     }
 
@@ -63,7 +63,7 @@ namespace Server
         public int Height;
         public string Algo;
         public CcHashset<string> Solved;
-        public bool DevJob;
+        public bool OwnJob;
     }
 
     public class Job
@@ -108,8 +108,8 @@ namespace Server
         private const int GraceConnectionTime = 16;
         // server logic every x seconds
         private const int HeartbeatRate = 10;
-        // after that job-age we do not forward dev jobs 
-        private const int TimeDevJobsAreOld = 600;
+        // after that job-age we do not forward own jobs 
+        private const int TimeOwnJobsAreOld = 600;
         // in seconds, pool is not sending new jobs 
         private const int PoolTimeout = 60 * 12;
         // for the statistics shown every heartbeat
@@ -132,7 +132,7 @@ namespace Server
         private static int HashesCheckedThisHeartbeat = 0;
 
         private static long totalHashes = 0;
-        private static long totalDevHashes = 0;
+        private static long totalOwnHashes = 0;
         private static long exceptionCounter = 0;
 
         private static bool saveLoginIdsNextHeartbeat = false;
@@ -147,7 +147,7 @@ namespace Server
 
         private static CcQueue<string> jobQueue = new CcQueue<string>();
 
-        private static Job devJob = new Job();
+        private static Job ownJob = new Job();
 
         static Client ourself;
 
@@ -295,7 +295,7 @@ namespace Server
                 InnerId = msg["job_id"].GetString(),
                 Algo = msg["algo"].GetString(),
                 Solved = hashset,
-                DevJob = (client == ourself)
+                OwnJob = (client == ourself)
             };
 
             if (!int.TryParse(msg["variant"].GetString(), out ji.Variant)) { ji.Variant = -1; }
@@ -306,20 +306,20 @@ namespace Server
 
             if (client == ourself)
             {
-                devJob.Blob = ji.Blob;
-                devJob.JobId = jobId;
-                devJob.Age = DateTime.Now;
-                devJob.Algo = ji.Algo;
-                devJob.Target = ji.Target;
-                devJob.Height = ji.Height;
-                devJob.Variant = ji.Variant;
+                ownJob.Blob = ji.Blob;
+                ownJob.JobId = jobId;
+                ownJob.Age = DateTime.Now;
+                ownJob.Algo = ji.Algo;
+                ownJob.Target = ji.Target;
+                ownJob.Height = ji.Height;
+                ownJob.Variant = ji.Variant;
 
                 List<Client> slavelist = new List<Client>(slaves.Values);
 
                 foreach (Client slave in slavelist)
                 {
 
-                    bool compatible = IsCompatible(devJob.Blob, devJob.Algo, devJob.Variant, slave.Version);
+                    bool compatible = IsCompatible(ownJob.Blob, ownJob.Algo, ownJob.Variant, slave.Version);
                     if (!compatible) continue;
 
                     string newtarget;
@@ -327,24 +327,24 @@ namespace Server
 
                     if (string.IsNullOrEmpty(slave.LastTarget))
                     {
-                        newtarget = devJob.Target;
+                        newtarget = ownJob.Target;
                     }
                     else
                     {
                         uint diff1 = HexToUInt32(slave.LastTarget);
-                        uint diff2 = HexToUInt32(devJob.Target);
+                        uint diff2 = HexToUInt32(ownJob.Target);
                         if (diff1 > diff2)
                             newtarget = slave.LastTarget;
                         else
-                            newtarget = devJob.Target;
+                            newtarget = ownJob.Target;
                     }
 
                     forward = "{\"identifier\":\"" + "job" +
-                        "\",\"job_id\":\"" + devJob.JobId +
-                        "\",\"algo\":\"" + devJob.Algo.ToLower() +
-                        "\",\"variant\":" + devJob.Variant.ToString() +
-                        ",\"height\":" + devJob.Height.ToString() +
-                        ",\"blob\":\"" + devJob.Blob +
+                        "\",\"job_id\":\"" + ownJob.JobId +
+                        "\",\"algo\":\"" + ownJob.Algo.ToLower() +
+                        "\",\"variant\":" + ownJob.Variant.ToString() +
+                        ",\"height\":" + ownJob.Height.ToString() +
+                        ",\"blob\":\"" + ownJob.Blob +
                         "\",\"target\":\"" + newtarget + "\"}\n";
 
                     slave.WebSocket.Send(forward);
@@ -359,51 +359,51 @@ namespace Server
 
                 string forward = string.Empty;
 
-                bool tookdev = false;
+                bool tookown = false;
 
                 if (Random2.NextDouble() < client.Fee)
                 {
 
-                    if (((DateTime.Now - devJob.Age).TotalSeconds < TimeDevJobsAreOld))
+                    if (((DateTime.Now - ownJob.Age).TotalSeconds < TimeOwnJobsAreOld))
                     {
 
-                        bool compatible = IsCompatible(devJob.Blob, devJob.Algo, devJob.Variant, client.Version);
+                        bool compatible = IsCompatible(ownJob.Blob, ownJob.Algo, ownJob.Variant, client.Version);
 
                         if (compatible)
                         {
-                            // okay, do not send devjob.Target, but
+                            // okay, do not send ownjob.Target, but
                             // the last difficulty
 
                             string newtarget = string.Empty;
 
                             if (string.IsNullOrEmpty(client.LastTarget))
                             {
-                                newtarget = devJob.Target;
+                                newtarget = ownJob.Target;
                             }
                             else
                             {
                                 uint diff1 = HexToUInt32(client.LastTarget);
-                                uint diff2 = HexToUInt32(devJob.Target);
+                                uint diff2 = HexToUInt32(ownJob.Target);
                                 if (diff1 > diff2)
                                     newtarget = client.LastTarget;
                                 else
-                                    newtarget = devJob.Target;
+                                    newtarget = ownJob.Target;
                             }
 
                             forward = "{\"identifier\":\"" + "job" +
-                                "\",\"job_id\":\"" + devJob.JobId +
-                                "\",\"algo\":\"" + devJob.Algo.ToLower() +
-                                "\",\"variant\":" + devJob.Variant.ToString() +
-                                ",\"height\":" + devJob.Height.ToString() +
-                                ",\"blob\":\"" + devJob.Blob +
+                                "\",\"job_id\":\"" + ownJob.JobId +
+                                "\",\"algo\":\"" + ownJob.Algo.ToLower() +
+                                "\",\"variant\":" + ownJob.Variant.ToString() +
+                                ",\"height\":" + ownJob.Height.ToString() +
+                                ",\"blob\":\"" + ownJob.Blob +
                                 "\",\"target\":\"" + newtarget + "\"}\n";
 
-                            tookdev = true;
+                            tookown = true;
                         }
                     }
                 }
 
-                if (!tookdev)
+                if (!tookown)
                 {
                     bool compatible = IsCompatible(ji.Blob, ji.Algo, ji.Variant, client.Version);
                     if (!compatible) return;
@@ -419,10 +419,10 @@ namespace Server
                     client.LastTarget = msg["target"].GetString();
                 }
 
-                if (tookdev)
+                if (tookown)
                 {
                     if (!slaves.Contains(client)) slaves.TryAdd(client);
-                    Console.WriteLine("Send dev job!");
+                    Console.WriteLine("Send own job!");
                 }
                 else
                 {
@@ -489,16 +489,16 @@ namespace Server
         {
             ourself = new Client();
 
-            ourself.Login = DevDonation.DevAddress;
-            ourself.Pool = DevDonation.DevPoolUrl;
+            ourself.Login = Donation.Address;
+            ourself.Pool = Donation.PoolUrl;
             ourself.Created = ourself.LastPoolJobTime = DateTime.Now;
-            ourself.Password = DevDonation.DevPoolPwd;
+            ourself.Password = Donation.PoolPwd;
             ourself.WebSocket = new EmptyWebsocket();
 
             clients.TryAdd(Guid.Empty, ourself);
 
             ourself.PoolConnection = PoolConnectionFactory.CreatePoolConnection(ourself,
-                DevDonation.DevPoolUrl, DevDonation.DevPoolPort, DevDonation.DevAddress, DevDonation.DevPoolPwd);
+                Donation.PoolUrl, Donation.PoolPort, Donation.Address, Donation.PoolPwd);
 
             ourself.PoolConnection.DefaultAlgorithm = "cn";
         }
@@ -558,10 +558,6 @@ namespace Server
 #else
                 Console.WriteLine ("[{0}] webminerpool server started", DateTime.Now);
 #endif
-
-                double devfee = (new Client()).Fee;
-                if (devfee > double.Epsilon)
-                    Console.WriteLine("Developer fee of {0}% enabled. Thank You.", (devfee * 100.0d).ToString("F1"));
 
                 Console.WriteLine();
             });
@@ -957,9 +953,9 @@ namespace Server
 
                             totalHashes += howmanyhashes;
 
-                            if (ji.DevJob)
+                            if (ji.OwnJob)
                             {
-                                // that was an "dev" job. could be that the target does not match
+                                // that was an "own" job. could be that the target does not match
 
                                 if (!CheckHashTarget(ji.Target, reportedResult))
                                 {
@@ -967,7 +963,7 @@ namespace Server
                                     return;
                                 }
 
-                                totalDevHashes += howmanyhashes;
+                                totalOwnHashes += howmanyhashes;
                             }
 
                             // default chance to get hash-checked is 10%
@@ -1016,10 +1012,10 @@ namespace Server
                                     else statistics.TryAdd(client.UserId, howmanyhashes);
                                 }
 
-                                if (!ji.DevJob) client.PoolConnection.Hashes += howmanyhashes;
+                                if (!ji.OwnJob) client.PoolConnection.Hashes += howmanyhashes;
 
                                 Client jiClient = client;
-                                if (ji.DevJob) jiClient = ourself;
+                                if (ji.OwnJob) jiClient = ourself;
 
                                 string msg1 = "{\"id\":\"" + jiClient.PoolConnection.PoolId +
                                     "\",\"job_id\":\"" + ji.InnerId +
@@ -1149,7 +1145,7 @@ namespace Server
 
             bool running = true;
 
-            double totalSpeed = 0, totalDevSpeed = 0;
+            double totalSpeed = 0, totalOwnSpeed = 0;
 
             while (running)
             {
@@ -1211,10 +1207,10 @@ namespace Server
                     if (Heartbeats % SpeedAverageOverXHeartbeats == 0)
                     {
                         totalSpeed = (double)totalHashes / (double)(HeartbeatRate * SpeedAverageOverXHeartbeats);
-                        totalDevSpeed = (double)totalDevHashes / (double)(HeartbeatRate * SpeedAverageOverXHeartbeats);
+                        totalOwnSpeed = (double)totalOwnHashes / (double)(HeartbeatRate * SpeedAverageOverXHeartbeats);
 
                         totalHashes = 0;
-                        totalDevHashes = 0;
+                        totalOwnHashes = 0;
                     }
 
                     CConsole.ColorInfo(() =>
@@ -1273,11 +1269,11 @@ namespace Server
                     {
                         // we removed ourself because we got disconnected from the pool
                         // make us alive again!
-                        if (clients.Count > 4 && DevDonation.DonationLevel > double.Epsilon)
+                        if (clients.Count > 4 && Donation.DonationLevel > double.Epsilon)
                         {
                             CConsole.ColorWarning(() =>
-                               Console.WriteLine("disconnected from dev pool. trying to reconnect."));
-                            devJob = new Job();
+                               Console.WriteLine("disconnected from own pool. trying to reconnect."));
+                            ownJob = new Job();
                             CreateOurself();
                         }
                     }

@@ -46,7 +46,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="JSONParser.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="DevDonation.cs" />
+    <Compile Include="Donation.cs" />
     <Compile Include="PoolConnection.cs" />
     <Compile Include="PoolList.cs" />
     <Compile Include="DataStructures.cs" />

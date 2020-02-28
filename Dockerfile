@@ -1,12 +1,10 @@
 FROM mono:6 AS webminerpool-build
 
-ARG DONATION_LEVEL=0.03
 
 COPY server /server
 COPY hash_cn /hash_cn
 
-RUN sed -ri "s/^(.*DonationLevel = )[0-9]\.[0-9]{2}/\1${DONATION_LEVEL}/" /server/Server/DevDonation.cs && \
-	apt-get -qq update && \
+RUN apt-get -qq update && \
 	apt-get --no-install-recommends -qq install build-essential && \
 	rm -rf /var/lib/apt/lists/* && \
 	cd /hash_cn/libhash && \
