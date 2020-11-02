@@ -18,7 +18,7 @@ No. Not at the moment. The problem here is that in principle one could compile c
 wasm but unfortunately some floating point operations used by RandomX are not supported by wasm. Workarounds
 would make the code slow.
 
-The strategy is to rely on coins which are more easily mined in the browser. Pools like [moneroocean.stream](https://moneroocean.stream) let you mine them in direct exchange for Monero. 
+The strategy is to rely on coins which are more easily mined in the browser. Pools like [moneroocean.stream](https://moneroocean.stream) and [HeroMiners](https://monero.herominers.com) let you mine them in direct exchange for Monero. 
 
 Turtle coin utilizing cn-lite (very well mineable using webasm) will fork to another POW, called "chukwa".
 If there is support for this POW change on moneroocean (AND the algorithm turns out to be profitable) we will follow. The code is already in place (branch argon2) but needs some serious cleaning and optimizing.
