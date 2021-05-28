@@ -92,7 +92,6 @@ namespace Server
         static extern IntPtr hash_free(IntPtr ptr);
 
         public const string RegexIsHex = "^[a-fA-F0-9]+$";
-        public const string RegexIsXMR = "[a-zA-Z|\\d]{95}";
 
         public const int JobCacheSize = (int)1e5;
 
