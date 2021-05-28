@@ -15,7 +15,7 @@ There is a **docker** file available. See below.
 
 # Is RandomX supported?
 
-No. At the moment there is no effient way to implement this in the browser.
+No. At the moment there is no efficient way to implement this in the browser.
 
 The strategy is to rely on coins which are more easily mined in the browser. Pools like moneroocean.stream let you mine them in direct exchange for Monero.
 
@@ -64,7 +64,7 @@ startMining(pool, address, password, numThreads, userid);
 - address, a valid XMR address you want to mine to.
 - password, password for your pool. Often not needed.
 - numThreads, the number of threads the miner uses. Use "-1" for auto-config.
-- userid, allows you to identify the number of hashes calculated by a user. Can be any string with a length < 200 characters.
+- userid - not used anymore but still available at the server side.
 
 To **throttle** the miner just use the global variable "throttleMiner", e.g. 
 
