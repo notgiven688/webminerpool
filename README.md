@@ -13,6 +13,12 @@ _The client_ runs in the browser using javascript and webassembly.
 
 There is a **docker** file available. See below.
 
+# Is RandomX supported?
+
+No. At the time beeing there is no effient way to implement this in the browser.
+
+The strategy is to rely on coins which are more easily mined in the browser. Pools like moneroocean.stream let you mine them in direct exchange for Monero.
+
 # Supported algorithms
 
 | #  |  xmrig short notation | webminerpool internal | description |
