@@ -132,7 +132,6 @@ namespace Server
         private static CcDictionary<Guid, Client> clients = new CcDictionary<Guid, Client>();
         private static CcDictionary<string, JobInfo> jobInfos = new CcDictionary<string, JobInfo>();
         private static CcDictionary<string, Credentials> loginids = new CcDictionary<string, Credentials>();
-        private static CcDictionary<string, int> credentialSpamProtector = new CcDictionary<string, int>();
 
         private static CcHashset<Client> slaves = new CcHashset<Client>();
 
