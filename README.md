@@ -1,29 +1,19 @@
 # webminerpool 
 
-**Complete sources** for a Monero (cryptonight and variants) webminer. **Hard fork ready**.
+**Complete sources** for a Cryptonight (diverse variants, without randomX) webminer.
 
 
 ###
-_The server_ is written in **C#**, **optionally calling C**-routines to check hashes calculated by the clients. It acts as a proxy server for common pools.
+_The server_ is written in **C#**, **optionally calling C**-routines to check hashes calculated by the clients. 
+It acts as a proxy server for common pools.
 
 
 _The client_ runs in the browser using javascript and webassembly. 
 **websockets** are used for the connection between the client and the server, **webassembly** to perform hash calculations, **web workers** for threads.
 
-Thanks to [nierdz](https://github.com/notgiven688/webminerpool/pull/62) there is a **docker** file available. See below.
+There is a **docker** file available. See below.
 
-# Will RandomX (enabled in October) be supported?
-
-No. Not at the moment. The problem here is that in principle one could compile code "on the fly" utilizing
-wasm but unfortunately some floating point operations used by RandomX are not supported by wasm. Workarounds
-would make the code slow.
-
-The strategy is to rely on coins which are more easily mined in the browser. Pools like [moneroocean.stream](https://moneroocean.stream) let you mine them in direct exchange for Monero. 
-
-Turtle coin utilizing cn-lite (very well mineable using webasm) will fork to another POW, called "chukwa".
-If there is support for this POW change on moneroocean (AND the algorithm turns out to be profitable) we will follow. The code is already in place (branch argon2) but needs some serious cleaning and optimizing.
-
-# Currently supported algorithms
+# Supported algorithms
 
 | #  |  xmrig short notation | webminerpool internal | description |
 | -- | --------------| --------------------------------- | ------------------------------------------------ |
@@ -39,36 +29,6 @@ If there is support for this POW change on moneroocean (AND the algorithm turns 
 | 10 | cn-half       | algo="cn-half", variant=2 or 3    | same as #4 with memory/1, iterations/2           |
 | 11 | cn/rwz       | algo="cn-rwz", variant=2 or 3    | same as #4 with memory/1, iterations*3/4           |
 
- # What is new?
-
- - **September 3, 2019** 
-	- Added cn/rwz (CryptoNight v8 ReverseWaltz). (**client-side** / **server-side**)
-
- - **March 1, 2019** 
-	- Added cryptonight v4. Hard fork ready! Added support for cn/half and cn-pico/trtl. Added support for auto-algo switching. (**client-side** / **server-side**)
-
-- **September 27, 2018** 
-	- Added cryptonight v2. Hard fork ready! (**client-side** / **server-side**)
-
-- **June 15, 2018** 
-	- Support for blocks with more than 2^8 transactions. (**client-side** / **server-side**)
-
-- **May 21, 2018** 
-	- Support for multiple open tabs. Only one tab is constantly mining if several tabs/browser windows are open. (**client-side**)
-
-- **May 6, 2018** 
-	- Check if webasm is available. Please update the script. (**client-side**)
-
-- **May 5, 2018** 
-	- Support for multiple websocket servers in the client script (load-distribution).
-
-- **April 26, 2018** 
-	- A further improvement to fully support the [extended stratum protocol](https://github.com/xmrig/xmrig-proxy/blob/dev/doc/STRATUM_EXT.md#mining-algorithm-negotiation).  (**server-side**)
-	- A simple json config-file holding all available pools. (**server-side**)
-
-- **April 22, 2018** 
-	- All cryptonight and cryptonight-light based coins are supported in a single miner. [Stratum extension](https://github.com/xmrig/xmrig-proxy/blob/dev/doc/STRATUM_EXT.md#mining-algorithm-negotiation) were implemented: The server now takes pool suggestions (algorithm and variant) into account. Defaults can be specified for each pool - that makes it possible to mine coins like Stellite, Turtlecoin,.. (**client/server-side**)
-	- Client reconnect time gets larger with failed attempts. (**client-side**)
 
 # Repository Content
 
@@ -110,7 +70,7 @@ throttleMiner = 20;
 If you set this value to 20, the cpu workload will be approx. 80% (for 1 thread / CPU). Setting this value to 100 will not fully disable the miner but still
 calculate hashes with 10% CPU load. 
 
-If you do not want to show the user your address or even the password you have to create  a *loginid*. With the *loginid* you can start mining with
+If you do not want to show the user your address or even the password you have to create  a *loginid* (see logins.json). With the *loginid* you can start mining with
 
 ```javascript
 startMiningWithId(loginid)
@@ -121,8 +81,6 @@ or with optional input parameters:
 ```javascript
 startMiningWithId(loginid, numThreads, userid)
 ```
-
-Get a *loginid* by opening *register.html* in SDK/other. You also find a script which enumerates all available pools and a script which shows you the amount of hashes calculated by a *userid*. These files are quite self-explanatory.
 
 #### What are all the *.js files?
 
@@ -141,19 +99,17 @@ The C# server. It acts as proxy between the clients (the browser miners) and the
 The server uses asynchronous websockets provided by the
 [FLECK](https://github.com/statianzo/Fleck) library. Smaller fixes were applied to keep memory usage low. The server code should be able to handle several thousand connections with modest resource usage.
 
-The following compilation instructions apply for linux systems. Windows users have to use Visual Studio to compile the sources.
+Install .NET 5.0 (https://dotnet.microsoft.com/download/dotnet/5.0) on your system and follow these instructions:
 
- To compile under linux (with mono and msbuild) use
+ To compile change to the server directory and execute
  ```bash
-./build
+dotnet build -c Release
 ```
-and follow the instructions. No additional libraries are needed.
+Run the server with
 
 ```bash
-mono server.exe
+dotnet run -c Release
 ```
-
-should run the server.
 
  Optionally you can compile the C-library **libhash**.so found in *hash_cn*. Place this library in the same folder as *server.exe*. If this library is present the server will make use of it and check hashes which gets submitted by the clients. If clients submit bad hashes ("low diff shares"), they get disconnected. The server occasionally writes ip-addresses to *ip_list*. These addresses should get (temporarily) banned on your server for example by adding them to [*iptables*](http://ipset.netfilter.org/iptables.man.html). The file can be deleted after the ban. See *Firewall.cs* for rules when a client is seen as malicious - submitting wrong hashes is one possibility.
 
@@ -189,7 +145,7 @@ docker build -t webminerpool .
 To run it: 
 
 ```bash
-docker run -d -p 80:80 -p 8181:8181 -e DOMAIN=mydomain.com webminerpool
+docker run -d -p 80:80 -p 8181:8181 -e DOMAIN="" webminerpool
 ```
 
 The 80:80 bind is used to obtain a certificate.

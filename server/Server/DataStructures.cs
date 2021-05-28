@@ -32,7 +32,6 @@ namespace Server
             V dummy;
             return this.TryRemove(item, out dummy);
         }
-
     }
 
     public class CcQueue<T> : ConcurrentQueue<T> { }

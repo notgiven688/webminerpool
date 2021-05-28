@@ -20,16 +20,11 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Server
 {
-
     public static class CConsole
     {
-
         // Info, Alert, Warning
         private static readonly object locker = new object();
         private static readonly bool enabled = true;
@@ -51,7 +46,6 @@ namespace Server
 
         private static void ColorConsole(Action consoleAction, ConsoleColor foreground)
         {
-
             if (enabled)
             {
                 lock (locker)
@@ -69,7 +63,6 @@ namespace Server
 
         private static void ColorConsole(Action consoleAction, ConsoleColor foreground, ConsoleColor background)
         {
-
             if (enabled)
             {
                 lock (locker)

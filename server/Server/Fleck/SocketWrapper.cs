@@ -30,6 +30,7 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Runtime.InteropServices;
 
 namespace Fleck
 {
@@ -41,6 +42,8 @@ namespace Fleck
 
 		public static void SetKeepAlive(this Socket socket, UInt32 keepAliveInterval, UInt32 retryInterval)
 		{
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
+
 			int size = sizeof(UInt32);
 			UInt32 on = 1;
 
@@ -87,7 +90,6 @@ namespace Fleck
             _socket = socket;
             if (_socket.Connected)
                 _stream = new NetworkStream(_socket);
-
 
 			socket.SetKeepAlive(60000,10000); // fix wmp
         }

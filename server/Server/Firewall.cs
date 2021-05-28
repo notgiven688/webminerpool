@@ -20,24 +20,15 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Server
 {
     public static class Firewall
     {
-
         public enum UpdateEntry
         {
-            SolvedJob,
-            AuthSuccess,
-            AuthFailure,
-            WrongHash,
-            Handshake
+            SolvedJob, AuthSuccess, AuthFailure, WrongHash, Handshake
         }
 
         private class Entry
@@ -74,7 +65,6 @@ namespace Server
             Entry entry = null;
             if (entries.TryGetValue(ip, out entry))
             {
-
                 if (update == UpdateEntry.SolvedJob)
                     entry.SolvedJobs++;
                 else if (update == UpdateEntry.AuthFailure)
@@ -90,12 +80,10 @@ namespace Server
             {
                 entries.TryAdd(ip, new Entry(ip));
             }
-
         }
 
         public static void Heartbeat(int heartBeats)
         {
-
             List<Entry> entrylst = new List<Entry>(entries.Values);
 
             foreach (Entry entry in entrylst)

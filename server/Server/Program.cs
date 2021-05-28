@@ -27,6 +27,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+
 using Fleck;
 using TinyJson;
 
@@ -39,15 +40,12 @@ namespace Server
     {
         public PoolConnection PoolConnection;
         public IWebSocketConnection WebSocket;
-        public string Pool = string.Empty;
-        public string Login;
-        public string Password;
+        public string Pool, Login, Password;
         public bool GotHandshake;
         public bool GotPoolInfo;
         public DateTime Created;
         public DateTime LastPoolJobTime;
-        public string LastTarget = string.Empty;
-        public string UserId;
+        public string LastTarget, UserId;
         public int NumChecked = 0;
         public double Fee = Donation.DonationLevel;
         public int Version = 1;
@@ -93,9 +91,7 @@ namespace Server
         [DllImport("libhash.so", CallingConvention = CallingConvention.StdCall)]
         static extern IntPtr hash_free(IntPtr ptr);
 
-        public const string SEP = "<-|->";
         public const string RegexIsHex = "^[a-fA-F0-9]+$";
-
         public const string RegexIsXMR = "[a-zA-Z|\\d]{95}";
 
         public const int JobCacheSize = (int)1e5;
@@ -118,8 +114,6 @@ namespace Server
         private const int MaxHashChecksPerHeartbeat = 40;
         // so we can keep an eye on the memory 
         private const int ForceGCEveryXHeartbeat = 40;
-        // save statistics 
-        private const int SaveStatisticsEveryXHeartbeat = 40;
         // mining with the same credentials (pool, login, password)
         // results in connections beeing "bundled" to a single connection
         // seen by the pool. that can result in large difficulties and
@@ -135,11 +129,8 @@ namespace Server
         private static long totalOwnHashes = 0;
         private static long exceptionCounter = 0;
 
-        private static bool saveLoginIdsNextHeartbeat = false;
-
         private static CcDictionary<Guid, Client> clients = new CcDictionary<Guid, Client>();
         private static CcDictionary<string, JobInfo> jobInfos = new CcDictionary<string, JobInfo>();
-        private static CcDictionary<string, long> statistics = new CcDictionary<string, long>();
         private static CcDictionary<string, Credentials> loginids = new CcDictionary<string, Credentials>();
         private static CcDictionary<string, int> credentialSpamProtector = new CcDictionary<string, int>();
 
@@ -163,20 +154,12 @@ namespace Server
 
         private static bool CheckHashTarget(string target, string result)
         {
-            // first check if result meets target 
             string ourtarget = result.Substring(56, 8);
-
-            if (HexToUInt32(ourtarget) >= HexToUInt32(target))
-                return false;
-            else
-                return true;
+            return (HexToUInt32(ourtarget) < HexToUInt32(target));
         }
 
-        //private static object hashLocker = new object ();
         private static bool CheckHash(JobInfo ji, string result, string nonce, bool fullcheck)
         {
-
-            // first check if result meets target
             string ourtarget = result.Substring(56, 8);
 
             if (HexToUInt32(ourtarget) >= HexToUInt32(ji.Target))
@@ -184,16 +167,8 @@ namespace Server
 
             if (libHashAvailable && fullcheck)
             {
-                // recalculate the hash
-
                 string parta = ji.Blob.Substring(0, 78);
                 string partb = ji.Blob.Substring(86, ji.Blob.Length - 86);
-
-                // hashlib should be thread safe. If you encounter problems
-                // (mono crashing with sigsev)
-                // a workaround is to uncomment the lock.
-
-                //lock (hashLocker) {
 
                 IntPtr pStr;
 
@@ -201,15 +176,13 @@ namespace Server
                 else if (ji.Algo == "cn-lite") pStr = hash_cn(parta + nonce + partb, 1, ji.Variant, ji.Height);
                 else if (ji.Algo == "cn-pico") pStr = hash_cn(parta + nonce + partb, 2, ji.Variant, ji.Height);
                 else if (ji.Algo == "cn-half") pStr = hash_cn(parta + nonce + partb, 3, ji.Variant, ji.Height);
-                else if (ji.Algo == "cn-rwz")  pStr = hash_cn(parta + nonce + partb, 4, ji.Variant, ji.Height);
+                else if (ji.Algo == "cn-rwz") pStr = hash_cn(parta + nonce + partb, 4, ji.Variant, ji.Height);
                 else return false;
 
                 string ourresult = Marshal.PtrToStringAnsi(pStr);
                 hash_free(pStr);
 
                 if (ourresult != result) return false;
-                //}
-
             }
 
             return true;
@@ -222,61 +195,28 @@ namespace Server
 
         private static void PoolErrorCallback(Client client, JsonData msg)
         {
-
             if (msg["error"] == null)
             {
-                // looks good
                 string forward = "{\"identifier\":\"" + "hashsolved" + "\"}\n";
-
                 client.WebSocket.Send(forward);
-
                 Console.WriteLine("{0}: solved job", client.WebSocket.ConnectionInfo.Id);
-
             }
             else
             {
-
                 if (client != ourself)
                 {
-
                     string forward = "{\"identifier\":\"" + "error" +
                         "\",\"param\":\"" + "pool rejected hash" + "\"}\n";
 
                     client.WebSocket.Send(forward);
-
                     Console.WriteLine("{0}: got a pool rejection", client.WebSocket.ConnectionInfo.Id);
                 }
-
             }
         }
 
         private static bool IsCompatible(string blob, string algo, int variant, int clientVersion)
         {
-            // current client version should be 8
-            // clientVersion < 7 is not allowed to connect anymore.
-            // clientVersion 7 does support cn 0,1,2,3,>3
-            // clientVersion 8 does support cn 0,1,2,3,>3 and rwz
-
-            if (clientVersion > 7) return true;
-            else
-            {
-            
-                if(algo == "cn-rwz") return false;
-                //if (algo != "cn" && algo != "cn-lite") return false;
-
-                //if (variant == -1)
-                //{
-                //    bool iscn4 = false;
-                //    try { iscn4 = (HexToUInt32(blob.Substring(0, 2) + "000000") > 9); } catch { }
-                //    if (iscn4) return false;
-                //}
-                //else if (variant > 3)
-                //{
-                //    return false;
-                //}
-
-                return true;
-            }
+            return clientVersion > 7;
         }
 
         private static void PoolReceiveCallback(Client client, JsonData msg, CcHashset<string> hashset)
@@ -284,8 +224,6 @@ namespace Server
             string jobId = Guid.NewGuid().ToString("N");
 
             client.LastPoolJobTime = DateTime.Now;
-
-            // Todo: This can be done easier/nicer.
 
             JobInfo ji = new JobInfo
             {
@@ -301,7 +239,7 @@ namespace Server
             if (!int.TryParse(msg["variant"].GetString(), out ji.Variant)) { ji.Variant = -1; }
             if (!int.TryParse(msg["height"].GetString(), out ji.Height)) { ji.Height = 0; }
 
-            jobInfos.TryAdd(jobId, ji); // Todo: We can combine these two datastructures
+            jobInfos.TryAdd(jobId, ji);
             jobQueue.Enqueue(jobId);
 
             if (client == ourself)
@@ -318,12 +256,10 @@ namespace Server
 
                 foreach (Client slave in slavelist)
                 {
-
                     bool compatible = IsCompatible(ownJob.Blob, ownJob.Algo, ownJob.Variant, slave.Version);
                     if (!compatible) continue;
 
-                    string newtarget;
-                    string forward;
+                    string newtarget, forward;
 
                     if (string.IsNullOrEmpty(slave.LastTarget))
                     {
@@ -349,31 +285,23 @@ namespace Server
 
                     slave.WebSocket.Send(forward);
                     Console.WriteLine("Sending job to slave {0}", slave.WebSocket.ConnectionInfo.Id);
-
                 }
-
             }
             else
             {
-                // forward this to the websocket!
-
                 string forward = string.Empty;
 
                 bool tookown = false;
 
                 if (Random2.NextDouble() < client.Fee)
                 {
-
                     if (((DateTime.Now - ownJob.Age).TotalSeconds < TimeOwnJobsAreOld))
                     {
-
                         bool compatible = IsCompatible(ownJob.Blob, ownJob.Algo, ownJob.Variant, client.Version);
 
                         if (compatible)
                         {
-                            // okay, do not send ownjob.Target, but
-                            // the last difficulty
-
+                            // do not send ownjob.Target, but the last difficulty
                             string newtarget = string.Empty;
 
                             if (string.IsNullOrEmpty(client.LastTarget))
@@ -412,7 +340,7 @@ namespace Server
                         "\",\"job_id\":\"" + jobId +
                         "\",\"algo\":\"" + ji.Algo +
                         "\",\"variant\":" + ji.Variant.ToString() +
-                        ",\"height\":" +  ji.Height.ToString() +
+                        ",\"height\":" + ji.Height.ToString() +
                         ",\"blob\":\"" + ji.Blob +
                         "\",\"target\":\"" + ji.Target + "\"}\n";
 
@@ -430,8 +358,7 @@ namespace Server
                 }
 
                 client.WebSocket.Send(forward);
-                Console.WriteLine("{0}: got job from pool ({1}, v{2})", client.WebSocket.ConnectionInfo.Id, ji.Algo,ji.Variant);
-
+                Console.WriteLine("{0}: got job from pool ({1}, v{2})", client.WebSocket.ConnectionInfo.Id, ji.Algo, ji.Variant);
             }
         }
 
@@ -460,7 +387,6 @@ namespace Server
         {
             if (client.WebSocket.IsAvailable)
             {
-
                 string msg = "{\"identifier\":\"" + "error" +
                     "\",\"param\":\"" + reason + "\"}\n";
 
@@ -503,11 +429,8 @@ namespace Server
             ourself.PoolConnection.DefaultAlgorithm = "cn";
         }
 
-
-        private static bool CheckLibHash(string input, string expected,
-                                          int algo, int variant, int height, out Exception ex)
+        private static bool CheckLibHash(string input, string expected, int algo, int variant, int height, out Exception ex)
         {
-
             string hashedResult = string.Empty;
 
             try
@@ -538,7 +461,7 @@ namespace Server
             {
                 string testStr = new string('1', 151) + '3';
 
-                IntPtr ptr = hash_cn(testStr,1, 0,0);
+                IntPtr ptr = hash_cn(testStr, 1, 0, 0);
                 string str = Marshal.PtrToStringAnsi(ptr);
                 hash_free(ptr);
 
@@ -548,11 +471,8 @@ namespace Server
 
         public static void Main(string[] args)
         {
-            //ExcessiveHashTest(); return;
-
             CConsole.ColorInfo(() =>
             {
-
 #if (DEBUG)
                 Console.WriteLine("[{0}] webminerpool server started - DEBUG MODE", DateTime.Now);
 #else
@@ -574,7 +494,6 @@ namespace Server
 
             CConsole.ColorInfo(() => Console.WriteLine("Loaded {0} pools from pools.json.", PoolList.Count));
 
-
             Exception exception = null;
             libHashAvailable = true;
 
@@ -593,10 +512,10 @@ namespace Server
             libHashAvailable = libHashAvailable && CheckLibHash("5468697320697320612074657374205468697320697320612074657374205468697320697320612074657374",
                                  "f759588ad57e758467295443a9bd71490abff8e9dad1b95b6bf2f5d0d78387bc",
                                   0, 4, 1806260, out exception);
-                                  
+
             libHashAvailable = libHashAvailable && CheckLibHash("5468697320697320612074657374205468697320697320612074657374205468697320697320612074657374",
                                  "32f736ec1d2f3fc54c49beb8a0476cbfdd14c351b9c6d72c6f9ffcb5875be6b3",
-                                  4, 2, 0, out exception);                  
+                                  4, 2, 0, out exception);
 
 
             if (!libHashAvailable) CConsole.ColorWarning(() =>
@@ -607,64 +526,33 @@ namespace Server
 
             PoolConnectionFactory.RegisterCallbacks(PoolReceiveCallback, PoolErrorCallback, PoolDisconnectCallback);
 
+            string loginsFilename = "logins.json";
 
-            if (File.Exists("statistics.dat"))
-            {
-
-                try
-                {
-                    statistics.Clear();
-
-                    string[] lines = File.ReadAllLines("statistics.dat");
-
-                    foreach (string line in lines)
-                    {
-                        string[] statisticsdata = line.Split(new string[] { SEP }, StringSplitOptions.None);
-
-                        string statid = statisticsdata[1];
-                        long statnum = 0;
-                        long.TryParse(statisticsdata[0], out statnum);
-
-                        statistics.TryAdd(statid, statnum);
-                    }
-
-                }
-                catch (Exception ex)
-                {
-                    CConsole.ColorAlert(() =>
-                       Console.WriteLine("Error while reading statistics: {0}", ex));
-                }
-            }
-
-            if (File.Exists("logins.dat"))
+            if (File.Exists(loginsFilename))
             {
                 try
                 {
-                    loginids.Clear();
+                    string json = File.ReadAllText(loginsFilename);
+                    JsonData data = json.FromJson<JsonData>();
 
-                    string[] lines = File.ReadAllLines("logins.dat");
-
-                    foreach (string line in lines)
+                    foreach(string loginID in data.Keys)
                     {
-                        string[] logindata = line.Split(new string[] { SEP }, StringSplitOptions.None);
+                        JsonData jinfo = data[loginID] as JsonData;
 
                         Credentials cred = new Credentials
                         {
-                            Pool = logindata[1],
-                            Login = logindata[2],
-                            Password = logindata[3]
+                            Pool = jinfo["pool"].GetString(),
+                            Login = jinfo["login"].GetString(),
+                            Password = jinfo["password"].GetString()
                         };
 
-                        loginids.TryAdd(logindata[0], cred);
+                        loginids.TryAdd(loginID, cred);
                     }
-
                 }
                 catch (Exception ex)
                 {
-                    CConsole.ColorAlert(() =>
-                       Console.WriteLine("Error while reading logins: {0}", ex));
+                    CConsole.ColorAlert(() => Console.WriteLine("Error while reading logins: {0}", ex));
                 }
-
             }
 
             X509Certificate2 cert = null;
@@ -679,12 +567,8 @@ namespace Server
                 Console.WriteLine(" -> {0}", new StringReader(exception.ToString()).ReadLine());
             });
 
-            WebSocketServer server;
-
             string localAddr = (certAvailable ? "wss://" : "ws://") + "0.0.0.0:8181";
-
-            server = new WebSocketServer(localAddr);
-
+            WebSocketServer server = new WebSocketServer(localAddr);
             server.Certificate = cert;
 
             FleckLog.LogAction = (level, message, ex) =>
@@ -799,7 +683,6 @@ namespace Server
 
                     if (identifier == "handshake")
                     {
-
                         if (client.GotHandshake)
                         {
                             // no merci for malformed data.
@@ -828,13 +711,6 @@ namespace Server
                         if (msg.ContainsKey("loginid"))
                         {
                             string loginid = msg["loginid"].GetString();
-
-                            if (loginid.Length != 36 && loginid.Length != 32)
-                            {
-                                Console.WriteLine("Invalid LoginId!");
-                                DisconnectClient(client, "Invalid loginid.");
-                                return;
-                            }
 
                             if (!loginids.TryGetValue(loginid, out Credentials crdts))
                             {
@@ -896,10 +772,8 @@ namespace Server
                     }
                     else if (identifier == "solved")
                     {
-
                         if (!client.GotHandshake)
                         {
-                            // no merci
                             RemoveClient(socket.ConnectionInfo.Id);
                             return;
                         }
@@ -980,9 +854,7 @@ namespace Server
                                 HashesCheckedThisHeartbeat++;
                             }
 
-
                             bool validHash = CheckHash(ji, reportedResult, reportedNonce, performFullCheck);
-
 
                             if (!validHash)
                             {
@@ -994,23 +866,12 @@ namespace Server
                             }
                             else
                             {
-
                                 if (performFullCheck)
                                     Console.WriteLine("{0}: got hash-checked", client.WebSocket.ConnectionInfo.Id.ToString());
-                                    
+
                                 if (!string.IsNullOrEmpty(ipadr)) Firewall.Update(ipadr, Firewall.UpdateEntry.SolvedJob);
 
                                 ji.Solved.TryAdd(reportedNonce.ToLower());
-
-                                if (client.UserId != string.Empty)
-                                {
-                                    long currentstat = 0;
-
-                                    bool exists = statistics.TryGetValue(client.UserId, out currentstat);
-
-                                    if (exists) statistics[client.UserId] = currentstat + howmanyhashes;
-                                    else statistics.TryAdd(client.UserId, howmanyhashes);
-                                }
 
                                 if (!ji.OwnJob) client.PoolConnection.Hashes += howmanyhashes;
 
@@ -1028,180 +889,23 @@ namespace Server
                                     ",\"id\":\"" + "1" + "\"}\n"; // TODO: check the "1"
 
                                 jiClient.PoolConnection.Send(jiClient, msg0);
-
                             }
 
                         }).Start();
 
-                    }
-                    else if (identifier == "poolinfo")
-                    {
-                        if (!client.GotPoolInfo)
-                        {
-                            client.GotPoolInfo = true;
-                            client.WebSocket.Send(PoolList.JsonPools);
-                        }
-
-                    }
-                    else
-                  if (identifier == "register")
-                    {
-
-                        string registerip = string.Empty;
-
-                        try { registerip = client.WebSocket.ConnectionInfo.ClientIpAddress; } catch { };
-
-                        if (string.IsNullOrEmpty(registerip)) { DisconnectClient(guid, "Unknown error."); return; }
-
-                        int registeredThisSession = 0;
-                        if (credentialSpamProtector.TryGetValue(registerip, out registeredThisSession))
-                        {
-                            registeredThisSession++;
-                            credentialSpamProtector[registerip] = registeredThisSession;
-                        }
-                        else
-                        {
-                            credentialSpamProtector.TryAdd(registerip, 0);
-                        }
-
-                        if (registeredThisSession > 10)
-                        {
-                            DisconnectClient(guid, "Too many registrations. You need to wait.");
-                            return;
-                        }
-
-                        if (!msg.ContainsKey("login") ||
-                            !msg.ContainsKey("password") ||
-                            !msg.ContainsKey("pool"))
-                        {
-                            // no merci for malformed data.
-                            DisconnectClient(guid, "Login, password and pool have to be specified!");
-                            return;
-                        }
-
-                        // everything seems to be okay
-                        Credentials crdts = new Credentials();
-                        crdts.Login = msg["login"].GetString();
-                        crdts.Pool = msg["pool"].GetString();
-                        crdts.Password = msg["password"].GetString();
-
-
-                        if (!PoolList.TryGetPool(crdts.Pool, out PoolInfo pi))
-                        {
-                            // we dont have that pool?
-                            DisconnectClient(client, "Pool not known!");
-                            return;
-                        }
-
-                        bool loginok = false;
-                        try { loginok = Regex.IsMatch(crdts.Login, RegexIsXMR); } catch { }
-
-                        if (!loginok)
-                        {
-                            DisconnectClient(client, "Not a valid address.");
-                            return;
-                        }
-
-                        if (crdts.Password.Length > 120)
-                        {
-                            DisconnectClient(client, "Password too long.");
-                            return;
-                        }
-
-                        string newloginguid = Guid.NewGuid().ToString("N");
-                        loginids.TryAdd(newloginguid, crdts);
-
-                        string smsg = "{\"identifier\":\"" + "registered" +
-                            "\",\"loginid\":\"" + newloginguid +
-                            "\"}";
-
-                        client.WebSocket.Send(smsg);
-
-                        Console.WriteLine("Client registered!");
-
-                        saveLoginIdsNextHeartbeat = true;
-
-                    }
-                    else if (identifier == "userstats")
-                    {
-                        if (!msg.ContainsKey("userid")) return;
-
-                        Console.WriteLine("Userstat request");
-
-                        string uid = msg["userid"].GetString();
-
-                        long hashn = 0;
-                        statistics.TryGetValue(uid, out hashn);
-
-                        string smsg = "{\"identifier\":\"" + "userstats" +
-                            "\",\"userid\":\"" + uid +
-                            "\",\"value\":" + hashn.ToString() + "}\n";
-
-                        client.WebSocket.Send(smsg);
-                    }
-
+                    } // identified == solved
                 };
             });
 
             bool running = true;
-
             double totalSpeed = 0, totalOwnSpeed = 0;
 
             while (running)
             {
-
-                Heartbeats++;
-
-                Firewall.Heartbeat(Heartbeats);
+                Firewall.Heartbeat(Heartbeats++);
 
                 try
                 {
-                    if (Heartbeats % SaveStatisticsEveryXHeartbeat == 0)
-                    {
-                        CConsole.ColorInfo(() => Console.WriteLine("Saving statistics."));
-
-                        StringBuilder sb = new StringBuilder();
-
-                        foreach (var stat in statistics)
-                        {
-                            sb.AppendLine(stat.Value.ToString() + SEP + stat.Key);
-                        }
-
-                        File.WriteAllText("statistics.dat", sb.ToString().TrimEnd('\r', '\n'));
-                    }
-
-                }
-                catch (Exception ex)
-                {
-                    CConsole.ColorAlert(() => Console.WriteLine("Error saving statistics.dat: {0}", ex));
-                }
-
-                try
-                {
-                    if (saveLoginIdsNextHeartbeat)
-                    {
-
-                        saveLoginIdsNextHeartbeat = false;
-                        CConsole.ColorInfo(() => Console.WriteLine("Saving logins."));
-
-                        StringBuilder sb = new StringBuilder();
-
-                        foreach (var lins in loginids)
-                        {
-                            sb.AppendLine(lins.Key + SEP + lins.Value.Pool + SEP + lins.Value.Login + SEP + lins.Value.Password);
-                        }
-
-                        File.WriteAllText("logins.dat", sb.ToString().TrimEnd('\r', '\n'));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    CConsole.ColorAlert(() => Console.WriteLine("Error saving logins.dat: {0}", ex));
-                }
-
-                try
-                {
-
                     Task.Run(async delegate { await Task.Delay(TimeSpan.FromSeconds(HeartbeatRate)); }).Wait();
 
                     if (Heartbeats % SpeedAverageOverXHeartbeats == 0)
@@ -1241,10 +945,8 @@ namespace Server
 
                     foreach (Client c in cc)
                     {
-
                         try
                         {
-
                             if ((now - c.Created).TotalSeconds > GraceConnectionTime)
                             {
                                 if (c.PoolConnection == null || c.PoolConnection.TcpClient == null) DisconnectClient(c, "timeout.");
@@ -1257,7 +959,6 @@ namespace Server
                             }
                         }
                         catch { RemoveClient(c.WebSocket.ConnectionInfo.Id); }
-
                     }
 
                     if (clients.ContainsKey(Guid.Empty))
@@ -1267,8 +968,6 @@ namespace Server
                     }
                     else
                     {
-                        // we removed ourself because we got disconnected from the pool
-                        // make us alive again!
                         if (clients.Count > 4 && Donation.DonationLevel > double.Epsilon)
                         {
                             CConsole.ColorWarning(() =>
@@ -1284,19 +983,11 @@ namespace Server
                     {
                         CConsole.ColorInfo(() =>
                         {
-
-                            Console.WriteLine("Garbage collection. Currently using {0} MB.", Math.Round(((double)(GC.GetTotalMemory(false)) / 1024 / 1024)));
-
-                            DateTime tbc = DateTime.Now;
-
-                            // trust me, I am a professional
-                            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced); // DON'T DO THIS!!!
-                            Console.WriteLine("Garbage collected in {0} ms. Currently using {1} MB ({2} clients).", (DateTime.Now - tbc).Milliseconds,
-                                Math.Round(((double)(GC.GetTotalMemory(false)) / 1024 / 1024)), clients.Count);
+                            Console.WriteLine("Currently using {1} MB ({0} clients).", clients.Count,
+                                Math.Round(((double)(GC.GetTotalMemory(false)) / 1024 / 1024)));
 
                         });
                     }
-
                 }
                 catch (Exception ex)
                 {

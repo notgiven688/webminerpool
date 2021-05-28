@@ -23,26 +23,23 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 using TinyJson;
 
 using JsonData = System.Collections.Generic.Dictionary<string, object>;
 
 namespace Server
 {
-
+    
     public struct PoolInfo
     {
         public int Port;
         public string Url;
-        // some pools require a non-empty password
         public string EmptyPassword;
         public string DefaultAlgorithm;
     }
 
     public class PoolList
     {
-
         private Dictionary<string, PoolInfo> pools;
         private PoolList() { }
 
@@ -61,7 +58,6 @@ namespace Server
             pl.pools = new Dictionary<string, PoolInfo>();
 
             string json = File.ReadAllText(filename);
-
             JsonData data = json.FromJson<JsonData>();
 
             foreach (string pool in data.Keys)
@@ -83,11 +79,9 @@ namespace Server
                     throw new Exception("Invalid algorithm found in pools.json: " + pi.DefaultAlgorithm );
 
                     pl.pools.Add(pool, pi);
-
             }
 
             int counter = 0;
-
             pl.JsonPools = "{\"identifier\":\"" + "poolinfo";
 
             foreach (string pool in pl.pools.Keys)
@@ -97,7 +91,6 @@ namespace Server
             }
 
             pl.JsonPools += "\"}\n";
-
             return pl;
         }
 
