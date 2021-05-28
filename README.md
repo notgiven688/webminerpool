@@ -49,7 +49,7 @@ The SDK directory contains all client side mining scripts which allow mining in 
 
 <script>
 	server = "ws://localhost:8181"
-	startMining("minexmr.com","49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU"); 
+	startMining("moneroocean.stream","49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU"); 
 </script>
 ```
 webmr.js can be found under SDK/miner_compressed.
