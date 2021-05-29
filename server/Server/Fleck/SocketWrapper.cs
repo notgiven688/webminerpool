@@ -31,6 +31,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Runtime.InteropServices;
+using Fleck.Helpers;
 
 namespace Fleck
 {
@@ -42,16 +43,17 @@ namespace Fleck
 
 		public static void SetKeepAlive(this Socket socket, UInt32 keepAliveInterval, UInt32 retryInterval)
 		{
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
+            if (FleckRuntime.IsRunningOnWindows())
+            {
+                int size = sizeof(UInt32);
+                UInt32 on = 1;
 
-			int size = sizeof(UInt32);
-			UInt32 on = 1;
-
-			byte[] inArray = new byte[size * 3];
-			Array.Copy(BitConverter.GetBytes(on), 0, inArray, 0, size);
-			Array.Copy(BitConverter.GetBytes(keepAliveInterval), 0, inArray, size, size);
-			Array.Copy(BitConverter.GetBytes(retryInterval), 0, inArray, size * 2, size);
-			socket.IOControl(IOControlCode.KeepAliveValues, inArray, null);
+                byte[] inArray = new byte[size * 3];
+                Array.Copy(BitConverter.GetBytes(on), 0, inArray, 0, size);
+                Array.Copy(BitConverter.GetBytes(keepAliveInterval), 0, inArray, size, size);
+                Array.Copy(BitConverter.GetBytes(retryInterval), 0, inArray, size * 2, size);
+                socket.IOControl(IOControlCode.KeepAliveValues, inArray, null);
+            }
 		}
 	}
 

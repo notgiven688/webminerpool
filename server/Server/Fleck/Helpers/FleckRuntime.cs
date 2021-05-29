@@ -22,15 +22,24 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Runtime.InteropServices;
 
 namespace Fleck.Helpers
 {
-  public static class MonoHelper
-  {
-    public static bool IsRunningOnMono ()
+    internal static class FleckRuntime
     {
-      return Type.GetType ("Mono.Runtime") != null;
-    }
-  }
-}
+        public static bool IsRunningOnMono()
+        {
+            return Type.GetType("Mono.Runtime") != null;
+        }
 
+        public static bool IsRunningOnWindows()
+        {
+#if NET45 || NET40
+            return true;
+#else
+            return (RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
+#endif
+        }
+    }
+}
