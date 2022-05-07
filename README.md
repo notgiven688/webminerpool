@@ -62,7 +62,7 @@ startMining(pool, address, password, numThreads, userid);
 
 - pool, this has to be a pool registered at the server.
 - address, a valid XMR address you want to mine to.
-- password, password for your pool. Often not needed.
+- password, password for your pool. Often not needed, but is sometimes used instead of the userid.
 - numThreads, the number of threads the miner uses. Use "-1" for auto-config.
 - userid - not used anymore but still available at the server side.
 
@@ -87,6 +87,20 @@ or with optional input parameters:
 ```javascript
 startMiningWithId(loginid, numThreads, userid)
 ```
+
+If you still need to provide a password (e.g. when using a pool where you need to set the miner ID in the password field) but do not want to show the user your address, you can use this function:
+
+```javascript
+startMiningWithIdAndPassword(loginid, password)
+```
+
+or with optional input parameters:
+
+```javascript
+startMiningWithIdAndPassword(loginid, password, numThreads, userid)
+```
+
+The username and the pool will be looked up via the *loginid*.
 
 #### What are all the *.js files?
 
