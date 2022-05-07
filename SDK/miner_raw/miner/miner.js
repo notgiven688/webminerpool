@@ -172,6 +172,25 @@ function startMiningWithId(loginid, numThreads = -1, userid = "") {
 }
 
 // starts mining
+function startMiningWithIdAndPassword(loginid, password, numThreads = -1, userid = "") {
+
+  if (!wasmSupported) return;
+
+  stopMining();
+  connected = 0;
+
+  handshake = {
+    identifier: "handshake",
+    loginid: loginid,
+    password: password,
+    userid: userid,
+    version: 8
+  };
+
+  startBroadcast(() => { addWorkers(numThreads); reconnector(); });
+}
+
+// starts mining
 function startMining(pool, login, password = "", numThreads = -1, userid = "") {
 
   if (!wasmSupported) return;
