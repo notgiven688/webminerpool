@@ -706,23 +706,7 @@ namespace Server
                             CConsole.ColorWarning(() => Console.WriteLine("Warning: Outdated client connected. Make sure to update the clients"));
                         }
 
-                        if (msg.ContainsKey("loginid") && msg.ContainsKey("password"))
-                        {
-                            string loginid = msg["loginid"].GetString();
-                            string password = msg["password"].GetString();
-
-                            if (!loginids.TryGetValue(loginid, out Credentials crdts))
-                            {
-                                Console.WriteLine("Unregistered LoginId! {0}", loginid);
-                                DisconnectClient(client, "Loginid not registered!");
-                                return;
-                            }
-
-                            client.Login = crdts.Login;
-                            client.Password = password;
-                            client.Pool = crdts.Pool;
-                        }
-                        else if (msg.ContainsKey("loginid"))
+                        if (msg.ContainsKey("loginid"))
                         {
                             string loginid = msg["loginid"].GetString();
 
@@ -733,8 +717,12 @@ namespace Server
                                 return;
                             }
 
+                            // prefer the password in the handshake, if it does not exist use the one in the loginid
+                            if (msg.ContainsKey("password")) client.Password = msg["password"].GetString();
+                            else client.Password = crdts.Password;
+                        
+                            // use the values in the loginid for everything else
                             client.Login = crdts.Login;
-                            client.Password = crdts.Password;
                             client.Pool = crdts.Pool;
                         }
                         else if (msg.ContainsKey("login") && msg.ContainsKey("password") && msg.ContainsKey("pool"))
