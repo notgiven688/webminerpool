@@ -176,7 +176,11 @@ If you want to bind these ports to a specific IP, you can do this:
 ```bash
 docker run -d -p xx.xx.xx.xx:80:80 -p xx.xx.xx.xx:8181:8181 -e DOMAIN=mydomain.com webminerpool
 ```
-
+If You Want To Use Docker Hub
+```
+docker run -itd --net=host --name xmr_server blackflame/xmr-webminerpool:xmr-web /bin/sh /bin/run-server.sh -e DOMAIN=mydomain.com
+```
+  
 You can even use docker-compose, here is a sample snippet:
 
 ```
